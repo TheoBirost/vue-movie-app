@@ -5,14 +5,23 @@ defineProps({
 </script>
 
 <template>
-  <div class="cursor-pointer bg-white shadow rounded-xl p-3 hover:shadow-lg transition">
-    <img
-        :src="actor.photo?.url || '/img/default-actor.jpg'"
-        :alt="actor.firstname + ' ' + actor.lastname"
-        class="rounded-lg w-full h-48 object-cover"
-    />
-    <h3 class="mt-2 font-semibold text-center">
-      {{ actor.firstname }} {{ actor.lastname }}
-    </h3>
+  <div class="group cursor-pointer">
+    <div class="relative overflow-hidden rounded-2xl bg-gray-100 mb-3 aspect-square">
+      <img
+          :src="actor.photo?.url || '/img/default-actor.jpg'"
+          :alt="`${actor.firstname} ${actor.lastname}`"
+          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+      />
+      <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300"></div>
+    </div>
+
+    <div class="px-1">
+      <h3 class="font-semibold text-gray-900 text-base">
+        {{ actor.firstname }}
+      </h3>
+      <p class="text-gray-900 text-base">
+        {{ actor.lastname }}
+      </p>
+    </div>
   </div>
 </template>

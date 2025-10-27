@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from '/src/api'
+import api from '/src/api/api.js'
 import MovieCard from '/src/components/MovieCard.vue'
 import ActorCard from '/src/components/ActorCard.vue'
 import { useRouter } from 'vue-router'
@@ -9,7 +9,6 @@ const movies = ref([])
 const actors = ref([])
 const router = useRouter()
 
-// Redirections
 const goToMovie = (id) => router.push(`/movies/${id}`)
 const goToActor = (id) => router.push(`/actors/${id}`)
 
@@ -38,9 +37,8 @@ onMounted(async () => {
 
 <template>
   <div class="p-6 space-y-12">
-    <!-- Films -->
     <section>
-      <h2 class="text-3xl font-bold mb-6">🎬 Derniers Films</h2>
+      <h2 class="text-3xl font-bold mb-6"> Derniers Films</h2>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
         <MovieCard
             v-for="movie in movies"
@@ -52,9 +50,8 @@ onMounted(async () => {
       <p v-if="movies.length === 0" class="text-center text-gray-500">Aucun film à afficher</p>
     </section>
 
-    <!-- Acteurs -->
     <section>
-      <h2 class="text-3xl font-bold mb-6">🎭 Derniers Acteurs</h2>
+      <h2 class="text-3xl font-bold mb-6"> Derniers Acteurs</h2>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
         <ActorCard
             v-for="actor in actors"
