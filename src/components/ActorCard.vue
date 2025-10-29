@@ -6,11 +6,11 @@ defineProps({
 
 <template>
   <div class="group cursor-pointer">
-    <div class="relative overflow-hidden rounded-2xl bg-gray-100 mb-3 aspect-square">
+    <div class="relative overflow-hidden rounded-2xl bg-gray-100 mb-3 ">
       <img
           :src="actor.photo?.url || '/img/default-actor.jpg'"
           :alt="`${actor.firstname} ${actor.lastname}`"
-          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105"
       />
       <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300"></div>
     </div>

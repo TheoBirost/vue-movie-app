@@ -3,7 +3,7 @@ import { ref, onMounted, watch } from "vue"
 import { useRouter } from "vue-router"
 import api from "/src/api/api.js"
 import MovieForm from "/src/components/MovieForm.vue"
-import ConfirmDelete from "/src/components/ConfirmDelete.vue"
+import ConfirmDelete from "/src/components/ConfirmDeleteMovie.vue"
 
 const router = useRouter()
 
@@ -19,7 +19,7 @@ const selectedMovie = ref(null)
 const movieToDelete = ref(null)
 
 
-const limit = 16
+const limit = 12
 const fetchMovies = async () => {
   loading.value = true
   try {
@@ -88,12 +88,13 @@ onMounted(fetchMovies)
       <div class="mb-12">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
           <h1 class="text-5xl font-semibold text-gray-900 tracking-tight">
-            Films
+            Rechercher un film
           </h1>
           <button
               @click="selectedMovie = null; showForm = true"
-              class="bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 active:scale-95"
+              class="bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 active:scale-95 flex items-center gap-1"
           >
+            <span class="font-bold text-2xl">+ </span>
             Ajouter un film
           </button>
         </div>
@@ -105,7 +106,7 @@ onMounted(fetchMovies)
               class="w-full px-6 py-4 bg-gray-100 border-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-lg"
           />
           <span class="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 text-xl">
-            🔍
+           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
           </span>
         </div>
       </div>

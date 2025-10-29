@@ -5,6 +5,7 @@ import Home from './views/Home.vue'
 import Movies from './views/Movies.vue'
 import MovieDetails from '/src/views/MovieDetails.vue'
 import Actors from './views/Actors.vue'
+import ActorDetails from '/src/views/ActorDetails.vue'
 import Categories from './views/Categories.vue'
 import Profile from './views/Profile.vue'
 
@@ -16,6 +17,7 @@ const routes = [
     { path: '/movies', component: Movies },
     { path: '/movies/:id', component: MovieDetails },
     { path: '/actors', component: Actors },
+    { path: '/actors/:id', component: ActorDetails },
     { path: '/categories', component: Categories },
     { path: '/profile', component: Profile }
 ]
