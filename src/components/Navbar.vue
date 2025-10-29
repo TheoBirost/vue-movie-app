@@ -34,7 +34,7 @@ const navigation = [
       <div class="flex justify-between items-center h-16">
 
         <!-- Logo -->
-        <router-link to="/" class="flex items-center gap-3 group">
+        <router-link to="/home" class="flex items-center gap-3 group">
           <img class="h-10 w-10 transition-transform duration-200 group-hover:scale-105" src="/public/logo.png" alt="Logo">
           <span class="font-semibold text-xl text-gray-900">Movie's</span>
         </router-link>
