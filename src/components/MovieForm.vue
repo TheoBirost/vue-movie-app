@@ -64,7 +64,7 @@ const saveMovie = async () => {
   errors.value = null
 
   try {
-    const actorsIris = selectedActors.value.map(id => `/api/actors/${id}`)
+
 
     if (props.movie?.id) {
       await api.patch(`/movies/${props.movie.id}`, {

@@ -12,6 +12,7 @@ const search = ref("")
 const page = ref(1)
 const totalPages = ref(1)
 const loading = ref(false)
+const errorMessage = ref("")
 
 const showForm = ref(false)
 const showConfirm = ref(false)
@@ -22,6 +23,7 @@ const movieToDelete = ref(null)
 const limit = 12
 const fetchMovies = async () => {
   loading.value = true
+  errorMessage.value = ""
   try {
     const res = await api.get("/movies", {
       params: {
@@ -32,13 +34,17 @@ const fetchMovies = async () => {
       },
     })
 
-    console.log(res.data)
-
     movies.value = res.data.member || []
     const totalItems = res.data.totalItems || 0
     totalPages.value = Math.max(1, Math.ceil(totalItems / limit))
   } catch (err) {
-    console.error("Erreur lors du chargement :", err)
+    if (err.response) {
+      errorMessage.value = `Erreur ${err.response.status} : ${err.response.data.message || "Non spécifié"}`
+    } else if (err.request) {
+      errorMessage.value = "Aucun Acteur trouvée"
+    } else {
+      errorMessage.value = err.message
+    }
   } finally {
     loading.value = false
   }
@@ -76,10 +82,22 @@ watch(search, () => {
   searchTimeout = setTimeout(() => {
     page.value = 1
     fetchMovies()
-  }, 300)
+  }, 150)
 })
 
 onMounted(fetchMovies)
+
+const userRole = ref('')
+
+onMounted(async () => {
+  try {
+    const res = await api.get(import.meta.env.VITE_API_URL_USER)
+    userRole.value = res.data.roles[0] || 'aucun rôle'
+  } catch (err) {
+    console.error("Erreur récupération rôle :", err)
+  }
+})
+
 </script>
 
 <template>
@@ -92,6 +110,7 @@ onMounted(fetchMovies)
           </h1>
           <button
               @click="selectedMovie = null; showForm = true"
+              v-if="userRole === 'ROLE_ADMIN'"
               class="bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 active:scale-95 flex items-center gap-1"
           >
             <span class="font-bold text-2xl">+ </span>
@@ -140,7 +159,7 @@ onMounted(fetchMovies)
             </p>
           </div>
 
-          <div class="flex gap-2">
+          <div class="flex gap-2" v-if="userRole === 'ROLE_ADMIN'">
             <button
                 @click.stop="editMovie(movie)"
                 class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium px-4 py-2 rounded-xl transition-all duration-200 active:scale-95 text-sm"
@@ -158,7 +177,9 @@ onMounted(fetchMovies)
       </div>
 
       <div v-else class="text-center py-20">
-        <p class="text-gray-400 text-lg">Aucun film trouvé</p>
+        <p class="text-gray-400 text-lg">
+          {{errorMessage || "Aucun film trouvé"}}
+        </p>
       </div>
 
       <div v-if="totalPages > 1" class="flex justify-center items-center gap-4 mt-16">
