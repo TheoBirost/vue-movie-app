@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, watch } from "vue"
-import api, { getUserRole } from "/src/api/api.js"
+import api from "/src/api/api.js"
 import CategoryForm from "/src/components/CategoryForm.vue"
 import ConfirmDeleteCategory from "/src/components/ConfirmDeleteCategory.vue"
 
@@ -15,7 +15,6 @@ const showForm = ref(false)
 const showConfirm = ref(false)
 const selectedCategory = ref(null)
 const categoryToDelete = ref(null)
-const userRole = ref(getUserRole())
 
 const limit = 12
 
@@ -23,7 +22,6 @@ const fetchCategories = async () => {
   loading.value = true
   errorMessage.value = ""
   try {
-    const token = localStorage.getItem("token")
     const res = await api.get("/categories", {
       params: {
         page: page.value,
@@ -87,6 +85,17 @@ watch(search, () => {
 })
 
 onMounted(fetchCategories)
+
+const userRole = ref('')
+
+onMounted(async () => {
+  try {
+    const res = await api.get(import.meta.env.VITE_API_URL_USER)
+    userRole.value = res.data.roles[0] || 'aucun rôle'
+  } catch (err) {
+    console.error("Erreur récupération rôle :", err)
+  }
+})
 </script>
 
 <template>
@@ -98,7 +107,7 @@ onMounted(fetchCategories)
         </h1>
         <button
             @click="selectedCategory = null; showForm = true"
-            v-if="userRole === 'admin'"
+            v-if="userRole === 'ROLE_ADMIN'"
             class="bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 active:scale-95 flex items-center gap-1"
         >
           <span class="font-bold text-2xl"> + </span>
@@ -134,7 +143,7 @@ onMounted(fetchCategories)
         >
           <h3 class="font-semibold text-gray-900 text-lg mb-2">{{ category.name }}</h3>
           <p class="text-gray-500 text-sm mb-4">Films associés : {{ category.moviesCount || 0 }}</p>
-          <div class="flex gap-2" v-if="userRole === 'admin'">
+          <div class="flex gap-2" v-if="userRole === 'ROLE_ADMIN'">
             <button
                 @click.stop="editCategory(category)"
                 class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium px-4 py-2 rounded-xl transition-all duration-200 active:scale-95 text-sm"

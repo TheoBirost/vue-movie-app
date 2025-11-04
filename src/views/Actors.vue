@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, watch } from "vue"
 import { useRouter } from "vue-router"
-import api from "/src/api/api.js"
+import api from '/src/api/api.js'
 import ActorForm from "/src/components/ActorForm.vue"
 import ConfirmDeleteActor from "/src/components/ConfirmDeleteActor.vue"
 
@@ -12,6 +12,7 @@ const search = ref("")
 const page = ref(1)
 const totalPages = ref(1)
 const loading = ref(false)
+const errorMessage = ref("")
 
 const showForm = ref(false)
 const showConfirm = ref(false)
@@ -22,6 +23,7 @@ const limit = 12
 
 const fetchActors = async () => {
   loading.value = true
+  errorMessage.value = ""
   try {
     const res = await api.get("/actors", {
       params: {
@@ -32,13 +34,17 @@ const fetchActors = async () => {
       },
     })
 
-
-
     actors.value = res.data.member || []
     const totalItems = res.data.totalItems || 0
     totalPages.value = Math.max(1, Math.ceil(totalItems / limit))
   } catch (err) {
-    console.error("Erreur lors du chargement :", err)
+    if (err.response) {
+      errorMessage.value = `Erreur ${err.response.status} : ${err.response.data.message || "Non spécifié"}`
+    } else if (err.request) {
+      errorMessage.value = "Aucun Acteur trouvé"
+    } else {
+      errorMessage.value = err.message
+    }
   } finally {
     loading.value = false
   }
@@ -75,10 +81,21 @@ watch(search, () => {
   searchTimeout = setTimeout(() => {
     page.value = 1
     fetchActors()
-  }, 300)
+  }, 150)
 })
 
 onMounted(fetchActors)
+
+const userRole = ref('')
+
+onMounted(async () => {
+  try {
+    const res = await api.get(import.meta.env.VITE_API_URL_USER)
+    userRole.value = res.data.roles[0] || 'aucun rôle'
+  } catch (err) {
+    console.error("Erreur récupération rôle :", err)
+  }
+})
 </script>
 
 <template>
@@ -91,6 +108,7 @@ onMounted(fetchActors)
           </h1>
           <button
               @click="selectedActor = null; showForm = true"
+              v-if="userRole === 'ROLE_ADMIN'"
               class="bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 active:scale-95 flex items-center gap-1"
           >
             <span class="font-bold text-2xl"> + </span>
@@ -141,13 +159,14 @@ onMounted(fetchActors)
             </div>
           </div>
 
-          <div class="flex gap-2">
+          <div class="flex gap-2" v-if="userRole === 'ROLE_ADMIN'">
             <button
                 @click.stop="editActor(actor)"
                 class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium px-4 py-2 rounded-xl transition-all duration-200 active:scale-95 text-sm"
             >
               Modifier
             </button>
+
             <button
                 @click.stop="confirmDelete(actor)"
                 class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium px-4 py-2 rounded-xl transition-all duration-200 active:scale-95 text-sm"
@@ -159,29 +178,9 @@ onMounted(fetchActors)
       </div>
 
       <div v-else class="text-center py-20">
-        <p class="text-gray-400 text-lg">Aucun acteur trouvé</p>
-      </div>
-
-      <div v-if="totalPages > 1" class="flex justify-center items-center gap-4 mt-16">
-        <button
-            :disabled="page === 1"
-            @click="page > 1 && page--"
-            class="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-gray-100 transition-all duration-200 active:scale-95 flex items-center justify-center"
-        >
-          ◀
-        </button>
-
-        <span class="text-gray-600 font-medium min-w-[120px] text-center">
-          Page {{ page }} sur {{ totalPages }}
-        </span>
-
-        <button
-            :disabled="page === totalPages"
-            @click="page < totalPages && page++"
-            class="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-gray-100 transition-all duration-200 active:scale-95 flex items-center justify-center"
-        >
-          ▶
-        </button>
+        <p class="text-gray-400 text-lg">
+          {{errorMessage || "Aucun acteur trouvé"}}
+        </p>
       </div>
     </section>
 
