@@ -30,7 +30,7 @@ onMounted(async () => {
   }
 })
 
-const handleLogin = (newPhoto) => { // 👈 on reçoit la photo
+const handleLogin = (newPhoto) => {
   loggedIn.value = true
   photo.value = newPhoto || '/default-avatar.png'
 }
@@ -53,7 +53,5 @@ const showNavbar = computed(() => !route.meta.hideNavbar)
       :photo="photo"
       @logout="handleLogout"
   />
-
-  <!-- 👇 On écoute le login avec la photo -->
   <router-view @login-success="handleLogin" />
 </template>
