@@ -4,6 +4,7 @@ import { useRouter } from "vue-router"
 import api from "/src/api/api.js"
 import MovieForm from "/src/components/MovieForm.vue"
 import ConfirmDelete from "/src/components/ConfirmDeleteMovie.vue"
+import MovieCard from "/src/components/MovieCard.vue"
 
 const router = useRouter()
 
@@ -18,7 +19,6 @@ const showForm = ref(false)
 const showConfirm = ref(false)
 const selectedMovie = ref(null)
 const movieToDelete = ref(null)
-
 
 const limit = 12
 const fetchMovies = async () => {
@@ -41,7 +41,7 @@ const fetchMovies = async () => {
     if (err.response) {
       errorMessage.value = `Erreur ${err.response.status} : ${err.response.data.message || "Non spécifié"}`
     } else if (err.request) {
-      errorMessage.value = "Aucun Acteur trouvée"
+      errorMessage.value = "Aucun film trouvé"
     } else {
       errorMessage.value = err.message
     }
@@ -49,7 +49,6 @@ const fetchMovies = async () => {
     loading.value = false
   }
 }
-
 
 const goToMovie = (id) => router.push(`/movies/${id}`)
 
@@ -97,7 +96,6 @@ onMounted(async () => {
     console.error("Erreur récupération rôle :", err)
   }
 })
-
 </script>
 
 <template>
@@ -139,27 +137,11 @@ onMounted(async () => {
           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
       >
         <div v-for="movie in movies" :key="movie.id" class="group">
-          <div @click="goToMovie(movie.id)" class="cursor-pointer mb-4">
-            <div class="relative overflow-hidden rounded-2xl bg-gray-100 mb-4">
-              <img
-                  :src="movie.image?.url || '/img/default-movie.jpg'"
-                  :alt="movie.name"
-                  class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <div
-                  class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300"
-              ></div>
-            </div>
-
-            <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">
-              {{ movie.name }}
-            </h3>
-            <p class="text-gray-500 text-sm line-clamp-2 leading-relaxed">
-              {{ movie.description }}
-            </p>
+          <div @click="goToMovie(movie.id)">
+            <MovieCard :movie="movie" />
           </div>
 
-          <div class="flex gap-2" v-if="userRole === 'ROLE_ADMIN'">
+          <div class="flex gap-2 mt-4" v-if="userRole === 'ROLE_ADMIN'">
             <button
                 @click.stop="editMovie(movie)"
                 class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium px-4 py-2 rounded-xl transition-all duration-200 active:scale-95 text-sm"
