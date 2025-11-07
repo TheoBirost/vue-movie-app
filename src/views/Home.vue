@@ -77,8 +77,17 @@ onMounted(async () => {
         <h2 class="text-3xl font-bold mb-6">Derniers Acteurs</h2>
 
         <div v-if="errorMessage" class="text-center text-gray-400 text-lg py-6">
-          {{ errorMessage || "Aucune acteur trouvé" }}
+          {{ errorMessage || "Aucun acteur trouvé" }}
         </div>
+        <div v-if="errorMessage" class="text-center py-20">
+          <router-link
+              to="/"
+              class="mt-8 inline-block bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 active:scale-95 items-center gap-1"
+          >
+            <span>Se reconnecter</span>
+          </router-link>
+        </div>
+
         <div v-else>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             <ActorCard

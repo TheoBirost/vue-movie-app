@@ -163,6 +163,13 @@ onMounted(async () => {
         <p class="text-gray-400 text-lg">
           {{ errorMessage || "Aucune catégorie trouvée" }}
         </p>
+        <router-link
+            v-if="errorMessage"
+            to="/"
+            class="mt-8 inline-block bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 active:scale-95 items-center gap-1"
+        >
+          <span>Se reconnecter</span>
+        </router-link>
       </div>
 
 
