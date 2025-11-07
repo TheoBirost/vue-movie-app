@@ -2,8 +2,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+
 const props = defineProps({
-  loggedIn: Boolean
+  loggedIn: Boolean,
+  photo: String
 })
 
 const emit = defineEmits(['logout'])
@@ -57,7 +59,7 @@ const navigation = [
               class="transition-transform duration-200 hover:scale-105"
           >
             <img
-                src="https://placehold.co/36x36"
+                :src="props.photo || 'https://placehold.co/36x36'"
                 alt="Profile"
                 class="w-9 h-9 rounded-full ring-2 ring-gray-200 hover:ring-gray-300 transition-all"
             />
@@ -118,9 +120,9 @@ const navigation = [
               @click="isOpen = false"
           >
             <img
-                src="https://placehold.co/32x32"
+                :src="photo"
                 alt="Profile"
-                class="w-8 h-8 rounded-full ring-2 ring-gray-200"
+                class="w-9 h-9 rounded-full ring-2 ring-gray-200 hover:ring-gray-300 transition-all"
             />
             <span>Profil</span>
           </router-link>
