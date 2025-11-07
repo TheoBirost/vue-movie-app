@@ -32,7 +32,6 @@ onMounted(async () => {
     actors.value = dataActors.sort((a, b) => b.id - a.id).slice(0, 4)
 
   } catch (err) {
-    console.error('❌ Erreur lors du chargement des données :', err)
     if (err.response) {
       errorMessage.value = `Erreur ${err.response.status} : ${err.response.data.message || "Non spécifié"}`
     } else if (err.request) {

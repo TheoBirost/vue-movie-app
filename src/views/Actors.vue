@@ -4,6 +4,8 @@ import { useRouter } from "vue-router"
 import api from '/src/api/api.js'
 import ActorForm from "/src/components/ActorForm.vue"
 import ConfirmDeleteActor from "/src/components/ConfirmDeleteActor.vue"
+import MovieCard from "../components/MovieCard.vue";
+import ActorCard from "../components/ActorCard.vue";
 
 const router = useRouter()
 
@@ -93,7 +95,7 @@ onMounted(async () => {
     const res = await api.get(import.meta.env.VITE_API_URL_USER)
     userRole.value = res.data.roles[0] || 'aucun rôle'
   } catch (err) {
-    console.error("Erreur récupération rôle :", err)
+
   }
 })
 </script>
@@ -138,7 +140,7 @@ onMounted(async () => {
       >
         <div v-for="actor in actors" :key="actor.id" class="group">
           <div @click="goToActor(actor.id)" class="cursor-pointer mb-4">
-            <div class="relative overflow-hidden rounded-2xl bg-gray-100 mb-3">
+      <!--      <div class="relative overflow-hidden rounded-2xl bg-gray-100 mb-3">
               <img
                   :src="actor.photo?.url || '/img/default-actor.jpg'"
                   :alt="`${actor.firstname} ${actor.lastname}`"
@@ -157,6 +159,8 @@ onMounted(async () => {
                 {{ actor.lastname }}
               </p>
             </div>
+      -->
+            <ActorCard :actor="actor" />
           </div>
 
           <div class="flex gap-2" v-if="userRole === 'ROLE_ADMIN'">
@@ -181,6 +185,27 @@ onMounted(async () => {
         <p class="text-gray-400 text-lg">
           {{errorMessage || "Aucun acteur trouvé"}}
         </p>
+      </div>
+      <div v-if="totalPages > 1" class="flex justify-center items-center gap-4 mt-16">
+        <button
+            :disabled="page === 1"
+            @click="page > 1 && page--"
+            class="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-gray-100 transition-all duration-200 active:scale-95 flex items-center justify-center"
+        >
+          ◀
+        </button>
+
+        <span class="text-gray-600 font-medium min-w-[120px] text-center">
+          Page {{ page }} sur {{ totalPages }}
+        </span>
+
+        <button
+            :disabled="page === totalPages"
+            @click="page < totalPages && page++"
+            class="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-gray-100 transition-all duration-200 active:scale-95 flex items-center justify-center"
+        >
+          ▶
+        </button>
       </div>
     </section>
 

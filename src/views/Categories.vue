@@ -93,7 +93,6 @@ onMounted(async () => {
     const res = await api.get(import.meta.env.VITE_API_URL_USER)
     userRole.value = res.data.roles[0] || 'aucun rôle'
   } catch (err) {
-    console.error("Erreur récupération rôle :", err)
   }
 })
 </script>
