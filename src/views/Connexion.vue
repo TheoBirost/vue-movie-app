@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import api from '/src/api/api.js'
 
 const router = useRouter()
 const emit = defineEmits(['login-success'])
@@ -15,20 +16,38 @@ const login = async (e) => {
   errorMessage.value = ''
 
   try {
+    // Authentification
     const response = await axios.post(import.meta.env.VITE_API_URL_AUTH, {
       email: email.value,
       password: password.value
     })
+
     const token = response.data.token
     localStorage.setItem('token', token)
     localStorage.setItem('loggedIn', 'true')
-    emit('login-success')
+
+    // ✅ Après la connexion : on récupère la photo utilisateur
+    const userRes = await api.get(import.meta.env.VITE_API_URL_USER)
+    const baseUrl = import.meta.env.VITE_API_BASE_URL
+    const photo = userRes.data.photo
+        ? `${baseUrl}${userRes.data.photo}`
+        : '/default-avatar.png'
+
+    // On garde la photo en cache
+    localStorage.setItem('userPhoto', photo)
+
+    // 👇 Et on envoie la photo à App.vue
+    emit('login-success', photo)
+
+    // Puis redirection
     await router.push('/home')
+
   } catch (error) {
     errorMessage.value = "Email ou mot de passe incorrect"
   }
 }
 </script>
+
 
 <template>
   <div class="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center px-6 py-12">
@@ -59,6 +78,7 @@ const login = async (e) => {
               id="password"
               required
               placeholder="********"
+              autoComplete="off"
               class="w-full px-5 py-3 rounded-2xl bg-gray-100 border-0 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-lg"
           />
         </div>
