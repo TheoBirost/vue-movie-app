@@ -11,11 +11,17 @@ const loading = ref(true)
 
 onMounted(async () => {
   try {
-    // Charger le film
     const res = await api.get(`/movies/${route.params.id}`)
     const movieData = res.data
 
-    // Si les acteurs sont des IRI → on les charge
+    if (movieData.releaseDate) {
+      const date = new Date(movieData.releaseDate)
+      const day = String(date.getDate()).padStart(2, '0')
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const year = date.getFullYear()
+      movieData.releaseDate = `${day}-${month}-${year}`
+    }
+
     if (Array.isArray(movieData.actors) && typeof movieData.actors[0] === 'string') {
       const actorPromises = movieData.actors.map(async (iri) => {
         const actorId = iri.match(/\/(\d+)$/)?.[1]
@@ -39,18 +45,16 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
 </script>
 
 <template>
   <div class="min-h-screen bg-gradient-to-b from-white to-gray-50">
-    <!-- État de chargement -->
     <div v-if="loading" class="flex items-center justify-center min-h-[70vh]">
       <div class="text-gray-400 text-lg animate-pulse">Chargement...</div>
     </div>
 
-    <!-- Contenu du film -->
     <section v-else-if="movie" class="max-w-6xl mx-auto px-6 py-12">
-      <!-- Bouton retour -->
       <button
           @click="router.back()"
           class="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8 group transition-all"
@@ -65,31 +69,37 @@ onMounted(async () => {
       </button>
 
       <div class="mb-16">
-        <div v-if="movie.image?.url"
-             class="mb-8 rounded-3xl overflow-hidden bg-gray-100 max-w-2xl">
+        <h1 class="text-6xl font-semibold mb-6 text-gray-900 tracking-tight leading-tight">
+          {{ movie.name }}
+        </h1>
+
+        <div class="max-w-52 min-w-52 min-h-28 max-h-28 relative overflow-hidden rounded-2xl bg-gray-100 mb-3">
           <img
-              :src="movie.image.url"
+              :src="movie.url ? movie.url : 'http://localhost:8319/public/medie/images/default-film-690e4f5a324eb814818442.jpg'"
               :alt="movie.name"
               class="w-full h-auto object-cover"
           />
         </div>
 
-        <h1 class="text-6xl font-semibold mb-6 text-gray-900 tracking-tight leading-tight">
-          {{ movie.name }}
-        </h1>
-
-        <p v-if="movie.releaseDate" class="text-lg text-gray-500 mb-6">
-          {{ new Date(movie.releaseDate).getFullYear() }}
+        <p class="text-lg text-gray-600 mb-6">
+          Date de sortie : {{ movie.releaseDate }}
         </p>
 
         <p class="text-xl text-gray-600 leading-relaxed max-w-3xl">
           {{ movie.description }}
         </p>
+        <br>
+        <p class="text-xl text-gray-600 leading-relaxed max-w-3xl">
+          Le budget total du film est de {{movie.budget}} dollars ($)
+        </p>
+        <br>
+        <p class="text-xl text-gray-600 leading-relaxed max-w-3xl">
+          Le film dure {{movie.duration}} minutes
+        </p>
       </div>
 
-      <!-- Distribution -->
       <div v-if="movie.actors && movie.actors.length > 0">
-        <h2 class="text-4xl font-semibold mb-10 text-gray-900">Distribution</h2>
+        <h2 class="text-4xl font-semibold mb-10 text-gray-900">Acteur(s) dans ce film</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
           <div
               v-for="actor in movie.actors"
@@ -107,7 +117,6 @@ onMounted(async () => {
       </div>
     </section>
 
-    <!-- Si le film est introuvable -->
     <div v-else class="flex flex-col items-center justify-center min-h-[70vh]">
       <p class="text-gray-400 text-xl mb-6">Film introuvable</p>
       <button

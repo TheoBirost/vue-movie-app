@@ -2,13 +2,19 @@
 defineProps({
   movie: { type: Object, required: true }
 })
+const getYear = (dateString) => {
+  if (!dateString) return '—'
+  const date = new Date(dateString)
+  if (isNaN(date)) return '—'
+  return date.getFullYear()
+}
 </script>
 
 <template>
   <div class="group cursor-pointer">
     <div class="relative overflow-hidden rounded-2xl bg-gray-100 mb-3">
       <img
-          :src="movie.image?.url || '/img/default-movie.jpg'"
+          :src="movie.url ? movie.url : '/default-film.jpeg'"
           :alt="movie.name"
           class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105"
       />
@@ -20,8 +26,8 @@ defineProps({
         {{ movie.name }}
       </h3>
 
-      <p v-if="movie.releaseDate" class="text-sm text-gray-500">
-        {{ new Date(movie.releaseDate).getFullYear() }}
+      <p class="text-lg text-gray-600 mb-6">
+        Sortie du film en  {{ getYear(movie.releaseDate) }}
       </p>
     </div>
   </div>
