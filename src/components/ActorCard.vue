@@ -8,7 +8,7 @@ defineProps({
   <div class="group cursor-pointer">
     <div class="relative overflow-hidden rounded-2xl bg-gray-100 mb-3 ">
       <img
-          :src="actor.photo?.url || '/img/default-actor.jpg'"
+          :src="actor.url || '/img/default-actor.jpg'"
           :alt="`${actor.firstname} ${actor.lastname}`"
           class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105"
       />
@@ -17,11 +17,10 @@ defineProps({
 
     <div class="px-1">
       <h3 class="font-semibold text-gray-900 text-base">
-        {{ actor.firstname }}
+        {{ actor.firstname }} - <strong class="uppercase font-semibold">{{ actor.lastname }}</strong>
+
       </h3>
-      <p class="text-gray-900 text-base">
-        {{ actor.lastname }}
-      </p>
+
     </div>
   </div>
 </template>
