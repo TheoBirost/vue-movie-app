@@ -60,7 +60,7 @@ const navigation = [
             <img
                 :src="props.photo || 'https://placehold.co/36x36'"
                 alt="Profile"
-                class="w-9 h-9 rounded-full ring-2 ring-gray-200 hover:ring-gray-300 transition-all"
+                class="w-8 h-8 rounded-full ring-2 ring-gray-200 hover:ring-gray-300 transition-all"
             />
           </router-link>
 
@@ -70,7 +70,7 @@ const navigation = [
               class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 active:scale-95"
               title="Déconnexion"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="m16 17 5-5-5-5"/>
               <path d="M21 12H9"/>
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -121,7 +121,7 @@ const navigation = [
             <img
                 :src="photo"
                 alt="Profile"
-                class="w-9 h-9 rounded-full ring-2 ring-gray-200 hover:ring-gray-300 transition-all"
+                class="w-8 h-8 rounded-full ring-2 ring-gray-200 hover:ring-gray-300 transition-all"
             />
             <span>Profil</span>
           </router-link>
@@ -131,7 +131,7 @@ const navigation = [
               @click="logout"
               class="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="m16 17 5-5-5-5"/>
               <path d="M21 12H9"/>
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
