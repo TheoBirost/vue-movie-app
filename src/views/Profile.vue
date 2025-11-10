@@ -40,7 +40,6 @@ const deleteUser = async () => {
       headers: { 'Content-Type': '' }
     })
 
-
     showConfirm.value = false
     userToDelete.value = null
 
@@ -78,7 +77,6 @@ async function fetchUser() {
   errorMessage.value = ""
   try {
     const res = await api.get(import.meta.env.VITE_API_URL_USER)
-    console.log("Données utilisateur reçues:", res.data)
 
     if (res.data) {
       userId.value = res.data.id
@@ -136,16 +134,30 @@ onMounted(fetchUser)
 
       <div v-else>
         <div class="text-center mb-12">
-          <div class="flex justify-center mb-6">
+          <div class="relative inline-block mb-6">
             <img
                 :src="photo"
                 alt="Photo de profil"
                 class="w-28 h-28 rounded-full object-cover shadow-md ring-2 ring-gray-200"
             />
+            <button
+                class="absolute bottom-0 right-0 bg-white hover:bg-gray-50 text-gray-700 w-9 h-9 rounded-full shadow-lg border border-gray-200 transition-all duration-200 active:scale-95 flex items-center justify-center"
+                title="Changer la photo"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
           </div>
 
           <h2 class="text-2xl font-semibold mb-2">{{ firstname }} {{ lastname }}</h2>
-          <span class="inline-block px-3 py-1 bg-blue-100 text-blue-600 text-sm font-medium rounded-full uppercase tracking-wide">
+          <span
+              :class="userRole === 'ROLE_ADMIN'
+              ? 'bg-purple-100 text-purple-700'
+              : 'bg-green-100 text-green-700'"
+              class="inline-block px-3 py-1 text-sm font-medium rounded-full uppercase tracking-wide"
+          >
             {{ formattedRole }}
           </span>
         </div>
@@ -161,34 +173,39 @@ onMounted(fetchUser)
           </div>
         </div>
 
-        <div class="flex justify-center mt-10 space-x-5">
+        <div class="flex gap-3 mt-8">
           <button
               @click.stop="editUser({
-                id: userId,
-                firstname: firstname,
-                lastname: lastname,
-                email: email,
-                dob: dob,
-                roles: [userRole],
-                photo: photo
-              })"
-              class="px-6 py-3.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-medium shadow-sm transition-all duration-200 active:scale-95"
+        id: userId,
+        firstname: firstname,
+        lastname: lastname,
+        email: email,
+        dob: dob,
+        roles: [userRole],
+        photo: photo
+      })"
+              class="flex-1 px-6 py-3.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-medium shadow-sm transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2"
           >
-            Modifier
-          </button>
-
-          <button class="px-6 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium rounded-xl transition-all duration-200 active:scale-95 text-sm">
-            Changer la photo
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <span>Modifier</span>
           </button>
 
           <router-link
               v-if="role === 'admin'"
               to="/users"
-              class="px-6 py-3.5 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-xl transition-all duration-200 active:scale-95 text-sm"
+              class="flex-1 px-6 py-3.5 bg-purple-50 hover:bg-purple-100 text-purple-700 font-medium rounded-xl transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2"
           >
-            <span>Gérer les Users</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <span>Gérer Users</span>
           </router-link>
+        </div>
 
+        <div class="mt-12 pt-8 border-t border-gray-200">
+          <h3 class="text-sm font-semibold text-gray-700 mb-4">Zone de danger</h3>
           <button
               @click.stop="confirmDelete({
                 id: userId,
@@ -198,10 +215,16 @@ onMounted(fetchUser)
                 dob: dob,
                 roles: [userRole]
               })"
-              class="px-6 py-3.5 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-xl transition-all duration-200 active:scale-95 text-sm"
+              class="w-full px-6 py-3.5 bg-white hover:bg-red-50 text-red-600 font-medium rounded-xl border-2 border-red-200 hover:border-red-300 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2"
           >
-            Supprimer
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span>Supprimer mon compte</span>
           </button>
+          <p class="text-xs text-gray-500 mt-2 text-center">
+            Cette action est irréversible et supprimera définitivement votre compte
+          </p>
         </div>
       </div>
     </section>

@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router'
 import api from '/src/api/api.js'
 
 const loggedIn = ref(false)
-const photo = ref('/default-avatar.png')
+const photo = ref('http://localhost:8319/media/images/default-avatar-690e4f3d71cc3431908037.jpg')
 
 onMounted(async () => {
   loggedIn.value = localStorage.getItem('loggedIn') === 'true'
@@ -20,11 +20,11 @@ onMounted(async () => {
         const baseUrl = import.meta.env.VITE_API_BASE_URL
         photo.value = res.data.photo
             ? `${baseUrl}${res.data.photo}`
-            : '/default-avatar.png'
+            : 'http://localhost:8319/media/images/default-avatar-690e4f3d71cc3431908037.jpg'
 
         localStorage.setItem('userPhoto', photo.value)
       } catch {
-        photo.value = '/default-avatar.png'
+        photo.value = 'http://localhost:8319/media/images/default-avatar-690e4f3d71cc3431908037.jpg'
       }
     }
   }
@@ -32,14 +32,14 @@ onMounted(async () => {
 
 const handleLogin = (newPhoto) => {
   loggedIn.value = true
-  photo.value = newPhoto || '/default-avatar.png'
+  photo.value = newPhoto || 'http://localhost:8319/media/images/default-avatar-690e4f3d71cc3431908037.jpg'
 }
 
 const handleLogout = () => {
   loggedIn.value = false
   localStorage.removeItem('loggedIn')
   localStorage.removeItem('userPhoto')
-  photo.value = '/default-avatar.png'
+  photo.value = 'http://localhost:8319/media/images/default-avatar-690e4f3d71cc3431908037.jpg'
 }
 
 const route = useRoute()
