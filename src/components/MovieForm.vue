@@ -148,62 +148,91 @@ const saveMovie = async () => {
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 px-4">
-    <div class="bg-white/90 backdrop-blur-xl rounded-2xl w-full max-w-lg p-8 shadow-2xl border border-gray-200/50 transition-all duration-200 animate-fadeIn">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-6 text-center">
-        {{ props.movie ? 'Modifier un film' : 'Ajouter un film' }}
-      </h2>
+  <div class="fixed inset-0 bg-black/80 backdrop-blur-md flex justify-center items-center z-50 px-4 animate-fadeIn">
+    <div class="bg-[var(--color-gigas-900)]/95 backdrop-blur-2xl rounded-3xl w-full max-w-2xl p-8 shadow-2xl border border-[var(--color-gigas-700)]/50 transition-all duration-300 animate-slideUp max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-3xl font-bold text-[var(--color-gigas-300)]">
+          {{ props.movie ? 'Modifier le film' : 'Nouveau film' }}
+        </h2>
+        <button @click="emit('close')" class="p-2 hover:bg-[var(--color-gigas-800)]/60 rounded-xl transition-all text-[var(--color-gigas-300)] hover:text-white">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
 
       <div class="space-y-5">
-        <input v-model="title" placeholder="Titre du film"
-               class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" />
-
-        <textarea v-model="description" placeholder="Description"
-                  class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl h-28 resize-none focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"></textarea>
-
-        <input v-model="releaseDate" type="date" placeholder="Date de sortie"
-               class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" />
-
-        <input v-model="budget" type="number" placeholder="Budget en dollars"
-               class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" />
-
-        <input v-model="duration" type="number" placeholder="Durée en minutes"
-               class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" />
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-gigas-300)] mb-2">Titre du film</label>
+          <input v-model="title" placeholder="Ex: Inception"
+                 class="w-full px-5 py-3.5 bg-[var(--color-gigas-800)]/60 backdrop-blur-sm text-white border border-[var(--color-gigas-700)]/50 rounded-xl focus:ring-2 focus:ring-[var(--color-gigas-500)] focus:outline-none focus:border-[var(--color-gigas-500)] transition-all placeholder-[var(--color-gigas-500)]" />
+        </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-3">Acteurs</label>
-          <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 max-h-48 overflow-y-auto space-y-2">
+          <label class="block text-sm font-medium text-[var(--color-gigas-300)] mb-2">Description</label>
+          <textarea v-model="description" placeholder="Décrivez l'intrigue du film..."
+                    class="w-full px-5 py-3.5 bg-[var(--color-gigas-800)]/60 backdrop-blur-sm text-white border border-[var(--color-gigas-700)]/50 rounded-xl h-32 resize-none focus:ring-2 focus:ring-[var(--color-gigas-500)] focus:outline-none focus:border-[var(--color-gigas-500)] transition-all placeholder-[var(--color-gigas-500)]"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-gigas-300)] mb-2">Date de sortie</label>
+            <input v-model="releaseDate" type="date"
+                   class="w-full px-5 py-3.5 bg-[var(--color-gigas-800)]/60 backdrop-blur-sm text-white border border-[var(--color-gigas-700)]/50 rounded-xl focus:ring-2 focus:ring-[var(--color-gigas-500)] focus:outline-none focus:border-[var(--color-gigas-500)] transition-all" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[var(--color-gigas-300)] mb-2">Durée (min)</label>
+            <input v-model="duration" type="number" placeholder="120"
+                   class="w-full px-5 py-3.5 bg-[var(--color-gigas-800)]/60 backdrop-blur-sm text-white border border-[var(--color-gigas-700)]/50 rounded-xl focus:ring-2 focus:ring-[var(--color-gigas-500)] focus:outline-none focus:border-[var(--color-gigas-500)] transition-all placeholder-[var(--color-gigas-500)]" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-gigas-300)] mb-2">Budget ($)</label>
+          <input v-model="budget" type="number" placeholder="10000000"
+                 class="w-full px-5 py-3.5 bg-[var(--color-gigas-800)]/60 backdrop-blur-sm text-white border border-[var(--color-gigas-700)]/50 rounded-xl focus:ring-2 focus:ring-[var(--color-gigas-500)] focus:outline-none focus:border-[var(--color-gigas-500)] transition-all placeholder-[var(--color-gigas-500)]" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-[var(--color-gigas-300)] mb-3">Acteurs ({{ selectedActors.length }} sélectionné{{ selectedActors.length > 1 ? 's' : '' }})</label>
+          <div class="bg-[var(--color-gigas-800)]/60 backdrop-blur-sm border border-[var(--color-gigas-700)]/50 rounded-xl p-4 max-h-64 overflow-y-auto space-y-2 custom-scrollbar">
             <div v-for="actor in allActors" :key="actor.id"
-                 class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100 transition-all cursor-pointer"
+                 class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--color-gigas-700)]/60 transition-all cursor-pointer group"
                  @click="toggleActor(actor.id)">
-              <div class="flex items-center gap-3">
-                <div class="w-5 h-5 flex items-center justify-center border rounded-md transition-all"
-                     :class="selectedActors.includes(actor.id)
-                     ? 'bg-blue-600 border-blue-600'
-                     : 'bg-white border-gray-300'">
-                  <svg v-if="selectedActors.includes(actor.id)" xmlns="http://www.w3.org/2000/svg"
-                       class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                       stroke-width="3">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <span class="text-gray-800 font-medium">{{ actor.firstname }} {{ actor.lastname }}</span>
+              <div class="relative w-6 h-6 flex items-center justify-center border-2 rounded-lg transition-all"
+                   :class="selectedActors.includes(actor.id)
+                     ? 'bg-gradient-to-br from-[var(--color-gigas-600)] to-[var(--color-gigas-500)] border-[var(--color-gigas-500)] scale-105'
+                     : 'bg-[var(--color-gigas-800)] border-[var(--color-gigas-600)] group-hover:border-[var(--color-gigas-500)]'">
+                <svg v-if="selectedActors.includes(actor.id)" class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
               </div>
+              <span class="text-white font-medium group-hover:text-[var(--color-gigas-300)] transition-colors">
+                {{ actor.firstname }} {{ actor.lastname }}
+              </span>
             </div>
           </div>
         </div>
 
-        <div v-if="errors" class="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-sm">
-          {{ errors }}
+        <div v-if="errors" class="bg-red-900/40 border border-red-700/50 backdrop-blur-sm text-red-300 p-4 rounded-xl text-sm flex items-start gap-3">
+          <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          <span>{{ errors }}</span>
         </div>
       </div>
 
-      <div class="flex justify-end gap-3 mt-8">
-        <button @click="emit('close')" class="px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all active:scale-95 font-medium">
+      <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-[var(--color-gigas-700)]/50">
+        <button @click="emit('close')"
+                class="px-6 py-3 bg-[var(--color-gigas-800)]/60 hover:bg-[var(--color-gigas-700)]/80 text-[var(--color-gigas-200)] rounded-xl transition-all active:scale-95 font-medium border border-[var(--color-gigas-700)]/50">
           Annuler
         </button>
         <button @click="saveMovie" :disabled="loading"
-                class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all active:scale-95 font-medium disabled:opacity-60">
+                class="px-8 py-3 bg-gradient-to-r from-[var(--color-gigas-600)] to-[var(--color-gigas-500)] hover:from-[var(--color-gigas-500)] hover:to-[var(--color-gigas-400)] text-white rounded-xl transition-all active:scale-95 font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[var(--color-gigas-600)]/30 flex items-center gap-2">
+          <svg v-if="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
           {{ loading ? 'Enregistrement...' : 'Enregistrer' }}
         </button>
       </div>
@@ -213,10 +242,44 @@ const saveMovie = async () => {
 
 <style scoped>
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .animate-fadeIn {
-  animation: fadeIn 0.25s ease-out forwards;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.4s ease-out;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-gigas-900);
+  border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-gigas-700);
+  border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gigas-600);
 }
 </style>

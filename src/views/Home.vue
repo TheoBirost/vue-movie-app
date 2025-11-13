@@ -46,65 +46,75 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="p-6 space-y-12">
-    <div v-if="loading" class="text-center py-12">
-      <p class="text-gray-400 text-lg animate-pulse">Chargement...</p>
+  <div class="min-h-screen bg-[var(--bg-main)]">
+    <div class="max-w-7xl mx-auto px-6 py-16 space-y-16">
+
+      <div class="text-center space-y-4">
+        <h1 class="text-7xl md:text-8xl font-bold text-[var(--gold)]">Movie's</h1>
+        <p class="text-lg text-[var(--text-gray)]">Recherchez des films et acteurs que vous aimez</p>
+      </div>
+
+      <div v-if="loading" class="flex justify-center py-20">
+        <div class="flex gap-2">
+          <div class="w-2 h-2 bg-[var(--gold)] rounded-full animate-bounce"></div>
+          <div class="w-2 h-2 bg-[var(--gold)] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+          <div class="w-2 h-2 bg-[var(--gold)] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+        </div>
+      </div>
+
+      <template v-else>
+        <section class="space-y-6">
+          <div class="flex items-center justify-between">
+            <h2 class="text-3xl font-bold text-white">Derniers Films</h2>
+            <router-link
+                to="/movies"
+                class="text-sm text-[var(--text-gray)] hover:text-[var(--gold)] transition-colors"
+            >
+              Voir tout →
+            </router-link>
+          </div>
+
+          <div v-if="errorMessage" class="text-center text-[var(--text-gray)] py-12">
+            {{ errorMessage }}
+          </div>
+          <div v-else>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <MovieCard
+                  v-for="movie in movies"
+                  :key="movie.id"
+                  :movie="movie"
+                  @click="goToMovie(movie.id)"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section class="space-y-6">
+          <div class="flex items-center justify-between">
+            <h2 class="text-3xl font-bold text-white">Derniers Acteurs</h2>
+            <router-link
+                to="/actors"
+                class="text-sm text-[var(--text-gray)] hover:text-[var(--gold)] transition-colors"
+            >
+              Voir tout →
+            </router-link>
+          </div>
+
+          <div v-if="errorMessage" class="text-center text-[var(--text-gray)] py-12">
+            {{ errorMessage }}
+          </div>
+          <div v-else>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <ActorCard
+                  v-for="actor in actors"
+                  :key="actor.id"
+                  :actor="actor"
+                  @click="goToActor(actor.id)"
+              />
+            </div>
+          </div>
+        </section>
+      </template>
     </div>
-
-    <template v-else>
-      <section>
-        <h2 class="text-3xl font-bold mb-6">Derniers Films</h2>
-
-        <div v-if="errorMessage" class="text-center text-gray-400 text-lg py-6">
-          {{ errorMessage || "Aucun film trouvé" }}
-        </div>
-        <div v-else>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <MovieCard
-                v-for="movie in movies"
-                :key="movie.id"
-                :movie="movie"
-                @click="goToMovie(movie.id)"
-            />
-          </div>
-          <p v-if="movies.length === 0" class="text-center text-gray-400 mt-4">
-            Aucun film à afficher
-          </p>
-        </div>
-      </section>
-
-      <section>
-        <h2 class="text-3xl font-bold mb-6">Derniers Acteurs</h2>
-
-        <div v-if="errorMessage" class="text-center text-gray-400 text-lg py-6">
-          {{ errorMessage || "Aucun acteur trouvé" }}
-        </div>
-        <div v-if="errorMessage" class="text-center py-20">
-          <router-link
-              to="/"
-              class="mt-8 inline-block bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 active:scale-95 items-center gap-1"
-          >
-            <span>Se reconnecter</span>
-          </router-link>
-        </div>
-
-        <div v-else>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <ActorCard
-                v-for="actor in actors"
-                :key="actor.id"
-                :actor="actor"
-                @click="goToActor(actor.id)"
-            />
-          </div>
-          <p v-if="actors.length === 0" class="text-center text-gray-400 mt-4">
-            Aucun acteur à afficher
-          </p>
-        </div>
-      </section>
-    </template>
   </div>
 </template>
-
-<style scoped>
-</style>

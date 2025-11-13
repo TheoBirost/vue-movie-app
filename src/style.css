@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+:root {
+    /* Couleurs principales */
+    --bg-main: #0a0a0a;
+    --bg-card: #1a1a1a;
+    --bg-hover: #222222;
+
+    /* Accent doré */
+    --gold: #d4af37;
+    --gold-light: #f4e4b8;
+    --gold-dark: #b8941e;
+
+    /* Texte */
+    --text-white: #ffffff;
+    --text-gray: #999999;
+    --text-dark: #666666;
+
+    /* Bordures */
+    --border: #2a2a2a;
+    --border-light: #333333;
+
+    /* Autres */
+    --radius: 12px;
+    --transition: 0.3s ease;
+}
