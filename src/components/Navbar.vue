@@ -2,7 +2,6 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-
 const props = defineProps({
   loggedIn: Boolean,
   photo: String
@@ -31,46 +30,45 @@ const navigation = [
 </script>
 
 <template>
-  <nav class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-50">
+  <nav class="sticky top-0 z-50 bg-[var(--bg-main)] border-b border-[var(--border)]">
     <div class="max-w-7xl mx-auto px-6">
-      <div class="flex justify-between items-center h-16">
-
-        <router-link to="/home" class="flex items-center gap-3 group">
-          <img class="h-10 w-10 transition-transform duration-200 group-hover:scale-105" src="/public/logo.png" alt="Logo">
-          <span class="font-semibold text-xl text-gray-900">Movie's</span>
+      <div class="flex justify-between items-center h-20">
+        <!-- Logo -->
+        <router-link to="/home" class="flex items-center gap-3">
+          <img class="h-10 w-10" src="/public/logo.png" alt="Logo">
+          <span class="text-2xl font-bold text-[var(--gold)]">Movie's</span>
         </router-link>
 
-        <div class="hidden md:flex items-center gap-2">
+        <!-- Navigation Desktop -->
+        <div class="hidden md:flex items-center gap-8">
           <router-link
               v-for="item in navigation"
               :key="item.name"
               :to="item.href"
-              class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-all duration-200"
-              active-class="text-gray-900 bg-gray-100"
+              class="text-sm text-[var(--text-gray)] hover:text-[var(--gold)] transition-colors"
+              active-class="text-[var(--gold)]"
           >
             {{ item.name }}
           </router-link>
         </div>
 
-        <div class="hidden md:flex items-center gap-3">
-          <router-link
-              to="/profile"
-              class="transition-transform duration-200 hover:scale-105"
-          >
+        <!-- Actions Desktop -->
+        <div class="hidden md:flex items-center gap-4">
+          <router-link to="/profile">
             <img
-                :src="props.photo || 'https://placehold.co/36x36'"
+                :src="props.photo || 'https://placehold.co/40x40?text=👤&bg=1a1a1a&fg=d4af37'"
                 alt="Profile"
-                class="w-8 h-8 rounded-full ring-2 ring-gray-200 hover:ring-gray-300 transition-all"
+                class="w-10 h-10 rounded-full border border-[var(--border)] hover:border-[var(--gold)] transition-colors"
             />
           </router-link>
 
           <button
               v-if="props.loggedIn"
               @click="logout"
-              class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 active:scale-95"
+              class="p-2 text-[var(--text-gray)] hover:text-[var(--gold)] transition-colors"
               title="Déconnexion"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="m16 17 5-5-5-5"/>
               <path d="M21 12H9"/>
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -78,68 +76,53 @@ const navigation = [
           </button>
         </div>
 
-        <button
-            @click="toggleMenu"
-            class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-all active:scale-95"
-        >
-          <svg v-if="!isOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <!-- Menu Mobile Button -->
+        <button @click="toggleMenu" class="md:hidden text-[var(--text-gray)]">
+          <svg v-if="!isOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
-          <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
       </div>
-    </div>
 
-    <transition
-        enter-active-class="transition-all duration-200"
-        enter-from-class="opacity-0 -translate-y-2"
-        enter-to-class="opacity-100 translate-y-0"
-        leave-active-class="transition-all duration-150"
-        leave-from-class="opacity-100 translate-y-0"
-        leave-to-class="opacity-0 -translate-y-2"
-    >
-      <div v-if="isOpen" class="md:hidden border-t border-gray-200/50 bg-white/95 backdrop-blur-xl">
-        <div class="px-4 py-4 space-y-1">
-          <router-link
-              v-for="item in navigation"
-              :key="item.name"
-              :to="item.href"
-              class="block px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all"
-              active-class="text-gray-900 bg-gray-100"
-              @click="isOpen = false"
-          >
-            {{ item.name }}
-          </router-link>
+      <!-- Navigation Mobile -->
+      <div v-if="isOpen" class="md:hidden pb-4 space-y-2 border-t border-[var(--border)] pt-4">
+        <router-link
+            v-for="item in navigation"
+            :key="item.name"
+            :to="item.href"
+            @click="isOpen = false"
+            class="block px-4 py-2 text-sm text-[var(--text-gray)] hover:text-[var(--gold)] transition-colors"
+            active-class="text-[var(--gold)]"
+        >
+          {{ item.name }}
+        </router-link>
 
-          <router-link
-              to="/profile"
-              class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all"
-              @click="isOpen = false"
-          >
+        <div class="flex items-center gap-4 px-4 pt-4 border-t border-[var(--border)] mt-4">
+          <router-link to="/profile" @click="isOpen = false">
             <img
-                :src="photo"
+                :src="props.photo || 'https://placehold.co/40x40?text=👤&bg=1a1a1a&fg=d4af37'"
                 alt="Profile"
-                class="w-8 h-8 rounded-full ring-2 ring-gray-200 hover:ring-gray-300 transition-all"
+                class="w-10 h-10 rounded-full border border-[var(--border)]"
             />
-            <span>Profil</span>
           </router-link>
 
           <button
               v-if="props.loggedIn"
               @click="logout"
-              class="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all"
+              class="text-sm text-[var(--text-gray)] hover:text-[var(--gold)] flex items-center gap-2"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="m16 17 5-5-5-5"/>
               <path d="M21 12H9"/>
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
             </svg>
-            <span>Déconnexion</span>
+            Déconnexion
           </button>
         </div>
       </div>
-    </transition>
+    </div>
   </nav>
 </template>

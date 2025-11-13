@@ -29,8 +29,7 @@ onMounted(async () => {
         try {
           const actorRes = await api.get(`/actors/${actorId}`)
           return actorRes.data
-        } catch (err) {
-          console.error(`Erreur chargement acteur ${actorId}:`, err)
+        } catch {
           return null
         }
       })
@@ -45,83 +44,67 @@ onMounted(async () => {
     loading.value = false
   }
 })
-
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-white to-gray-50">
+  <div class="min-h-screen bg-[var(--bg-main)]">
     <div v-if="loading" class="flex items-center justify-center min-h-[70vh]">
-      <div class="text-gray-400 text-lg animate-pulse">Chargement...</div>
+      <div class="text-[var(--text-gray)] animate-pulse">Chargement...</div>
     </div>
 
-    <section v-else-if="movie" class="max-w-6xl mx-auto px-6 py-12">
+    <div v-else-if="movie" class="max-w-6xl mx-auto px-6 py-12 space-y-12">
       <button
           @click="router.back()"
-          class="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8 group transition-all"
+          class="flex items-center gap-2 text-[var(--text-gray)] hover:text-[var(--gold)] transition"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-             viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-             class="transition-transform group-hover:-translate-x-1">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="m15 18-6-6 6-6"/>
         </svg>
-        <span class="font-medium">Retour</span>
+        Retour
       </button>
 
-      <div class="mb-16">
-        <h1 class="text-6xl font-semibold mb-6 text-gray-900 tracking-tight leading-tight">
-          {{ movie.name }}
-        </h1>
-
-        <div class="max-w-52 min-w-52 min-h-28 max-h-28 relative overflow-hidden rounded-2xl bg-gray-100 mb-3">
+      <div class="flex gap-8">
+        <div class="w-64 flex-shrink-0">
           <img
-              :src="movie.url ? movie.url : 'http://localhost:8319/public/medie/images/default-film-690e4f5a324eb814818442.jpg'"
+              :src="movie.url || '/default-film.jpeg'"
               :alt="movie.name"
-              class="w-full h-auto object-cover"
+              class="w-full rounded-[var(--radius)] border border-[var(--border)]"
           />
         </div>
 
-        <p class="text-lg text-gray-600 mb-6">
-          Date de sortie : {{ movie.releaseDate }}
-        </p>
+        <div class="flex-1 space-y-4">
+          <h1 class="text-5xl font-bold text-white">{{ movie.name }}</h1>
 
-        <p class="text-xl text-gray-600 leading-relaxed max-w-3xl">
-          {{ movie.description }}
-        </p>
-        <br>
-        <p class="text-xl text-gray-600 leading-relaxed max-w-3xl">
-          Le budget total du film est de {{movie.budget}} dollars ($)
-        </p>
-        <br>
-        <p class="text-xl text-gray-600 leading-relaxed max-w-3xl">
-          Le film dure {{movie.duration}} minutes
-        </p>
+          <p class="text-[var(--text-gray)]">Sortie : {{ movie.releaseDate }}</p>
+
+          <p class="text-[var(--text-white)] leading-relaxed">{{ movie.description }}</p>
+
+          <div class="space-y-2 text-[var(--text-gray)]">
+            <p>Budget : {{ movie.budget }} $</p>
+            <p>Durée : {{ movie.duration }} minutes</p>
+          </div>
+        </div>
       </div>
 
       <div v-if="movie.actors && movie.actors.length > 0">
-        <h2 class="text-4xl font-semibold mb-10 text-gray-900">Acteur(s) dans ce film</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+        <h2 class="text-3xl font-bold text-white mb-6">Acteurs</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
           <div
               v-for="actor in movie.actors"
               :key="actor.id"
               @click="router.push(`/actors/${actor.id}`)"
-              class="cursor-pointer"
           >
             <ActorCard :actor="actor" />
           </div>
         </div>
       </div>
-
-      <div v-else class="text-center py-16">
-        <p class="text-gray-400 text-lg">Aucun acteur pour ce film</p>
-      </div>
-    </section>
+    </div>
 
     <div v-else class="flex flex-col items-center justify-center min-h-[70vh]">
-      <p class="text-gray-400 text-xl mb-6">Film introuvable</p>
+      <p class="text-[var(--text-gray)] mb-6">Film introuvable</p>
       <button
           @click="router.push('/movies')"
-          class="bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium px-6 py-3 rounded-xl transition-all duration-200 active:scale-95"
+          class="px-6 py-3 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-black font-semibold rounded-lg transition"
       >
         Retour aux films
       </button>

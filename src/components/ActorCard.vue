@@ -6,21 +6,24 @@ defineProps({
 
 <template>
   <div class="group cursor-pointer">
-    <div class="relative overflow-hidden rounded-2xl bg-gray-100 mb-3 ">
-      <img
-          :src="actor.url || '/img/default-actor.jpg'"
-          :alt="`${actor.firstname} ${actor.lastname}`"
-          class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105"
-      />
-      <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300"></div>
-    </div>
+    <div class="bg-[var(--bg-card)] rounded-[var(--radius)] overflow-hidden border border-[var(--border)] hover:border-[var(--gold)] transition-colors">
 
-    <div class="px-1">
-      <h3 class="font-semibold text-gray-900 text-base">
-        {{ actor.firstname }} - <strong class="uppercase font-semibold">{{ actor.lastname }}</strong>
+      <div class="relative w-full h-64 overflow-hidden">
+        <img
+            :src="actor.url || '/img/default-actor.jpg'"
+            :alt="`${actor.firstname} ${actor.lastname}`"
+            class="w-full h-full object-cover"
+        />
+      </div>
 
-      </h3>
-
+      <div class="p-4 space-y-1">
+        <h3 class="text-white font-semibold">
+          {{ actor.firstname }}
+        </h3>
+        <p class="text-sm text-[var(--text-gray)] uppercase tracking-wide">
+          {{ actor.lastname }}
+        </p>
+      </div>
     </div>
   </div>
 </template>

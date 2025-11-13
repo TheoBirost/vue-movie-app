@@ -1,34 +1,53 @@
 <script setup>
 defineProps({
   movie: { type: Object, required: true }
-})
+});
+
 const getYear = (dateString) => {
-  if (!dateString) return '—'
-  const date = new Date(dateString)
-  if (isNaN(date)) return '—'
-  return date.getFullYear()
-}
+  if (!dateString) return '—';
+  const date = new Date(dateString);
+  if (isNaN(date)) return '—';
+  return date.getFullYear();
+};
 </script>
 
 <template>
   <div class="group cursor-pointer">
-    <div class="relative overflow-hidden rounded-2xl bg-gray-100 mb-3">
-      <img
-          :src="movie.url ? movie.url : '/default-film.jpeg'"
-          :alt="movie.name"
-          class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105"
-      />
-      <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300"></div>
-    </div>
+    <div class="bg-[var(--bg-card)] rounded-[var(--radius)] overflow-hidden border border-[var(--border)] hover:border-[var(--gold)] transition-colors">
 
-    <div class="px-1">
-      <h3 class="font-semibold text-gray-900 text-lg mb-1 line-clamp-2">
-        {{ movie.name }}
-      </h3>
+      <div class="relative w-full h-64 overflow-hidden">
+        <img
+            :src="movie.url ? movie.url : '/default-film.jpeg'"
+            :alt="movie.name"
+            class="w-full h-full object-cover"
+        />
 
-      <p class="text-lg text-gray-600 mb-6">
-        Sortie du film en  {{ getYear(movie.releaseDate) }}
-      </p>
+        <div class="absolute top-3 right-3 px-2 py-1 bg-black/80 backdrop-blur-sm rounded text-xs font-semibold text-[var(--gold)]">
+          {{ getYear(movie.releaseDate) }}
+        </div>
+      </div>
+
+      <div class="p-4 space-y-3">
+        <h3 class="text-white font-semibold line-clamp-2 leading-tight">
+          {{ movie.name }}
+        </h3>
+
+        <div class="flex flex-wrap gap-2">
+          <span
+              v-for="category in movie.categories?.slice(0, 3)"
+              :key="category.id"
+              class="px-2 py-1 text-xs bg-[var(--bg-hover)] border border-[var(--border)] rounded text-[var(--text-gray)]"
+          >
+            {{ category.name }}
+          </span>
+          <span
+              v-if="movie.categories?.length > 3"
+              class="px-2 py-1 text-xs bg-[var(--bg-hover)] border border-[var(--border)] rounded text-[var(--text-gray)]"
+          >
+            +{{ movie.categories.length - 2 }}
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
