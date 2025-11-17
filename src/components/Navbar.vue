@@ -68,15 +68,10 @@ const navigation = [
               class="p-2 text-[var(--text-gray)] hover:text-[var(--gold)] transition-colors"
               title="Déconnexion"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m16 17 5-5-5-5"/>
-              <path d="M21 12H9"/>
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out-icon lucide-log-out"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>
           </button>
         </div>
 
-        <!-- Menu Mobile Button -->
         <button @click="toggleMenu" class="md:hidden text-[var(--text-gray)]">
           <svg v-if="!isOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
@@ -87,7 +82,6 @@ const navigation = [
         </button>
       </div>
 
-      <!-- Navigation Mobile -->
       <div v-if="isOpen" class="md:hidden pb-4 space-y-2 border-t border-[var(--border)] pt-4">
         <router-link
             v-for="item in navigation"
@@ -101,6 +95,15 @@ const navigation = [
         </router-link>
 
         <div class="flex items-center gap-4 px-4 pt-4 border-t border-[var(--border)] mt-4">
+          <button
+              v-if="props.loggedIn"
+              @click="logout"
+              class="text-sm text-[var(--text-gray)] hover:text-[var(--gold)] flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out-icon lucide-log-out"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>
+            Déconnexion
+          </button>
+
           <router-link to="/profile" @click="isOpen = false">
             <img
                 :src="props.photo || 'https://placehold.co/40x40?text=👤&bg=1a1a1a&fg=d4af37'"
@@ -108,19 +111,6 @@ const navigation = [
                 class="w-10 h-10 rounded-full border border-[var(--border)]"
             />
           </router-link>
-
-          <button
-              v-if="props.loggedIn"
-              @click="logout"
-              class="text-sm text-[var(--text-gray)] hover:text-[var(--gold)] flex items-center gap-2"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m16 17 5-5-5-5"/>
-              <path d="M21 12H9"/>
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            </svg>
-            Déconnexion
-          </button>
         </div>
       </div>
     </div>

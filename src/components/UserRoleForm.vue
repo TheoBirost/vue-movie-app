@@ -51,23 +51,26 @@ function cancel() { emit('cancel') }
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div class="relative w-full max-w-md mx-4 p-6 rounded-xl shadow-2xl bg-[var(--color-gigas-950)] border border-[var(--color-gigas-700)] text-[var(--color-gigas-100)] overflow-hidden animate-fadeIn">
-      <div class="absolute inset-0 bg-gradient-to-br from-[var(--color-gigas-900)]/80 to-[var(--color-gigas-800)]/80"></div>
-      <div class="relative z-10 flex flex-col gap-4">
-        <h2 class="text-xl font-semibold">{{ `Modifier le rôle de ${user.firstname} ${user.lastname}` }}</h2>
-        <div class="p-3 rounded-lg bg-[var(--color-gigas-900)]">
-          <p class="text-sm text-[var(--color-gigas-200)]">Email : <span class="font-medium">{{ user.email }}</span></p>
-          <p class="text-sm text-[var(--color-gigas-200)] mt-1">
-            Rôle actuel : <span class="font-medium">{{ user.roles?.[0] === 'ROLE_ADMIN' ? 'Administrateur' : 'Utilisateur' }}</span>
+  <div class="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50" @click.self="cancel">
+    <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-[var(--radius)] w-full max-w-md p-8 shadow-2xl mx-4">
+      <h2 class="text-2xl font-bold text-white mb-6">
+        Modifier le rôle de {{ user.firstname }} {{ user.lastname }}
+      </h2>
+
+      <div class="space-y-4">
+        <div class="p-4 bg-[var(--bg-main)] border border-[var(--border)] rounded-lg">
+          <p class="text-sm text-[var(--text-gray)]">Email : <span class="text-white font-medium">{{ user.email }}</span></p>
+          <p class="text-sm text-[var(--text-gray)] mt-2">
+            Rôle actuel : <span class="text-white font-medium">{{ user.roles?.[0] === 'ROLE_ADMIN' ? 'Administrateur' : 'Utilisateur' }}</span>
           </p>
         </div>
+
         <div>
-          <label for="role" class="block text-sm font-medium mb-2">Nouveau rôle</label>
+          <label for="role" class="block text-sm font-medium text-[var(--text-gray)] mb-2">Nouveau rôle</label>
           <select
               id="role"
               v-model="selectedRole"
-              class="w-full px-4 py-2 border border-[var(--color-gigas-700)] rounded-lg focus:ring-2 focus:ring-[var(--color-gigas-500)] focus:border-transparent bg-[var(--color-gigas-900)] text-[var(--color-gigas-100)]"
+              class="w-full px-4 py-3 bg-[var(--bg-main)] text-white border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--gold)] transition"
               :disabled="loading"
           >
             <option v-for="role in availableRoles" :key="role.value" :value="role.value">
@@ -75,31 +78,32 @@ function cancel() { emit('cancel') }
             </option>
           </select>
         </div>
-        <div v-if="errorMessage" class="p-3 rounded-lg bg-red-700/30 border border-red-600 text-red-200 text-sm">{{ errorMessage }}</div>
-        <div v-if="successMessage" class="p-3 rounded-lg bg-green-700/30 border border-green-600 text-green-200 text-sm">{{ successMessage }}</div>
-        <div class="flex gap-3 justify-end mt-2">
-          <button
-              @click="cancel"
-              :disabled="loading"
-              class="px-4 py-2 rounded-lg bg-[var(--color-gigas-800)] hover:bg-[var(--color-gigas-700)] text-[var(--color-gigas-200)] disabled:opacity-50"
-          >
-            Annuler
-          </button>
-          <button
-              @click="updateRole"
-              :disabled="loading"
-              class="px-4 py-2 rounded-lg bg-[var(--color-gigas-500)] hover:bg-[var(--color-gigas-400)] text-white flex items-center gap-2 disabled:opacity-50"
-          >
-            <span v-if="loading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-            {{ loading ? 'Modification...' : 'Confirmer' }}
-          </button>
+
+        <div v-if="errorMessage" class="bg-red-900/20 border border-red-800/30 text-red-400 p-3 rounded-lg text-sm">
+          {{ errorMessage }}
         </div>
+        <div v-if="successMessage" class="bg-green-900/20 border border-green-800/30 text-green-400 p-3 rounded-lg text-sm">
+          {{ successMessage }}
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-[var(--border)]">
+        <button
+            @click="cancel"
+            :disabled="loading"
+            class="px-5 py-3 bg-[var(--bg-hover)] hover:bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-gray)] rounded-lg transition font-medium disabled:opacity-50"
+        >
+          Annuler
+        </button>
+        <button
+            @click="updateRole"
+            :disabled="loading"
+            class="px-6 py-3 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-black rounded-lg transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          <span v-if="loading" class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+          {{ loading ? 'Modification...' : 'Confirmer' }}
+        </button>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-</style>
