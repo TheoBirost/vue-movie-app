@@ -5,39 +5,31 @@ const props = defineProps({ actor: Object })
 
 <template>
   <div class="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50" @click.self="emit('cancel')">
-    <div class="relative bg-[var(--color-gigas-950)] border border-[var(--color-gigas-700)]/40 backdrop-blur-2xl p-8 rounded-3xl w-full max-w-sm shadow-2xl text-white overflow-hidden animate-fadeIn">
-      <div class="absolute inset-0 bg-gradient-to-br from-[var(--color-gigas-800)]/70 via-[var(--color-gigas-900)]/90 to-[var(--color-gigas-950)]"></div>
-      <div class="relative z-10 flex flex-col gap-4">
-        <h3 class="text-xl font-semibold text-[var(--color-gigas-300)]">
-          Supprimer "
-          <span class="text-[var(--color-gigas-200)] font-semibold">
-            {{ props.actor?.firstname }} {{ props.actor?.lastname }}
-          </span> ?" ?
-        </h3>
-        <p class="text-gray-400 text-sm leading-relaxed mb-6">
-          Cette action est irréversible et supprimera définitivement ce film.
-        </p>
-        <button
-            @click="emit('confirm')"
-            class="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-3 rounded-xl transition-all duration-200 active:scale-95"
-        >
-          Supprimer
-        </button>
+    <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-[var(--radius)] p-8 w-full max-w-md shadow-2xl">
+      <h3 class="text-2xl font-bold text-white mb-4">
+        Confirmer la suppression
+      </h3>
+
+      <p class="text-[var(--text-gray)] mb-6">
+        Êtes-vous sûr de vouloir supprimer
+        <span class="text-white font-semibold">{{ props.actor?.firstname }} {{ props.actor?.lastname }}</span> ?
+        Cette action est irréversible.
+      </p>
+
+      <div class="flex gap-3">
         <button
             @click="emit('cancel')"
-            class="w-full bg-[var(--color-gigas-800)] hover:bg-[var(--color-gigas-700)] text-[var(--color-gigas-200)] font-medium py-3 rounded-xl transition-all duration-200 active:scale-95"
+            class="flex-1 px-4 py-3 bg-[var(--bg-hover)] hover:bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-gray)] rounded-lg transition font-medium"
         >
           Annuler
+        </button>
+        <button
+            @click="emit('confirm')"
+            class="flex-1 px-4 py-3 bg-red-900/20 hover:bg-red-900/40 border border-red-800/30 text-red-400 rounded-lg transition font-medium"
+        >
+          Supprimer
         </button>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-</style>
-
-
-

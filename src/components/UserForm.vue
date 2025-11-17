@@ -100,77 +100,59 @@ const saveUser = async () => {
 </script>
 
 <template>
-  <div
-      class="fixed inset-0 bg-purple-950/40 backdrop-blur-md flex justify-center items-center z-50 px-4"
-      @click.self="emit('close')"
-  >
-    <div
-        class="bg-purple-50/90 backdrop-blur-xl rounded-2xl w-full max-w-lg p-8 shadow-2xl border border-purple-200/50 transition-all duration-200 animate-fadeIn"
-    >
-      <h2 class="text-2xl font-semibold text-purple-900 mb-6 text-center">
-        {{ userId ? 'Modifier un utilisateur' : 'Ajouter un utilisateur' }}
-      </h2>
+  <div class="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 px-4" @click.self="emit('close')">
+    <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-[var(--radius)] w-full max-w-lg p-8 shadow-2xl">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-white">
+          {{ userId ? 'Modifier un utilisateur' : 'Ajouter un utilisateur' }}
+        </h2>
+        <button @click="emit('close')" class="p-2 hover:bg-[var(--bg-hover)] rounded-lg transition text-[var(--text-gray)] hover:text-white">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
 
-      <div class="space-y-5">
-        <input
-            v-model="firstname"
-            placeholder="Prénom"
-            class="w-full px-4 py-3 bg-purple-50 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all"
-        />
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-[var(--text-gray)] mb-2">Prénom</label>
+          <input v-model="firstname" placeholder="Prénom"
+                 class="w-full px-4 py-3 bg-[var(--bg-main)] text-white border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--gold)] transition" />
+        </div>
 
-        <input
-            v-model="lastname"
-            placeholder="Nom"
-            class="w-full px-4 py-3 bg-purple-50 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all"
-        />
+        <div>
+          <label class="block text-sm font-medium text-[var(--text-gray)] mb-2">Nom</label>
+          <input v-model="lastname" placeholder="Nom"
+                 class="w-full px-4 py-3 bg-[var(--bg-main)] text-white border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--gold)] transition" />
+        </div>
 
-        <input
-            v-model="email"
-            type="email"
-            placeholder="Email"
-            class="w-full px-4 py-3 bg-purple-50 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all"
-        />
+        <div>
+          <label class="block text-sm font-medium text-[var(--text-gray)] mb-2">Email</label>
+          <input v-model="email" type="email" placeholder="email@example.com"
+                 class="w-full px-4 py-3 bg-[var(--bg-main)] text-white border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--gold)] transition" />
+        </div>
 
-        <input
-            v-model="dob"
-            type="date"
-            placeholder="Date de naissance"
-            class="w-full px-4 py-3 bg-purple-50 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all"
-        />
+        <div>
+          <label class="block text-sm font-medium text-[var(--text-gray)] mb-2">Date de naissance</label>
+          <input v-model="dob" type="date"
+                 class="w-full px-4 py-3 bg-[var(--bg-main)] text-white border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--gold)] transition" />
+        </div>
 
-        <div
-            v-if="errors"
-            class="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-sm"
-        >
+        <div v-if="errors" class="bg-red-900/20 border border-red-800/30 text-red-400 p-3 rounded-lg text-sm">
           {{ errors }}
         </div>
       </div>
 
-      <div class="flex justify-end gap-3 mt-8">
-        <button
-            @click="emit('close')"
-            class="px-5 py-3 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl transition-all active:scale-95 font-medium"
-        >
+      <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-[var(--border)]">
+        <button @click="emit('close')"
+                class="px-5 py-3 bg-[var(--bg-hover)] hover:bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-gray)] rounded-lg transition font-medium">
           Annuler
         </button>
-        <button
-            @click="saveUser"
-            :disabled="loading"
-            class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all active:scale-95 font-medium disabled:opacity-60 disabled:cursor-not-allowed"
-        >
+        <button @click="saveUser" :disabled="loading"
+                class="px-6 py-3 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-black rounded-lg transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
           {{ loading ? 'Enregistrement...' : 'Enregistrer' }}
         </button>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-.animate-fadeIn {
-  animation: fadeIn 0.25s ease-out forwards;
-}
-</style>
