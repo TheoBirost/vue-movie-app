@@ -4,32 +4,25 @@ const props = defineProps({ user: Object })
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50" @click.self="emit('cancel')">
-    <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-[var(--radius)] p-8 w-full max-w-md shadow-2xl">
-      <h3 class="text-2xl font-bold text-white mb-4">
-        Confirmer la suppression
-      </h3>
-
-      <p class="text-[var(--text-gray)] mb-6">
-        Êtes-vous sûr de vouloir supprimer le compte de
-        <span class="text-white font-semibold">{{ props.user?.firstname }} {{ props.user?.lastname }}</span> ?
-        Cette action est irréversible et supprimera définitivement votre compte.
-      </p>
-
-      <div class="flex gap-3">
-        <button
-            @click="emit('cancel')"
-            class="flex-1 px-4 py-3 bg-[var(--bg-hover)] hover:bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-gray)] rounded-lg transition font-medium"
-        >
-          Annuler
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="emit('cancel')">
+    <div class="bg-color-surface border border-color-border rounded-lg w-full max-w-md shadow-2xl" data-aos="fade-up">
+      <header class="p-6 border-b border-color-border">
+        <h2 class="text-2xl font-gloock font-bold text-color-heading">Confirm Account Deletion</h2>
+      </header>
+      <main class="p-6">
+        <p class="text-color-text">
+          Are you sure you want to delete the account for
+          <strong class="text-color-heading">{{ props.user?.firstname }} {{ props.user?.lastname }}</strong>? This action is irreversible and will permanently delete your account.
+        </p>
+      </main>
+      <footer class="p-6 flex justify-end gap-4 bg-color-bg rounded-b-lg">
+        <button @click="emit('cancel')" class="btn-secondary">
+          Cancel
         </button>
-        <button
-            @click="emit('confirm')"
-            class="flex-1 px-4 py-3 bg-red-900/20 hover:bg-red-900/40 border border-red-800/30 text-red-400 rounded-lg transition font-medium"
-        >
-          Supprimer
+        <button @click="emit('confirm')" class="btn-danger">
+          Delete Account
         </button>
-      </div>
+      </footer>
     </div>
   </div>
 </template>

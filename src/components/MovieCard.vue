@@ -12,41 +12,36 @@ const getYear = (dateString) => {
 </script>
 
 <template>
-  <div class="group cursor-pointer">
-    <div class="bg-[var(--bg-card)] rounded-[var(--radius)] overflow-hidden border border-[var(--border)] hover:border-[var(--gold)] transition-colors">
-
-      <div class="relative w-full h-64 overflow-hidden">
-        <img
-            :src="movie.url ? movie.url : '/default-film.jpeg'"
-            :alt="movie.name"
-            class="w-full h-full object-cover"
-        />
-
-        <div class="absolute top-3 right-3 px-2 py-1 bg-black/80 backdrop-blur-sm rounded text-xs font-semibold text-[var(--gold)]">
-          {{ getYear(movie.releaseDate) }}
-        </div>
+  <div class="group cursor-pointer overflow-hidden rounded-lg bg-color-surface shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2" data-aos="fade-up">
+    <div class="relative w-full h-72">
+      <img
+        :src="movie.url ? movie.url : '/default-film.jpg'"
+        :alt="movie.name"
+        class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+      />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+      <div class="absolute top-4 right-4 px-3 py-1 bg-color-primary/80 backdrop-blur-sm rounded-full text-xs font-bold text-white">
+        {{ getYear(movie.releaseDate) }}
       </div>
-
-      <div class="p-4 space-y-3">
-        <h3 class="text-white font-semibold line-clamp-2 leading-tight">
-          {{ movie.name }}
-        </h3>
-
-        <div class="flex flex-wrap gap-2">
-          <span
-              v-for="category in movie.categories?.slice(0, 3)"
-              :key="category.id"
-              class="px-2 py-1 text-xs bg-[var(--bg-hover)] border border-[var(--border)] rounded text-[var(--text-gray)]"
-          >
-            {{ category.name }}
-          </span>
-          <span
-              v-if="movie.categories?.length > 3"
-              class="px-2 py-1 text-xs bg-[var(--bg-hover)] border border-[var(--border)] rounded text-[var(--text-gray)]"
-          >
-            +{{ movie.categories.length - 2 }}
-          </span>
-        </div>
+    </div>
+    <div class="p-5">
+      <h3 class="text-xl font-gloock font-bold text-color-heading truncate mb-2">
+        {{ movie.name }}
+      </h3>
+      <div class="flex flex-wrap gap-2">
+        <span
+          v-for="category in movie.categories?.slice(0, 2)"
+          :key="category.id"
+          class="px-3 py-1 text-xs font-medium bg-color-bg text-color-text rounded-full border border-color-border"
+        >
+          {{ category.name }}
+        </span>
+        <span
+          v-if="movie.categories?.length > 2"
+          class="px-3 py-1 text-xs font-medium bg-color-bg text-color-text rounded-full border border-color-border"
+        >
+          +{{ movie.categories.length - 2 }}
+        </span>
       </div>
     </div>
   </div>

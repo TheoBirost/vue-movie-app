@@ -13,8 +13,8 @@ const errorMessage = ref("")
 const successMessage = ref("")
 
 const availableRoles = [
-  { value: 'ROLE_USER', label: 'Utilisateur' },
-  { value: 'ROLE_ADMIN', label: 'Administrateur' }
+  { value: 'ROLE_USER', label: 'User' },
+  { value: 'ROLE_ADMIN', label: 'Administrator' }
 ]
 
 watch(() => props.user, (newUser) => {
@@ -26,7 +26,7 @@ watch(() => props.user, (newUser) => {
 async function updateRole() {
   const currentRole = props.user.roles?.[0] || 'ROLE_USER'
   if (selectedRole.value === currentRole) {
-    errorMessage.value = "Le rôle n'a pas changé"
+    errorMessage.value = "The role has not changed"
     return
   }
   loading.value = true
@@ -34,13 +34,13 @@ async function updateRole() {
   successMessage.value = ""
   try {
     await api.put(`users/${props.user.id}/role`, { role: selectedRole.value })
-    successMessage.value = "Rôle modifié avec succès"
+    successMessage.value = "Role updated successfully"
     setTimeout(() => emit('updated'), 1000)
   } catch (err) {
     if (err.response) {
-      errorMessage.value = `Erreur ${err.response.status} : ${err.response.data.message || err.response.data['hydra:description'] || "Non spécifié"}`
+      errorMessage.value = `Error ${err.response.status} : ${err.response.data.message || err.response.data['hydra:description'] || "Not specified"}`
     } else if (err.request) {
-      errorMessage.value = "Impossible de modifier le rôle (aucune réponse du serveur)"
+      errorMessage.value = "Could not update role (no server response)"
     } else {
       errorMessage.value = err.message
     }
@@ -51,59 +51,48 @@ function cancel() { emit('cancel') }
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50" @click.self="cancel">
-    <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-[var(--radius)] w-full max-w-md p-8 shadow-2xl mx-4">
-      <h2 class="text-2xl font-bold text-white mb-6">
-        Modifier le rôle de {{ user.firstname }} {{ user.lastname }}
-      </h2>
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="cancel">
+    <div class="bg-color-surface border border-color-border rounded-lg w-full max-w-md shadow-2xl" data-aos="fade-up">
+      <header class="p-6 border-b border-color-border">
+        <h2 class="text-2xl font-gloock font-bold text-color-heading">
+          Edit Role for {{ user.firstname }} {{ user.lastname }}
+        </h2>
+      </header>
 
-      <div class="space-y-4">
-        <div class="p-4 bg-[var(--bg-main)] border border-[var(--border)] rounded-lg">
-          <p class="text-sm text-[var(--text-gray)]">Email : <span class="text-white font-medium">{{ user.email }}</span></p>
-          <p class="text-sm text-[var(--text-gray)] mt-2">
-            Rôle actuel : <span class="text-white font-medium">{{ user.roles?.[0] === 'ROLE_ADMIN' ? 'Administrateur' : 'Utilisateur' }}</span>
+      <main class="p-6 space-y-4">
+        <div class="p-4 bg-color-bg border border-color-border rounded-lg">
+          <p class="text-sm text-color-text">Email: <span class="font-medium text-color-heading">{{ user.email }}</span></p>
+          <p class="text-sm text-color-text mt-2">
+            Current Role: <span class="font-medium text-color-heading">{{ user.roles?.[0] === 'ROLE_ADMIN' ? 'Administrator' : 'User' }}</span>
           </p>
         </div>
 
         <div>
-          <label for="role" class="block text-sm font-medium text-[var(--text-gray)] mb-2">Nouveau rôle</label>
-          <select
-              id="role"
-              v-model="selectedRole"
-              class="w-full px-4 py-3 bg-[var(--bg-main)] text-white border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--gold)] transition"
-              :disabled="loading"
-          >
+          <label for="role-select" class="block text-sm font-medium text-color-text mb-1">New Role</label>
+          <select id="role-select" v-model="selectedRole" :disabled="loading" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md focus:outline-none focus:ring-2 focus:ring-color-primary">
             <option v-for="role in availableRoles" :key="role.value" :value="role.value">
               {{ role.label }}
             </option>
           </select>
         </div>
 
-        <div v-if="errorMessage" class="bg-red-900/20 border border-red-800/30 text-red-400 p-3 rounded-lg text-sm">
+        <div v-if="errorMessage" class="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-md text-sm">
           {{ errorMessage }}
         </div>
-        <div v-if="successMessage" class="bg-green-900/20 border border-green-800/30 text-green-400 p-3 rounded-lg text-sm">
+        <div v-if="successMessage" class="bg-green-500/10 border border-green-500/20 text-green-500 p-3 rounded-md text-sm">
           {{ successMessage }}
         </div>
-      </div>
+      </main>
 
-      <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-[var(--border)]">
-        <button
-            @click="cancel"
-            :disabled="loading"
-            class="px-5 py-3 bg-[var(--bg-hover)] hover:bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-gray)] rounded-lg transition font-medium disabled:opacity-50"
-        >
-          Annuler
+      <footer class="p-6 flex justify-end gap-4 border-t border-color-border">
+        <button @click="cancel" :disabled="loading" class="btn-secondary disabled:opacity-50">
+          Cancel
         </button>
-        <button
-            @click="updateRole"
-            :disabled="loading"
-            class="px-6 py-3 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-black rounded-lg transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-        >
-          <span v-if="loading" class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-          {{ loading ? 'Modification...' : 'Confirmer' }}
+        <button @click="updateRole" :disabled="loading" class="btn-primary disabled:opacity-50 flex items-center gap-2">
+          <svg v-if="loading" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+          {{ loading ? 'Updating...' : 'Confirm' }}
         </button>
-      </div>
+      </footer>
     </div>
   </div>
 </template>

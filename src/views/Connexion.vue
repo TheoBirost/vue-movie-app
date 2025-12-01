@@ -36,62 +36,47 @@ const login = async (e) => {
 
     await router.push('/home')
   } catch {
-    errorMessage.value = "Email ou mot de passe incorrect"
+    errorMessage.value = "Incorrect email or password"
   }
 }
 </script>
 
 <template>
-  <div class="min-h-screen bg-[var(--bg-main)] flex items-center justify-center px-6 py-12">
-    <div class="w-full max-w-md bg-[var(--bg-card)] rounded-[var(--radius)] border border-[var(--border)] p-8">
-      <div class="text-center mb-8">
-        <img src="/logo.png" alt="Logo" class="mx-auto h-20 w-auto" />
-        <h2 class="mt-6 text-3xl font-semibold text-[var(--gold)]">Connexion</h2>
-      </div>
-
-      <form @submit="login" class="space-y-6">
-        <div>
-          <label for="email" class="block text-sm font-medium text-[var(--text-gray)] mb-2">Email</label>
-          <input
-              v-model="email"
-              type="email"
-              id="email"
-              required
-              placeholder="votre.email@example.com"
-              class="w-full px-4 py-3 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-white focus:outline-none focus:border-[var(--gold)] transition"
-          />
-        </div>
-
-        <div>
-          <label for="password" class="block text-sm font-medium text-[var(--text-gray)] mb-2">Mot de passe</label>
-          <input
-              v-model="password"
-              type="password"
-              id="password"
-              required
-              placeholder="********"
-              autoComplete="off"
-              class="w-full px-4 py-3 rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] text-white focus:outline-none focus:border-[var(--gold)] transition"
-          />
-        </div>
-
-        <button
-            type="submit"
-            class="w-full bg-[var(--gold)] hover:bg-[var(--gold-light)] text-black font-semibold px-6 py-3 rounded-lg transition"
-        >
-          Se connecter
-        </button>
-
-        <p class="text-center text-[var(--text-gray)] text-sm">
-          Pas de compte ?
-          <router-link to="/inscription" class="text-[var(--gold)] hover:text-[var(--gold-light)]">
-            S'inscrire
+  <div class="min-h-screen bg-color-bg flex items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div class="w-full max-w-md space-y-8" data-aos="fade-up">
+      <div class="text-center">
+        <img class="mx-auto h-16 w-auto" src="/logo.png" alt="World View Logo" />
+        <h2 class="mt-6 text-center text-4xl font-gloock font-bold text-color-heading">
+          Sign in to your account
+        </h2>
+        <p class="mt-2 text-center text-sm text-color-text">
+          Or
+          <router-link to="/inscription" class="font-medium text-color-primary hover:text-color-primary-accent">
+            create a new account
           </router-link>
         </p>
+      </div>
+      <form class="mt-8 space-y-6 bg-color-surface p-8 rounded-lg shadow-lg border border-color-border" @submit="login">
+        <div class="rounded-md shadow-sm space-y-4">
+          <div>
+            <label for="email-address" class="sr-only">Email address</label>
+            <input id="email-address" v-model="email" name="email" type="email" autocomplete="email" required class="appearance-none rounded-md relative block w-full px-4 py-3 border border-color-border bg-color-bg placeholder-gray-500 text-color-text focus:outline-none focus:ring-color-primary focus:border-color-primary focus:z-10 sm:text-sm" placeholder="Email address">
+          </div>
+          <div>
+            <label for="password" class="sr-only">Password</label>
+            <input id="password" v-model="password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-md relative block w-full px-4 py-3 border border-color-border bg-color-bg placeholder-gray-500 text-color-text focus:outline-none focus:ring-color-primary focus:border-color-primary focus:z-10 sm:text-sm" placeholder="Password">
+          </div>
+        </div>
 
-        <p v-if="errorMessage" class="text-center text-red-400 text-sm">
+        <div v-if="errorMessage" class="text-red-500 text-sm text-center">
           {{ errorMessage }}
-        </p>
+        </div>
+
+        <div>
+          <button type="submit" class="group relative w-full flex justify-center btn-primary">
+            Sign in
+          </button>
+        </div>
       </form>
     </div>
   </div>

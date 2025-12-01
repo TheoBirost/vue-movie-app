@@ -21,7 +21,7 @@ watch(
 
 const submit = async () => {
   if (!name.value.trim()) {
-    error.value = "Le nom de la catégorie est requis."
+    error.value = "Category name is required."
     return
   }
 
@@ -46,7 +46,7 @@ const submit = async () => {
     emit("close")
   } catch (err) {
     console.error("Erreur sauvegarde :", err.response?.data || err)
-    error.value = err.response?.data?.detail || "Une erreur est survenue."
+    error.value = err.response?.data?.detail || "An error occurred."
   } finally {
     loading.value = false
   }
@@ -54,41 +54,36 @@ const submit = async () => {
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50" @click.self="emit('close')">
-    <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-[var(--radius)] w-full max-w-md p-8 shadow-2xl mx-4">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-white">
-          {{ props.category?.id ? "Modifier" : "Ajouter" }} une catégorie
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="emit('close')">
+    <div class="bg-color-surface border border-color-border rounded-lg w-full max-w-md shadow-2xl" data-aos="fade-up">
+      <header class="p-6 flex items-center justify-between border-b border-color-border">
+        <h2 class="text-2xl font-gloock font-bold text-color-heading">
+          {{ props.category?.id ? "Edit" : "Add" }} Category
         </h2>
-        <button @click="emit('close')" class="p-2 hover:bg-[var(--bg-hover)] rounded-lg transition text-[var(--text-gray)] hover:text-white">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
+        <button @click="emit('close')" class="p-2 rounded-full hover:bg-color-bg dark:hover:bg-color-surface text-color-text" aria-label="Close form">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
-      </div>
+      </header>
 
-      <div class="space-y-4">
+      <main class="p-6 space-y-4">
         <div>
-          <label class="block text-sm font-medium text-[var(--text-gray)] mb-2">Nom de la catégorie</label>
-          <input v-model="name" type="text" placeholder="Ex: Action, Comédie..."
-                 class="w-full px-4 py-3 bg-[var(--bg-main)] text-white border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--gold)] transition" />
+          <label for="category-name" class="block text-sm font-medium text-color-text mb-1">Category Name</label>
+          <input id="category-name" v-model="name" type="text" placeholder="e.g., Action, Comedy..." class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md focus:outline-none focus:ring-2 focus:ring-color-primary" />
         </div>
 
-        <div v-if="error" class="bg-red-900/20 border border-red-800/30 text-red-400 p-3 rounded-lg text-sm">
+        <div v-if="error" class="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-md text-sm">
           {{ error }}
         </div>
-      </div>
+      </main>
 
-      <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-[var(--border)]">
-        <button @click="emit('close')"
-                class="px-5 py-3 bg-[var(--bg-hover)] hover:bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-gray)] rounded-lg transition font-medium">
-          Annuler
+      <footer class="p-6 flex justify-end gap-4 border-t border-color-border">
+        <button @click="emit('close')" class="btn-secondary">
+          Cancel
         </button>
-        <button @click="submit" :disabled="loading"
-                class="px-6 py-3 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-black rounded-lg transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-          {{ loading ? "Enregistrement..." : props.category?.id ? "Modifier" : "Ajouter" }}
+        <button @click="submit" :disabled="loading" class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
+          {{ loading ? "Saving..." : props.category?.id ? "Save Changes" : "Add Category" }}
         </button>
-      </div>
+      </footer>
     </div>
   </div>
 </template>

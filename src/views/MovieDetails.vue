@@ -12,7 +12,7 @@ const loading = ref(true)
 onMounted(async () => {
   try {
     const res = await api.get(`/movies/${route.params.id}`)
-    const movieData = res.data
+    let movieData = res.data
 
     if (movieData.releaseDate) {
       const date = new Date(movieData.releaseDate)
@@ -20,6 +20,21 @@ onMounted(async () => {
       const month = String(date.getMonth() + 1).padStart(2, '0')
       const year = date.getFullYear()
       movieData.releaseDate = `${day}-${month}-${year}`
+    }
+
+    // Hydrater les catégories si elles sont des IRIs
+    if (Array.isArray(movieData.categories) && movieData.categories.every(cat => typeof cat === 'string')) {
+      const categoryPromises = movieData.categories.map(async (iri) => {
+        const categoryId = iri.match(/\/(\d+)$/)?.[1]
+        if (!categoryId) return null
+        try {
+          const categoryRes = await api.get(`/categories/${categoryId}`)
+          return categoryRes.data
+        } catch {
+          return null
+        }
+      })
+      movieData.categories = (await Promise.all(categoryPromises)).filter(cat => cat !== null)
     }
 
     if (Array.isArray(movieData.actors) && typeof movieData.actors[0] === 'string') {
@@ -47,67 +62,62 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[var(--bg-main)]">
-    <div v-if="loading" class="flex items-center justify-center min-h-[70vh]">
-      <div class="text-[var(--text-gray)] animate-pulse">Chargement...</div>
+  <div class="min-h-screen bg-color-bg text-color-text">
+    <div v-if="loading" class="flex justify-center items-center h-screen">
+      <div class="w-16 h-16 border-4 border-color-primary border-t-transparent rounded-full animate-spin"></div>
     </div>
 
-    <div v-else-if="movie" class="max-w-6xl mx-auto px-6 py-12 space-y-12">
-      <button
-          @click="router.back()"
-          class="flex items-center gap-2 text-[var(--text-gray)] hover:text-[var(--gold)] transition"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="m15 18-6-6 6-6"/>
+    <div v-else-if="movie" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <button @click="router.back()" class="mb-8 inline-flex items-center gap-2 btn-secondary" data-aos="fade-right">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
         </svg>
-        Retour
+        Back
       </button>
 
-      <div class="flex gap-8">
-        <div class="w-64 flex-shrink-0">
-          <img
-              :src="movie.url || '/default-film.jpeg'"
-              :alt="movie.name"
-              class="w-full rounded-[var(--radius)] border border-[var(--border)]"
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div class="md:col-span-1" data-aos="zoom-in">
+          <img :src="movie.url || '/default-film.jpg'" :alt="movie.name" class="w-full h-auto rounded-lg shadow-2xl object-cover">
+        </div>
+
+        <div class="md:col-span-2 space-y-6" data-aos="fade-left">
+          <h1 class="text-5xl font-gloock font-bold text-color-heading">{{ movie.name }}</h1>
+          <div class="flex items-center space-x-4 text-color-text">
+            <span>Release Date: {{ movie.releaseDate }}</span>
+            <span>&bull;</span>
+            <span>Duration: {{ movie.duration }} min</span>
+            <span>&bull;</span>
+            <span>Budget: ${{ movie.budget }}</span>
+          </div>
+          <p class="text-lg leading-relaxed">{{ movie.description }}</p>
+          <div class="flex flex-wrap gap-2">
+            <span v-for="category in movie.categories" :key="category.id" class="px-3 py-1 text-sm font-medium bg-color-bg text-color-text rounded-full border border-color-border">
+              {{ category.name }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="movie.actors && movie.actors.length > 0" class="mt-24" data-aos="fade-up">
+        <h2 class="text-4xl font-gloock font-bold text-color-heading mb-8">Cast</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
+          <ActorCard
+            v-for="actor in movie.actors"
+            :key="actor.id"
+            :actor="actor"
+            @click="router.push(`/actors/${actor.id}`)"
+            data-aos="fade-up"
           />
         </div>
-
-        <div class="flex-1 space-y-4">
-          <h1 class="text-5xl font-bold text-white">{{ movie.name }}</h1>
-
-          <p class="text-[var(--text-gray)]">Sortie : {{ movie.releaseDate }}</p>
-
-          <p class="text-[var(--text-white)] leading-relaxed">{{ movie.description }}</p>
-
-          <div class="space-y-2 text-[var(--text-gray)]">
-            <p>Budget : {{ movie.budget }} $</p>
-            <p>Durée : {{ movie.duration }} minutes</p>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="movie.actors && movie.actors.length > 0">
-        <h2 class="text-3xl font-bold text-white mb-6">Acteurs</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
-          <div
-              v-for="actor in movie.actors"
-              :key="actor.id"
-              @click="router.push(`/actors/${actor.id}`)"
-          >
-            <ActorCard :actor="actor" />
-          </div>
-        </div>
       </div>
     </div>
 
-    <div v-else class="flex flex-col items-center justify-center min-h-[70vh]">
-      <p class="text-[var(--text-gray)] mb-6">Film introuvable</p>
-      <button
-          @click="router.push('/movies')"
-          class="px-6 py-3 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-black font-semibold rounded-lg transition"
-      >
-        Retour aux films
-      </button>
+    <div v-else class="flex flex-col items-center justify-center h-screen text-center" data-aos="fade-up">
+      <h2 class="text-3xl font-bold text-color-heading mb-4">Movie Not Found</h2>
+      <p class="text-color-text mb-8">We couldn't find the movie you're looking for.</p>
+      <router-link to="/movies" class="btn-primary">
+        Back to Movies
+      </router-link>
     </div>
   </div>
 </template>

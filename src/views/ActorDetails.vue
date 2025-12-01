@@ -53,70 +53,59 @@ const formatDate = (dateString) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[var(--bg-main)]">
-    <div v-if="loading" class="flex items-center justify-center min-h-[70vh]">
-      <div class="text-[var(--text-gray)] animate-pulse">Chargement...</div>
+  <div class="min-h-screen bg-color-bg text-color-text">
+    <div v-if="loading" class="flex justify-center items-center h-screen">
+      <div class="w-16 h-16 border-4 border-color-primary border-t-transparent rounded-full animate-spin"></div>
     </div>
 
-    <div v-else-if="actor" class="max-w-6xl mx-auto px-6 py-12 space-y-12">
-      <button
-          @click="router.back()"
-          class="flex items-center gap-2 text-[var(--text-gray)] hover:text-[var(--gold)] transition"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="m15 18-6-6 6-6"/>
+    <div v-else-if="actor" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <button @click="router.back()" class="mb-8 inline-flex items-center gap-2 text-color-text hover:text-color-primary transition-colors" data-aos="fade-right">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
         </svg>
-        Retour
+        Back
       </button>
 
-      <div class="flex gap-8">
-        <div class="w-64 flex-shrink-0">
-          <img
-              :src="actor.url || '/default-actor.jpg'"
-              :alt="`${actor.firstname} ${actor.lastname}`"
-              class="w-full rounded-[var(--radius)] border border-[var(--border)]"
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div class="md:col-span-1" data-aos="zoom-in">
+          <img :src="actor.url || '/default_actor.jpeg'" :alt="`${actor.firstname} ${actor.lastname}`" class="w-full h-auto rounded-lg shadow-2xl object-cover">
+        </div>
+
+        <div class="md:col-span-2 space-y-6" data-aos="fade-left">
+          <h1 class="text-5xl font-gloock font-bold text-color-heading">{{ actor.firstname }} {{ actor.lastname }}</h1>
+          <div class="flex items-center space-x-4 text-color-text">
+            <span>Born: {{ formatDate(actor.dob) }}</span>
+            <span v-if="actor.dod">&bull;</span>
+            <span v-if="actor.dod">Died: {{ formatDate(actor.dod) }}</span>
+          </div>
+          <p class="text-lg leading-relaxed">{{ actor.bio }}</p>
+        </div>
+      </div>
+
+      <div v-if="movies.length > 0" class="mt-24" data-aos="fade-up">
+        <h2 class="text-4xl font-gloock font-bold text-color-heading mb-8">Filmography ({{ movies.length }})</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <MovieCard
+            v-for="(movie, index) in movies"
+            :key="movie.id"
+            :movie="movie"
+            @click="router.push(`/movies/${movie.id}`)"
+            data-aos="fade-up"
+            :data-aos-delay="100 * index"
           />
         </div>
-
-        <div class="flex-1 space-y-4">
-          <h1 class="text-5xl font-bold text-white">{{ actor.firstname }} {{ actor.lastname }}</h1>
-
-          <p class="text-[var(--text-white)] leading-relaxed">{{ actor.bio }}</p>
-
-          <div class="space-y-2 text-[var(--text-gray)]">
-            <p>Né(e) le {{ formatDate(actor.dob) }}</p>
-            <p v-if="actor.dod">Décédé(e) le {{ formatDate(actor.dod) }}</p>
-            <p v-else>Toujours en vie</p>
-          </div>
-        </div>
       </div>
-
-      <div v-if="movies.length > 0">
-        <h2 class="text-3xl font-bold text-white mb-6">Films ({{ movies.length }})</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div
-              v-for="movie in movies"
-              :key="movie.id"
-              @click="router.push(`/movies/${movie.id}`)"
-          >
-            <MovieCard :movie="movie" />
-          </div>
-        </div>
-      </div>
-
-      <div v-else class="text-center py-12">
-        <p class="text-[var(--text-gray)]">Aucun film pour cet acteur</p>
+      <div v-else class="text-center py-16 text-color-text" data-aos="fade-up">
+        <p>No movies found for this actor.</p>
       </div>
     </div>
 
-    <div v-else class="flex flex-col items-center justify-center min-h-[70vh]">
-      <p class="text-[var(--text-gray)] mb-6">{{ error || 'Acteur introuvable' }}</p>
-      <button
-          @click="router.push('/actors')"
-          class="px-6 py-3 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-black font-semibold rounded-lg transition"
-      >
-        Retour aux acteurs
-      </button>
+    <div v-else class="flex flex-col items-center justify-center h-screen text-center" data-aos="fade-up">
+      <h2 class="text-3xl font-bold text-color-heading mb-4">Actor Not Found</h2>
+      <p class="text-color-text mb-8">{{ error || "We couldn't find the actor you're looking for." }}</p>
+      <router-link to="/actors" class="px-6 py-3 bg-color-primary hover:bg-color-primary-accent text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all">
+        Back to Actors
+      </router-link>
     </div>
   </div>
 </template>

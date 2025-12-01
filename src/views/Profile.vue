@@ -53,16 +53,16 @@ const deleteUser = async () => {
 }
 
 function formatDate(dateString) {
-  if (!dateString) return "Non renseignée"
+  if (!dateString) return "Not specified"
   const [year, month, day] = dateString.split(" ")[0].split("-")
   return `${day}-${month}-${year}`
 }
 
 function formatRole(roleStr) {
   switch (roleStr) {
-    case "ROLE_ADMIN": return "Administrateur"
-    case "ROLE_USER": return "Utilisateur"
-    default: return roleStr || "Aucun rôle"
+    case "ROLE_ADMIN": return "Administrator"
+    case "ROLE_USER": return "User"
+    default: return roleStr || "No role"
   }
 }
 
@@ -87,7 +87,7 @@ async function fetchUser() {
     }
   } catch (err) {
     console.error("Erreur récupération profil:", err)
-    errorMessage.value = err.response?.data?.message || err.message || "Impossible de récupérer les informations"
+    errorMessage.value = err.response?.data?.message || err.message || "Could not retrieve information"
   } finally {
     loading.value = false
   }
@@ -101,11 +101,11 @@ const handleFileChange = (event) => {
   const file = event.target.files?.[0]
   if (file) {
     if (!file.type.startsWith('image/')) {
-      alert('Veuillez sélectionner une image')
+      alert('Please select an image file.')
       return
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('L\'image ne doit pas dépasser 5MB')
+      alert('Image size should not exceed 5MB.')
       return
     }
     selectedFile.value = file
@@ -134,10 +134,10 @@ const uploadPhoto = async () => {
     await fetchUser()
     selectedFile.value = null
     if (fileInput.value) fileInput.value.value = ''
-    alert('Photo mise à jour !')
+    alert('Photo updated successfully!')
   } catch (error) {
-    console.error('Erreur upload photo:', error)
-    alert("Erreur lors de l'envoi de la photo")
+    console.error('Error uploading photo:', error)
+    alert("Error uploading photo.")
   } finally {
     uploadingPhoto.value = false
   }
@@ -147,83 +147,60 @@ onMounted(fetchUser)
 </script>
 
 <template>
-  <div class="min-h-screen bg-[var(--bg-main)]">
-    <div class="max-w-3xl mx-auto px-6 py-16">
-      <div v-if="loading" class="text-center py-20">
-        <p class="text-[var(--text-gray)] animate-pulse">Chargement...</p>
+  <div class="min-h-screen bg-color-bg text-color-text">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div v-if="loading" class="flex justify-center items-center h-64">
+        <div class="w-16 h-16 border-4 border-color-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
 
-      <div v-else-if="errorMessage" class="text-center py-20">
-        <p class="text-red-400 mb-6">{{ errorMessage }}</p>
-        <router-link to="/" class="px-6 py-3 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-black font-semibold rounded-lg transition">
-          Se reconnecter
+      <div v-else-if="errorMessage" class="text-center py-16 text-red-500" data-aos="fade-up">
+        <p class="mb-4">{{ errorMessage }}</p>
+        <router-link to="/" class="btn-primary">
+          Reconnect
         </router-link>
       </div>
 
-      <div v-else class="space-y-8">
+      <div v-else class="space-y-12" data-aos="fade-up">
         <div class="text-center">
-          <div class="relative inline-block mb-4">
-            <div v-if="uploadingPhoto" class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center z-10">
-              <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            </div>
-
-            <img :src="photo" alt="Photo" class="w-24 h-24 rounded-full object-cover border-2 border-[var(--gold)]" />
-
-            <input type="file" ref="fileInput" accept="image/*" class="hidden" @change="handleFileChange" />
-
-            <button
-                @click="openFilePicker"
-                :disabled="uploadingPhoto"
-                class="absolute bottom-0 right-0 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-black w-8 h-8 rounded-full transition flex items-center justify-center disabled:opacity-50"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
-                <path d="M10.3 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10l-3.1-3.1a2 2 0 0 0-2.814.014L6 21"/>
-                <path d="m14 19.5 3-3 3 3"/><path d="M17 22v-5.5"/><circle cx="9" cy="9" r="2"/>
-              </svg>
+          <div class="relative inline-block group">
+            <img :src="photo" alt="Profile Photo" class="w-32 h-32 rounded-full object-cover border-4 border-color-primary shadow-lg">
+            <button @click="openFilePicker" :disabled="uploadingPhoto" class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <svg v-if="!uploadingPhoto" class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              <svg v-else class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             </button>
+            <input type="file" ref="fileInput" @change="handleFileChange" accept="image/*" class="hidden">
           </div>
-
-          <h2 class="text-2xl font-bold text-white mb-2">{{ firstname }} {{ lastname }}</h2>
-          <span class="inline-block px-3 py-1 text-sm rounded-full" :class="userRole === 'ROLE_ADMIN' ? 'bg-purple-500/20 text-purple-400' : 'bg-green-500/20 text-green-400'">
-            {{ formattedRole }}
-          </span>
+          <h1 class="text-4xl font-gloock font-bold text-color-heading mt-4">{{ firstname }} {{ lastname }}</h1>
+          <p class="text-color-text">{{ formattedRole }}</p>
         </div>
 
-        <div class="bg-[var(--bg-card)] rounded-[var(--radius)] border border-[var(--border)] divide-y divide-[var(--border)]">
-          <div v-for="(info, label) in { 'Prénom': firstname, 'Nom': lastname, 'Email': email, 'Date de naissance': formatDate(dob) }" :key="label" class="flex justify-between p-4">
-            <p class="text-[var(--text-gray)] text-sm">{{ label }}</p>
-            <p class="text-white text-sm">{{ info }}</p>
+        <div class="bg-color-surface border border-color-border rounded-lg shadow-lg p-8 space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="font-semibold text-color-text">First Name</span>
+            <span>{{ firstname }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="font-semibold text-color-text">Last Name</span>
+            <span>{{ lastname }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="font-semibold text-color-text">Email</span>
+            <span>{{ email }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="font-semibold text-color-text">Date of Birth</span>
+            <span>{{ formatDate(dob) }}</span>
           </div>
         </div>
 
-        <div class="flex gap-3">
-          <button
-              @click.stop="editUser({ id: userId, firstname, lastname, email, dob, roles: [userRole], photo })"
-              class="flex-1 px-6 py-3 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-black font-semibold rounded-lg transition"
-          >
-            Modifier
-          </button>
-
-          <router-link
-              v-if="role === 'admin'"
-              to="/users"
-              class="flex-1 px-6 py-3 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 font-semibold rounded-lg transition text-center"
-          >
-            Gérer Users
-          </router-link>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <button @click="editUser({ id: userId, firstname, lastname, email, dob, roles: [userRole], photo })" class="flex-1 btn-primary">Edit Profile</button>
+          <router-link v-if="role === 'admin'" to="/users" class="flex-1 text-center btn-secondary">Manage Users</router-link>
         </div>
 
-        <div class="pt-8 border-t border-[var(--border)]">
-          <h3 class="text-sm font-semibold text-[var(--text-gray)] mb-4">Zone de danger</h3>
-          <button
-              @click.stop="confirmDelete({ id: userId, firstname, lastname, email, dob, roles: [userRole] })"
-              class="w-full px-6 py-3 bg-red-900/20 hover:bg-red-900/40 border border-red-800/30 text-red-400 font-semibold rounded-lg transition"
-          >
-            Supprimer mon compte
-          </button>
+        <div class="border-t border-color-border pt-8">
+          <h3 class="text-lg font-semibold text-color-cinematic-red mb-2">Danger Zone</h3>
+          <button @click="confirmDelete({ id: userId, firstname, lastname, email, dob, roles: [userRole] })" class="w-full btn-danger">Delete My Account</button>
         </div>
       </div>
     </div>

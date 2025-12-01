@@ -47,11 +47,15 @@ const showNavbar = computed(() => !route.meta.hideNavbar)
 </script>
 
 <template>
-  <Navbar
-      v-if="showNavbar"
-      :logged-in="loggedIn"
-      :photo="photo"
-      @logout="handleLogout"
-  />
-  <router-view @login-success="handleLogin" />
+  <div class="bg-color-bg text-color-text min-h-screen font-inter transition-colors duration-300">
+    <Navbar
+        v-if="showNavbar"
+        :logged-in="loggedIn"
+        :photo="photo"
+        @logout="handleLogout"
+    />
+    <main class="pt-20">
+      <router-view @login-success="handleLogin" />
+    </main>
+  </div>
 </template>

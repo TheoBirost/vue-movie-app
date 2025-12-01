@@ -137,81 +137,68 @@ const saveActor = async () => {
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 px-4" @click.self="emit('close')">
-    <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-[var(--radius)] w-full max-w-2xl p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-white">
-          {{ props.actor ? 'Modifier l\'acteur' : 'Nouvel acteur' }}
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="emit('close')">
+    <div class="bg-color-surface border border-color-border rounded-lg w-full max-w-2xl shadow-2xl max-h-[90vh] flex flex-col" data-aos="fade-up">
+      <header class="p-6 flex items-center justify-between border-b border-color-border">
+        <h2 class="text-2xl font-gloock font-bold text-color-heading">
+          {{ props.actor ? 'Edit Actor' : 'New Actor' }}
         </h2>
-        <button @click="emit('close')" class="p-2 hover:bg-[var(--bg-hover)] rounded-lg transition text-[var(--text-gray)] hover:text-white">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
+        <button @click="emit('close')" class="p-2 rounded-full hover:bg-color-bg dark:hover:bg-color-surface text-color-text" aria-label="Close form">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
-      </div>
+      </header>
 
-      <div class="space-y-4">
-        <div class="grid grid-cols-2 gap-4">
+      <main class="p-6 space-y-6 overflow-y-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-sm font-medium text-[var(--text-gray)] mb-2">Prénom</label>
-            <input v-model="firstname" placeholder="Ex: Leonardo"
-                   class="w-full px-4 py-3 bg-[var(--bg-main)] text-white border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--gold)] transition" />
+            <label for="actor-firstname" class="block text-sm font-medium text-color-text mb-1">First Name</label>
+            <input id="actor-firstname" v-model="firstname" type="text" placeholder="e.g., Leonardo" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md focus:outline-none focus:ring-2 focus:ring-color-primary" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-[var(--text-gray)] mb-2">Nom</label>
-            <input v-model="lastname" placeholder="Ex: DiCaprio"
-                   class="w-full px-4 py-3 bg-[var(--bg-main)] text-white border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--gold)] transition" />
+            <label for="actor-lastname" class="block text-sm font-medium text-color-text mb-1">Last Name</label>
+            <input id="actor-lastname" v-model="lastname" type="text" placeholder="e.g., DiCaprio" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md focus:outline-none focus:ring-2 focus:ring-color-primary" />
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-sm font-medium text-[var(--text-gray)] mb-2">Date de naissance</label>
-            <input v-model="dob" type="date"
-                   class="w-full px-4 py-3 bg-[var(--bg-main)] text-white border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--gold)] transition" />
+            <label for="actor-dob" class="block text-sm font-medium text-color-text mb-1">Date of Birth</label>
+            <input id="actor-dob" v-model="dob" type="date" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md focus:outline-none focus:ring-2 focus:ring-color-primary" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-[var(--text-gray)] mb-2">Date de décès (facultatif)</label>
-            <input v-model="dod" type="date"
-                   class="w-full px-4 py-3 bg-[var(--bg-main)] text-white border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--gold)] transition" />
+            <label for="actor-dod" class="block text-sm font-medium text-color-text mb-1">Date of Death (optional)</label>
+            <input id="actor-dod" v-model="dod" type="date" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md focus:outline-none focus:ring-2 focus:ring-color-primary" />
           </div>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-[var(--text-gray)] mb-2">Biographie</label>
-          <textarea v-model="bio" placeholder="Racontez l'histoire de cet acteur..."
-                    class="w-full px-4 py-3 bg-[var(--bg-main)] text-white border border-[var(--border)] rounded-lg h-32 resize-none focus:outline-none focus:border-[var(--gold)] transition"></textarea>
+          <label for="actor-bio" class="block text-sm font-medium text-color-text mb-1">Biography</label>
+          <textarea id="actor-bio" v-model="bio" placeholder="Tell the story of this actor..." rows="4" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md resize-y focus:outline-none focus:ring-2 focus:ring-color-primary"></textarea>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-[var(--text-gray)] mb-2">
-            Films ({{ selectedMovies.length }} sélectionné{{ selectedMovies.length > 1 ? 's' : '' }})
-          </label>
-          <div class="bg-[var(--bg-main)] border border-[var(--border)] rounded-lg p-4 max-h-64 overflow-y-auto space-y-2">
-            <div v-for="movie in allMovies" :key="movie.id"
-                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--bg-hover)] transition cursor-pointer"
-                 @click="toggleMovie(movie.id)">
-              <input type="checkbox" :checked="selectedMovies.includes(movie.id)" class="w-4 h-4 rounded border-[var(--border)] text-[var(--gold)] focus:ring-[var(--gold)]" />
-              <span class="text-white">{{ movie.name }}</span>
-            </div>
+          <label class="block text-sm font-medium text-color-text mb-1">Movies ({{ selectedMovies.length }} selected)</label>
+          <div class="bg-color-bg border border-color-border rounded-md p-4 max-h-48 overflow-y-auto space-y-2">
+            <label v-for="movie in allMovies" :key="movie.id" class="flex items-center gap-3 p-2 rounded-md hover:bg-color-border dark:hover:bg-color-surface cursor-pointer">
+              <input type="checkbox" :value="movie.id" :checked="selectedMovies.includes(movie.id)" @change="toggleMovie(movie.id)" class="w-4 h-4 rounded border-color-border text-color-primary focus:ring-color-primary" />
+              <span class="text-color-heading">{{ movie.name }}</span>
+            </label>
           </div>
         </div>
 
-        <div v-if="errors" class="bg-red-900/20 border border-red-800/30 text-red-400 p-3 rounded-lg text-sm">
+        <div v-if="errors" class="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-md text-sm">
           {{ errors }}
         </div>
-      </div>
+      </main>
 
-      <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-[var(--border)]">
-        <button @click="emit('close')"
-                class="px-5 py-3 bg-[var(--bg-hover)] hover:bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-gray)] rounded-lg transition font-medium">
-          Annuler
+      <footer class="p-6 flex justify-end gap-4 border-t border-color-border">
+        <button @click="emit('close')" class="btn-secondary">
+          Cancel
         </button>
-        <button @click="saveActor" :disabled="loading"
-                class="px-6 py-3 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-black rounded-lg transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-          {{ loading ? 'Enregistrement...' : 'Enregistrer' }}
+        <button @click="saveActor" :disabled="loading" class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
+          {{ loading ? 'Saving...' : 'Save Actor' }}
         </button>
-      </div>
+      </footer>
     </div>
   </div>
 </template>

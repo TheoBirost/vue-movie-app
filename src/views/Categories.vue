@@ -95,105 +95,70 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[var(--bg-main)]">
-    <div class="max-w-7xl mx-auto px-6 py-16 space-y-12">
-
-      <div class="flex justify-between items-center">
-        <div>
-          <h1 class="text-5xl font-bold text-white mb-2">Catégories</h1>
-          <p class="text-[var(--text-gray)]">Organisez vos films</p>
+  <div class="min-h-screen bg-color-bg text-color-text">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <header class="flex flex-col md:flex-row justify-between items-center mb-12" data-aos="fade-down">
+        <div class="text-center md:text-left mb-8 md:mb-0">
+          <h1 class="text-5xl font-gloock font-bold text-color-heading mb-2">Movie Categories</h1>
+          <p class="text-lg text-color-text">Organize and explore by genre.</p>
         </div>
-
         <button
-            v-if="userRole === 'ROLE_ADMIN'"
-            @click="selectedCategory = null; showForm = true"
-            class="px-6 py-3 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-black font-semibold rounded-lg transition"
+          v-if="userRole === 'ROLE_ADMIN'"
+          @click="selectedCategory = null; showForm = true"
+          class="btn-primary"
         >
-          + Ajouter
+          + Add Category
         </button>
-      </div>
+      </header>
 
-      <input
+      <div class="mb-12" data-aos="fade-down">
+        <input
           v-model="search"
-          placeholder="Rechercher une catégorie..."
-          class="w-full px-4 py-3 bg-[var(--bg-card)] text-white border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--gold)] transition"
-      />
-
-      <div v-if="loading" class="text-center py-20">
-        <div class="flex gap-2 justify-center">
-          <div class="w-2 h-2 bg-[var(--gold)] rounded-full animate-bounce"></div>
-          <div class="w-2 h-2 bg-[var(--gold)] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-          <div class="w-2 h-2 bg-[var(--gold)] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-        </div>
+          type="text"
+          placeholder="Search for a category..."
+          class="w-full px-5 py-3 bg-color-surface border border-color-border rounded-lg focus:outline-none focus:ring-2 focus:ring-color-primary transition-all"
+        />
       </div>
 
-      <div v-else-if="categories.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div v-for="category in categories" :key="category.id">
-          <div class="p-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-[var(--radius)] hover:border-[var(--gold)] transition">
-            <h3 class="text-xl font-semibold text-white mb-2">
-              {{ category.name }}
-            </h3>
-            <p class="text-[var(--text-gray)] text-sm mb-4">
-              {{ category.moviesCount || 0 }} films
-            </p>
+      <div v-if="loading" class="flex justify-center items-center h-64">
+        <div class="w-16 h-16 border-4 border-color-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
 
-            <div v-if="userRole === 'ROLE_ADMIN'" class="flex gap-2">
-              <button
-                  @click.stop="editCategory(category)"
-                  class="flex-1 px-3 py-2 bg-[var(--bg-hover)] hover:bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-gray)] text-sm rounded-lg transition"
-              >
-                Modifier
-              </button>
-              <button
-                  @click.stop="confirmDelete(category)"
-                  class="flex-1 px-3 py-2 bg-red-900/20 hover:bg-red-900/40 border border-red-800/30 text-red-400 text-sm rounded-lg transition"
-              >
-                Supprimer
-              </button>
+      <div v-else-if="errorMessage" class="text-center py-16 text-red-500" data-aos="fade-up">
+        <p>{{ errorMessage }}</p>
+      </div>
+
+      <div v-else-if="categories.length > 0">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div v-for="category in categories" :key="category.id" data-aos="fade-up">
+            <div class="bg-color-surface p-6 rounded-lg shadow-lg border border-color-border hover:shadow-xl hover:border-color-primary transition-all">
+              <h3 class="text-xl font-bold text-color-heading mb-2">{{ category.name }}</h3>
+              <p class="text-sm text-color-text mb-4">{{ category.moviesCount || 0 }} movies</p>
+              <div v-if="userRole === 'ROLE_ADMIN'" class="flex gap-2 mt-4">
+                <button @click.stop="editCategory(category)" class="w-full py-2 px-4 btn-secondary">Edit</button>
+                <button @click.stop="confirmDelete(category)" class="w-full py-2 px-4 btn-danger">Delete</button>
+              </div>
             </div>
           </div>
         </div>
+
+        <div v-if="totalPages > 1" class="flex justify-center items-center space-x-4">
+          <button @click="page--" :disabled="page === 1" class="btn-secondary">
+            &larr; Previous
+          </button>
+          <span class="text-color-text">Page {{ page }} of {{ totalPages }}</span>
+          <button @click="page++" :disabled="page === totalPages" class="btn-secondary">
+            Next &rarr;
+          </button>
+        </div>
       </div>
 
-      <div v-else class="text-center py-20">
-        <p class="text-[var(--text-gray)] text-lg">{{ errorMessage || "Aucune catégorie trouvée" }}</p>
-      </div>
-
-      <div v-if="totalPages > 1" class="flex justify-center items-center gap-4">
-        <button
-            :disabled="page === 1"
-            @click="page--"
-            class="w-10 h-10 rounded-lg bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--gold)] disabled:opacity-30 transition text-white"
-        >
-          ◀
-        </button>
-
-        <span class="text-[var(--text-gray)]">
-          Page {{ page }} / {{ totalPages }}
-        </span>
-
-        <button
-            :disabled="page === totalPages"
-            @click="page++"
-            class="w-10 h-10 rounded-lg bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--gold)] disabled:opacity-30 transition text-white"
-        >
-          ▶
-        </button>
+      <div v-else class="text-center py-20" data-aos="fade-up">
+        <p class="text-color-text text-lg">No categories found. Try a different search.</p>
       </div>
     </div>
 
-    <CategoryForm
-        v-if="showForm"
-        :category="selectedCategory"
-        @close="showForm = false"
-        @refresh="fetchCategories"
-    />
-
-    <ConfirmDeleteCategory
-        v-if="showConfirm"
-        :category="categoryToDelete"
-        @cancel="showConfirm = false"
-        @confirm="deleteCategory"
-    />
+    <CategoryForm v-if="showForm" :category="selectedCategory" @close="showForm = false" @refresh="fetchCategories" />
+    <ConfirmDeleteCategory v-if="showConfirm" :category="categoryToDelete" @cancel="showConfirm = false" @confirm="deleteCategory" />
   </div>
 </template>

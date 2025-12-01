@@ -16,7 +16,7 @@ function formatDate(dateString) {
 }
 
 function formatRole(roles) {
-  if (!roles || !Array.isArray(roles)) return "Aucun rôle"
+  if (!roles || !Array.isArray(roles)) return "No role"
   if (roles.includes("ROLE_ADMIN")) return "Admin"
   if (roles.includes("ROLE_USER")) return "User"
   return roles[0] || "—"
@@ -30,9 +30,9 @@ async function fetchUsers() {
     users.value = Array.isArray(res.data.member) ? res.data.member : []
   } catch (err) {
     if (err.response) {
-      errorMessage.value = `Erreur ${err.response.status}`
+      errorMessage.value = `Error ${err.response.status}`
     } else if (err.request) {
-      errorMessage.value = "Impossible de récupérer les utilisateurs"
+      errorMessage.value = "Could not retrieve users"
     } else {
       errorMessage.value = err.message
     }
@@ -60,63 +60,63 @@ onMounted(fetchUsers)
 </script>
 
 <template>
-  <div class="min-h-screen bg-[var(--bg-main)]">
-    <div class="max-w-7xl mx-auto px-6 py-16">
-      <div v-if="loading" class="text-center py-20">
-        <p class="text-[var(--text-gray)] animate-pulse">Chargement...</p>
+  <div class="min-h-screen bg-color-bg text-color-text">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <header class="mb-12" data-aos="fade-down">
+        <h1 class="text-5xl font-gloock font-bold text-color-heading">User Management</h1>
+        <p class="mt-2 text-lg text-color-text">Manage user roles and permissions.</p>
+      </header>
+
+      <div v-if="loading" class="flex justify-center items-center h-64">
+        <div class="w-16 h-16 border-4 border-color-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
 
-      <div v-else-if="errorMessage" class="text-center py-20">
-        <p class="text-red-400">{{ errorMessage }}</p>
+      <div v-else-if="errorMessage" class="text-center py-16 text-red-500" data-aos="fade-up">
+        <p>{{ errorMessage }}</p>
       </div>
 
-      <div v-else class="space-y-6">
-        <h1 class="text-4xl font-bold text-white">Gestion des utilisateurs</h1>
-
-        <div v-if="users.length === 0" class="text-center text-[var(--text-gray)]">
-          Aucun utilisateur
-        </div>
-
-        <div v-else class="bg-[var(--bg-card)] rounded-[var(--radius)] border border-[var(--border)] overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-[var(--bg-hover)]">
-            <tr>
-              <th class="px-4 py-3 text-left text-sm text-[var(--text-gray)]">ID</th>
-              <th class="px-4 py-3 text-left text-sm text-[var(--text-gray)]">Prénom</th>
-              <th class="px-4 py-3 text-left text-sm text-[var(--text-gray)]">Nom</th>
-              <th class="px-4 py-3 text-left text-sm text-[var(--text-gray)]">Email</th>
-              <th class="px-4 py-3 text-left text-sm text-[var(--text-gray)]">Rôle</th>
-              <th class="px-4 py-3 text-left text-sm text-[var(--text-gray)]">Naissance</th>
-              <th class="px-4 py-3 text-left text-sm text-[var(--text-gray)]">Actions</th>
-            </tr>
+      <div v-else-if="users.length > 0" class="bg-color-surface shadow-lg rounded-lg overflow-hidden border border-color-border" data-aos="fade-up">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-color-border">
+            <thead class="bg-color-bg">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-color-text uppercase tracking-wider">User</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-color-text uppercase tracking-wider">Role</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-color-text uppercase tracking-wider">Date of Birth</th>
+                <th scope="col" class="relative px-6 py-3">
+                  <span class="sr-only">Edit</span>
+                </th>
+              </tr>
             </thead>
-            <tbody>
-            <tr v-for="user in users" :key="user.id" class="border-t border-[var(--border)] hover:bg-[var(--bg-hover)]">
-              <td class="px-4 py-3 text-sm text-white">{{ user.id }}</td>
-              <td class="px-4 py-3 text-sm text-white">{{ user.firstname }}</td>
-              <td class="px-4 py-3 text-sm text-white">{{ user.lastname }}</td>
-              <td class="px-4 py-3 text-sm text-white break-all">{{ user.email }}</td>
-              <td class="px-4 py-3 text-sm">
-                  <span
-                      :class="user.roles && user.roles.includes('ROLE_ADMIN') ? 'bg-purple-500/20 text-purple-400' : 'bg-green-500/20 text-green-400'"
-                      class="px-2 py-1 rounded text-xs"
-                  >
+            <tbody class="divide-y divide-color-border">
+              <tr v-for="user in users" :key="user.id" class="hover:bg-color-bg transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-color-heading">{{ user.firstname }} {{ user.lastname }}</div>
+                      <div class="text-sm text-color-text">{{ user.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span :class="user.roles && user.roles.includes('ROLE_ADMIN') ? 'bg-color-primary/20 text-color-primary' : 'bg-color-muted/20 text-color-muted'" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
                     {{ formatRole(user.roles) }}
                   </span>
-              </td>
-              <td class="px-4 py-3 text-sm text-white">{{ user.dob ? formatDate(user.dob) : "—" }}</td>
-              <td class="px-4 py-3 text-sm">
-                <button
-                    @click="openRoleForm(user)"
-                    class="px-3 py-1.5 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-black text-xs rounded transition"
-                >
-                  Modifier
-                </button>
-              </td>
-            </tr>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-color-text">
+                  {{ user.dob ? formatDate(user.dob) : "—" }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <button @click="openRoleForm(user)" class="btn-secondary">Edit</button>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
+      </div>
+      
+      <div v-else class="text-center py-20 text-color-text" data-aos="fade-up">
+        <p>No users found.</p>
       </div>
     </div>
 
