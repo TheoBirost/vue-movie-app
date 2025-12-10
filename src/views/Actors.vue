@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from "vue"
+import { ref, onMounted, watch, nextTick } from "vue"
 import { useRouter } from "vue-router"
 import { gsap } from 'gsap'
 import api from "/src/api/api.js"
@@ -41,14 +41,17 @@ const fetchActors = async () => {
     const totalItems = res.data["hydra:totalItems"] || res.data.totalItems || actors.value.length
     totalPages.value = Math.max(1, Math.ceil(totalItems / limit))
 
-    // Animation GSAP
-    gsap.from('.actor-card-wrapper', {
-      opacity: 0,
-      y: 50,
-      duration: 0.6,
-      stagger: 0.1,
-      ease: 'power3.out'
-    })
+    await nextTick()
+
+    if (document.querySelectorAll('.actor-card-wrapper').length > 0) {
+      gsap.from('.actor-card-wrapper', {
+        opacity: 0,
+        y: 50,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: 'power3.out'
+      })
+    }
   } catch (err) {
     if (err.response) {
       errorMessage.value = `Erreur ${err.response.status}`
@@ -97,13 +100,12 @@ watch(search, () => {
 })
 
 onMounted(async () => {
-  await fetchActors()
-  try {
-    const res = await api.get(import.meta.env.VITE_API_URL_USER)
-    userRole.value = res.data.roles?.[0] || "aucun rôle"
-  } catch (err) {
-    console.error("Erreur récupération rôle :", err)
+  const role = localStorage.getItem('role')
+  if (role === 'admin') {
+    userRole.value = 'ROLE_ADMIN'
   }
+
+  await fetchActors()
 
   // Animations initiales
   gsap.from('.page-title', {

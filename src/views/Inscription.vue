@@ -3,6 +3,7 @@ import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { gsap } from 'gsap'
+import ThreeBackground from '../components/ThreeBackground.vue'
 
 const router = useRouter()
 
@@ -112,6 +113,7 @@ onMounted(() => {
 
 <template>
   <div class="min-h-screen bg-[#0d0d0f] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 relative overflow-hidden">
+    <ThreeBackground />
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.05),transparent_60%)]"></div>
 
     <div class="auth-card w-full max-w-lg space-y-8 z-10">
