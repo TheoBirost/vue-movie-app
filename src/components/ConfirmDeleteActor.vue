@@ -1,35 +1,43 @@
 <script setup>
+import { onMounted } from 'vue'
+import { gsap } from 'gsap'
+
 const emit = defineEmits(['cancel', 'confirm'])
 const props = defineProps({ actor: Object })
+
+onMounted(() => {
+  gsap.from('.confirm-dialog', {
+    opacity: 0,
+    scale: 0.9,
+    duration: 0.4,
+    ease: 'power3.out'
+  })
+})
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50" @click.self="emit('cancel')">
-    <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-[var(--radius)] p-8 w-full max-w-md shadow-2xl">
-      <h3 class="text-2xl font-bold text-white mb-4">
-        Confirmer la suppression
-      </h3>
-
-      <p class="text-[var(--text-gray)] mb-6">
-        Êtes-vous sûr de vouloir supprimer
-        <span class="text-white font-semibold">{{ props.actor?.firstname }} {{ props.actor?.lastname }}</span> ?
-        Cette action est irréversible.
-      </p>
-
-      <div class="flex gap-3">
-        <button
-            @click="emit('cancel')"
-            class="flex-1 px-4 py-3 bg-[var(--bg-hover)] hover:bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-gray)] rounded-lg transition font-medium"
-        >
+  <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="emit('cancel')">
+    <div class="confirm-dialog bg-[#16181E] border border-[#2A2D36] rounded-lg w-full max-w-md shadow-2xl">
+      <header class="p-6 border-b border-[#2A2D36] flex items-center gap-4">
+        <div class="w-12 h-12 flex-shrink-0 rounded-full bg-red-900/20 border border-red-800/30 flex items-center justify-center">
+          <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        </div>
+        <h2 class="garamond text-2xl font-bold text-white">Confirmer la suppression</h2>
+      </header>
+      <main class="p-6">
+        <p class="text-[#C1C1C7]">
+          Êtes-vous sûr de vouloir supprimer l'acteur
+          <strong class="text-white">{{ props.actor?.firstname }} {{ props.actor?.lastname }}</strong> ? Cette action est irréversible.
+        </p>
+      </main>
+      <footer class="p-6 flex justify-end gap-4 bg-[#0d0d0f]/50 rounded-b-lg">
+        <button @click="emit('cancel')" class="px-6 py-2.5 rounded-lg text-sm font-bold text-[#C1C1C7] border border-[#2A2D36] hover:bg-white/10 transition-colors">
           Annuler
         </button>
-        <button
-            @click="emit('confirm')"
-            class="flex-1 px-4 py-3 bg-red-900/20 hover:bg-red-900/40 border border-red-800/30 text-red-400 rounded-lg transition font-medium"
-        >
+        <button @click="emit('confirm')" class="px-6 py-2.5 rounded-lg text-sm font-bold text-white bg-red-600 hover:bg-red-700 transition-all">
           Supprimer
         </button>
-      </div>
+      </footer>
     </div>
   </div>
 </template>

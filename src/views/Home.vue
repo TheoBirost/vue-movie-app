@@ -1,22 +1,117 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import * as THREE from 'three'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import api from '/src/api/api.js'
 import MovieCard from '/src/components/MovieCard.vue'
 import ActorCard from '/src/components/ActorCard.vue'
 import { useRouter } from 'vue-router'
+
+gsap.registerPlugin(ScrollTrigger)
 
 const movies = ref([])
 const actors = ref([])
 const router = useRouter()
 const errorMessage = ref("")
 const loading = ref(false)
+const canvasRef = ref(null)
 
 const goToMovie = (id) => router.push(`/movies/${id}`)
 const goToActor = (id) => router.push(`/actors/${id}`)
 
+// Three.js Scene
+let scene, camera, renderer, particles
+let animationId = null
+
+const initThreeJS = () => {
+  if (!canvasRef.value) return
+
+  scene = new THREE.Scene()
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+  renderer = new THREE.WebGLRenderer({
+    canvas: canvasRef.value,
+    alpha: true,
+    antialias: true
+  })
+
+  renderer.setSize(window.innerWidth, window.innerHeight)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  camera.position.z = 5
+
+  // Particules dorées
+  const particlesGeometry = new THREE.BufferGeometry()
+  const particlesCount = 2000
+  const posArray = new Float32Array(particlesCount * 3)
+
+  for(let i = 0; i < particlesCount * 3; i += 3) {
+    posArray[i] = (Math.random() - 0.5) * 50
+    posArray[i + 1] = (Math.random() - 0.5) * 50
+    posArray[i + 2] = (Math.random() - 0.5) * 30
+  }
+
+  particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3))
+
+  const particlesMaterial = new THREE.PointsMaterial({
+    size: 0.04,
+    color: 0xFFD700,
+    transparent: true,
+    opacity: 0.6,
+    blending: THREE.AdditiveBlending
+  })
+
+  particles = new THREE.Points(particlesGeometry, particlesMaterial)
+  scene.add(particles)
+
+  const animate = () => {
+    animationId = requestAnimationFrame(animate)
+    particles.rotation.y += 0.0005
+    particles.rotation.x += 0.0003
+    renderer.render(scene, camera)
+  }
+
+  animate()
+}
+
+const handleResize = () => {
+  if (camera && renderer) {
+    camera.aspect = window.innerWidth / window.innerHeight
+    camera.updateProjectionMatrix()
+    renderer.setSize(window.innerWidth, window.innerHeight)
+  }
+}
+
 onMounted(async () => {
   loading.value = true
   errorMessage.value = ""
+
+  initThreeJS()
+  window.addEventListener('resize', handleResize)
+
+  // Animations GSAP
+  gsap.from('.hero-badge', {
+    opacity: 0,
+    scale: 0.5,
+    duration: 0.8,
+    delay: 0.5,
+    ease: 'back.out(2)'
+  })
+
+  gsap.from('.hero-title', {
+    opacity: 0,
+    y: 100,
+    duration: 1.2,
+    delay: 0.7,
+    ease: 'power4.out'
+  })
+
+  gsap.from('.hero-subtitle', {
+    opacity: 0,
+    y: 50,
+    duration: 1,
+    delay: 0.9,
+    ease: 'power3.out'
+  })
 
   try {
     const movieRes = await api.get('/movies', {
@@ -31,11 +126,23 @@ onMounted(async () => {
     const dataActors = actorRes.data.member || []
     actors.value = dataActors.sort((a, b) => b.id - a.id).slice(0, 4)
 
+    // Animations au scroll
+    gsap.from('.section-title', {
+      scrollTrigger: {
+        trigger: '.section-title',
+        start: 'top 80%'
+      },
+      opacity: 0,
+      y: 50,
+      duration: 0.8,
+      ease: 'power3.out'
+    })
+
   } catch (err) {
     if (err.response) {
-      errorMessage.value = `Erreur ${err.response.status} : ${err.response.data.message || "Non spécifié"}`
+      errorMessage.value = `Erreur ${err.response.status}`
     } else if (err.request) {
-      errorMessage.value = "Erreur réseau : aucune réponse du serveur"
+      errorMessage.value = "Erreur réseau"
     } else {
       errorMessage.value = err.message
     }
@@ -43,75 +150,126 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  if (animationId) cancelAnimationFrame(animationId)
+  if (renderer) renderer.dispose()
+  ScrollTrigger.getAll().forEach(st => st.kill())
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-[var(--bg-main)]">
-    <div class="max-w-7xl mx-auto px-6 py-16 space-y-16">
+  <div class="min-h-screen bg-[#0d0d0f] relative overflow-hidden">
+    <!-- Hero avec Three.js -->
+    <section class="relative h-screen flex items-center justify-center overflow-hidden">
+      <canvas ref="canvasRef" class="absolute inset-0 w-full h-full" />
 
-      <div class="text-center space-y-4">
-        <h1 class="text-7xl md:text-8xl font-bold text-[var(--gold)]">Movie's</h1>
-        <p class="text-lg text-[var(--text-gray)]">Recherchez des films et acteurs que vous aimez</p>
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.03),transparent_70%)]" />
+      <div class="absolute inset-0 bg-gradient-to-b from-[#0d0d0f]/60 via-transparent to-[#0d0d0f]" />
+
+      <div class="relative z-10 text-center px-6 max-w-5xl mx-auto">
+        <div class="hero-badge inline-block px-6 py-2 border border-[#FFD700]/30 rounded-full mb-8 text-[10px] tracking-[0.25em] text-[#FFD700]">
+          PREMIUM FILM COLLECTION
+        </div>
+
+        <h1 class="hero-title garamond text-7xl md:text-9xl font-bold leading-none mb-6 text-[#FFD700]">
+          CINÉASTE
+        </h1>
+
+        <p class="hero-subtitle text-lg md:text-xl text-white/70 max-w-3xl mx-auto mb-12 leading-relaxed">
+          Explorez une collection exclusive de films et d'acteurs légendaires
+        </p>
+
+        <div class="flex gap-4 justify-center flex-wrap">
+          <router-link
+              to="/movies"
+              class="px-10 py-4 bg-[#FFD700] hover:bg-[#FFE55C] text-black text-xs tracking-[0.2em] font-bold rounded-lg transition-all hover:scale-105"
+          >
+            EXPLORER LES FILMS
+          </router-link>
+          <router-link
+              to="/actors"
+              class="px-10 py-4 border border-[#FFD700] hover:bg-[#FFD700] hover:text-black text-[#FFD700] text-xs tracking-[0.2em] font-bold rounded-lg transition-all"
+          >
+            DÉCOUVRIR LES ACTEURS
+          </router-link>
+        </div>
       </div>
+    </section>
 
+    <!-- Contenu principal -->
+    <div class="max-w-7xl mx-auto px-6 py-24 space-y-24">
       <div v-if="loading" class="flex justify-center py-20">
         <div class="flex gap-2">
-          <div class="w-2 h-2 bg-[var(--gold)] rounded-full animate-bounce"></div>
-          <div class="w-2 h-2 bg-[var(--gold)] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-          <div class="w-2 h-2 bg-[var(--gold)] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+          <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce"></div>
+          <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+          <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
         </div>
       </div>
 
       <template v-else>
-        <section class="space-y-6">
+        <!-- Films -->
+        <section class="space-y-8">
           <div class="flex items-center justify-between">
-            <h2 class="text-3xl font-bold text-white">Derniers Films</h2>
+            <div>
+              <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">SÉLECTION</div>
+              <h2 class="section-title garamond text-5xl md:text-6xl font-bold text-white">
+                Derniers Films
+              </h2>
+            </div>
             <router-link
                 to="/movies"
-                class="text-sm text-[var(--text-gray)] hover:text-[var(--gold)] transition-colors"
+                class="text-sm text-[#FFD700] hover:text-[#FFE55C] transition-colors tracking-[0.15em]"
             >
-              Voir tout →
+              VOIR TOUT →
             </router-link>
           </div>
 
-          <div v-if="errorMessage" class="text-center text-[var(--text-gray)] py-12">
+          <div class="h-px bg-gradient-to-r from-transparent via-[#FFD700] to-transparent opacity-30" />
+
+          <div v-if="errorMessage" class="text-center text-white/60 py-12">
             {{ errorMessage }}
           </div>
-          <div v-else>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <MovieCard
-                  v-for="movie in movies"
-                  :key="movie.id"
-                  :movie="movie"
-                  @click="goToMovie(movie.id)"
-              />
-            </div>
+          <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <MovieCard
+                v-for="movie in movies"
+                :key="movie.id"
+                :movie="movie"
+                @click="goToMovie(movie.id)"
+            />
           </div>
         </section>
 
-        <section class="space-y-6">
+        <!-- Acteurs -->
+        <section class="space-y-8">
           <div class="flex items-center justify-between">
-            <h2 class="text-3xl font-bold text-white">Derniers Acteurs</h2>
+            <div>
+              <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">TALENTS</div>
+              <h2 class="section-title garamond text-5xl md:text-6xl font-bold text-white">
+                Acteurs Légendaires
+              </h2>
+            </div>
             <router-link
                 to="/actors"
-                class="text-sm text-[var(--text-gray)] hover:text-[var(--gold)] transition-colors"
+                class="text-sm text-[#FFD700] hover:text-[#FFE55C] transition-colors tracking-[0.15em]"
             >
-              Voir tout →
+              VOIR TOUT →
             </router-link>
           </div>
 
-          <div v-if="errorMessage" class="text-center text-[var(--text-gray)] py-12">
+          <div class="h-px bg-gradient-to-r from-transparent via-[#FFD700] to-transparent opacity-30" />
+
+          <div v-if="errorMessage" class="text-center text-white/60 py-12">
             {{ errorMessage }}
           </div>
-          <div v-else>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <ActorCard
-                  v-for="actor in actors"
-                  :key="actor.id"
-                  :actor="actor"
-                  @click="goToActor(actor.id)"
-              />
-            </div>
+          <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <ActorCard
+                v-for="actor in actors"
+                :key="actor.id"
+                :actor="actor"
+                @click="goToActor(actor.id)"
+            />
           </div>
         </section>
       </template>

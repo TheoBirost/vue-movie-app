@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch } from "vue"
 import { useRouter } from "vue-router"
+import { gsap } from 'gsap'
 import api from "/src/api/api.js"
 import ActorForm from "/src/components/ActorForm.vue"
 import ConfirmDeleteActor from "/src/components/ConfirmDeleteActor.vue"
@@ -39,6 +40,15 @@ const fetchActors = async () => {
     actors.value = res.data["hydra:member"] || res.data.member || []
     const totalItems = res.data["hydra:totalItems"] || res.data.totalItems || actors.value.length
     totalPages.value = Math.max(1, Math.ceil(totalItems / limit))
+
+    // Animation GSAP
+    gsap.from('.actor-card-wrapper', {
+      opacity: 0,
+      y: 50,
+      duration: 0.6,
+      stagger: 0.1,
+      ease: 'power3.out'
+    })
   } catch (err) {
     if (err.response) {
       errorMessage.value = `Erreur ${err.response.status}`
@@ -94,88 +104,127 @@ onMounted(async () => {
   } catch (err) {
     console.error("Erreur récupération rôle :", err)
   }
+
+  // Animations initiales
+  gsap.from('.page-title', {
+    opacity: 0,
+    y: -50,
+    duration: 0.8,
+    ease: 'power3.out'
+  })
+
+  gsap.from('.search-bar', {
+    opacity: 0,
+    y: 30,
+    duration: 0.8,
+    delay: 0.2,
+    ease: 'power3.out'
+  })
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-[var(--bg-main)]">
-    <div class="max-w-7xl mx-auto px-6 py-16 space-y-12">
+  <div class="min-h-screen bg-[#0d0d0f]">
+    <div class="max-w-7xl mx-auto px-6 py-20 space-y-12">
 
-      <div class="flex justify-between items-center">
-        <div>
-          <h1 class="text-5xl font-bold text-white mb-2">Acteurs</h1>
-          <p class="text-[var(--text-gray)]">Les talents du cinéma</p>
+      <!-- Header -->
+      <div class="flex justify-between items-end">
+        <div class="page-title">
+          <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">TALENTS</div>
+          <h1 class="garamond text-6xl md:text-7xl font-bold text-white mb-3">Acteurs</h1>
+          <div class="h-1 w-24 bg-gradient-to-r from-[#FFD700] to-transparent" />
         </div>
 
         <button
             v-if="userRole === 'ROLE_ADMIN'"
             @click="selectedActor = null; showForm = true"
-            class="px-6 py-3 bg-[var(--gold)] hover:bg-[var(--gold-light)] text-black font-semibold rounded-lg transition"
+            class="px-8 py-4 bg-[#FFD700] hover:bg-[#FFE55C] text-black font-bold rounded-lg transition-all hover:scale-105 text-xs tracking-[0.2em]"
         >
-          + Ajouter
+          + AJOUTER UN ACTEUR
         </button>
       </div>
 
-      <input
-          v-model="search"
-          placeholder="Rechercher un acteur..."
-          class="w-full px-4 py-3 bg-[var(--bg-card)] text-white border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--gold)] transition"
-      />
-
-      <div v-if="loading" class="text-center py-20">
-        <div class="flex gap-2 justify-center">
-          <div class="w-2 h-2 bg-[var(--gold)] rounded-full animate-bounce"></div>
-          <div class="w-2 h-2 bg-[var(--gold)] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-          <div class="w-2 h-2 bg-[var(--gold)] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+      <!-- Barre de recherche -->
+      <div class="search-bar">
+        <div class="relative">
+          <input
+              v-model="search"
+              placeholder="Rechercher un acteur..."
+              class="w-full px-6 py-4 bg-[#16181E] text-white border border-[#2A2D36] rounded-lg focus:outline-none focus:border-[#FFD700] transition-all text-lg"
+          />
+          <svg class="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-[#FFD700]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
         </div>
       </div>
 
-      <div v-else-if="actors.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div v-for="actor in actors" :key="actor.id">
+      <!-- Loading -->
+      <div v-if="loading" class="flex items-center justify-center min-h-[40vh]">
+        <div class="flex gap-2">
+          <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce"></div>
+          <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+          <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+        </div>
+      </div>
+
+      <!-- Grille d'acteurs -->
+      <div v-else-if="actors.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div v-for="actor in actors" :key="actor.id" class="actor-card-wrapper">
           <div @click="goToActor(actor.id)">
             <ActorCard :actor="actor" />
           </div>
 
-          <div v-if="userRole === 'ROLE_ADMIN'" class="flex gap-2 mt-3">
+          <div v-if="userRole === 'ROLE_ADMIN'" class="flex gap-2 mt-4">
             <button
                 @click.stop="editActor(actor)"
-                class="flex-1 px-3 py-2 bg-[var(--bg-hover)] hover:bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-gray)] text-sm rounded-lg transition"
+                class="flex-1 px-4 py-2.5 bg-[#1E2129] hover:bg-[#2A2D36] border border-[#2A2D36] text-[#C1C1C7] hover:text-white text-xs rounded-lg transition-all font-medium tracking-wide"
             >
-              Modifier
+              MODIFIER
             </button>
             <button
                 @click.stop="confirmDelete(actor)"
-                class="flex-1 px-3 py-2 bg-red-900/20 hover:bg-red-900/40 border border-red-800/30 text-red-400 text-sm rounded-lg transition"
+                class="flex-1 px-4 py-2.5 bg-red-900/20 hover:bg-red-900/40 border border-red-800/30 text-red-400 text-xs rounded-lg transition-all font-medium tracking-wide"
             >
-              Supprimer
+              SUPPRIMER
             </button>
           </div>
         </div>
       </div>
 
+      <!-- Empty state -->
       <div v-else class="text-center py-20">
-        <p class="text-[var(--text-gray)] text-lg">{{ errorMessage || "Aucun acteur trouvé" }}</p>
+        <div class="inline-block p-6 bg-[#16181E] rounded-full mb-6">
+          <svg class="w-12 h-12 text-[#FFD700]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+        </div>
+        <p class="text-[#C1C1C7] text-lg">{{ errorMessage || "Aucun acteur trouvé" }}</p>
       </div>
 
-      <div v-if="totalPages > 1" class="flex justify-center items-center gap-4">
+      <!-- Pagination -->
+      <div v-if="totalPages > 1" class="flex justify-center items-center gap-6 pt-8">
         <button
             :disabled="page === 1"
             @click="page--"
-            class="w-10 h-10 rounded-lg bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--gold)] disabled:opacity-30 transition text-white"
+            class="w-12 h-12 rounded-lg bg-[#16181E] border border-[#2A2D36] hover:border-[#FFD700] disabled:opacity-30 disabled:cursor-not-allowed transition-all text-white flex items-center justify-center"
         >
-          ◀
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
         </button>
 
-        <span class="text-[var(--text-gray)]">
-          Page {{ page }} / {{ totalPages }}
+        <span class="text-[#C1C1C7] tracking-[0.2em] text-sm">
+          PAGE <span class="text-[#FFD700] font-bold">{{ page }}</span> / {{ totalPages }}
         </span>
 
         <button
             :disabled="page === totalPages"
             @click="page++"
-            class="w-10 h-10 rounded-lg bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--gold)] disabled:opacity-30 transition text-white"
+            class="w-12 h-12 rounded-lg bg-[#16181E] border border-[#2A2D36] hover:border-[#FFD700] disabled:opacity-30 disabled:cursor-not-allowed transition-all text-white flex items-center justify-center"
         >
-          ▶
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
         </button>
       </div>
     </div>
