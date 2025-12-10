@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { gsap } from 'gsap'
+import { bus } from '../bus'
 
 const props = defineProps({
   loggedIn: Boolean,
@@ -12,6 +13,8 @@ const emit = defineEmits(['logout'])
 const router = useRouter()
 const isOpen = ref(false)
 const isScrolled = ref(false)
+
+const rateLimit = ref({ remaining: null, limit: null })
 
 const toggleMenu = () => {
   isOpen.value = !isOpen.value
@@ -37,8 +40,13 @@ const handleScroll = () => {
   isScrolled.value = window.scrollY > 10
 }
 
+const updateRateLimit = (data) => {
+  rateLimit.value = data
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
+  bus.on('rate-limit-update', updateRateLimit)
   gsap.from('.nav-item', {
     opacity: 0,
     y: -20,
@@ -51,6 +59,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  bus.off('rate-limit-update', updateRateLimit)
 })
 </script>
 
@@ -83,6 +92,10 @@ onUnmounted(() => {
 
         <div class="hidden md:flex items-center gap-4">
           <template v-if="props.loggedIn">
+            <div v-if="rateLimit.remaining !== null" class="nav-item text-xs text-[#82828A] flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
+              <span>{{ rateLimit.remaining }} / {{ rateLimit.limit }}</span>
+            </div>
             <button
               @click="logout"
               class="nav-item p-2 rounded-full text-[#C1C1C7] hover:text-white hover:bg-white/10 transition-colors"

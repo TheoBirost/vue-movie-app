@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from "vue"
+import { ref, onMounted, watch, nextTick } from "vue"
 import { gsap } from 'gsap'
 import api from "/src/api/api.js"
 import CategoryForm from "/src/components/CategoryForm.vue"
@@ -36,14 +36,17 @@ const fetchCategories = async () => {
     const totalItems = res.data['hydra:totalItems'] || res.data.totalItems || 0
     totalPages.value = Math.max(1, Math.ceil(totalItems / limit))
 
-    // Animation GSAP
-    gsap.from('.category-card-wrapper', {
-      opacity: 0,
-      y: 50,
-      duration: 0.6,
-      stagger: 0.1,
-      ease: 'power3.out'
-    })
+    await nextTick()
+
+    if (document.querySelectorAll('.category-card-wrapper').length > 0) {
+      gsap.from('.category-card-wrapper', {
+        opacity: 0,
+        y: 50,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: 'power3.out'
+      })
+    }
   } catch (err) {
     categories.value = []
     if (err.response) {
@@ -56,18 +59,6 @@ const fetchCategories = async () => {
   } finally {
     loading.value = false
   }
-}
-
-const fetchUserRole = async () => {
-    if (loggedIn.value) {
-        try {
-            const res = await api.get(import.meta.env.VITE_API_URL_USER)
-            userRole.value = res.data.roles.includes('ROLE_ADMIN') ? 'ROLE_ADMIN' : 'ROLE_USER'
-        } catch (err) {
-            console.error("Error fetching user role:", err)
-            userRole.value = 'ROLE_USER'
-        }
-    }
 }
 
 const editCategory = (category) => {
@@ -108,9 +99,12 @@ watch(search, () => {
 })
 
 onMounted(async () => {
-  loggedIn.value = localStorage.getItem('loggedIn') === 'true';
+  const role = localStorage.getItem('role')
+  if (role === 'admin') {
+    userRole.value = 'ROLE_ADMIN'
+  }
+
   await fetchCategories()
-  await fetchUserRole()
 
   // Animations initiales
   gsap.from('.page-title', {

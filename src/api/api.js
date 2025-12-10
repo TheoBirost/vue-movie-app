@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { bus } from '../bus'
-import router from '../router' // Importer le routeur
+import router from '../router'
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
@@ -14,13 +14,25 @@ api.interceptors.request.use(config => {
     return config
 })
 
+const handleRateLimitHeaders = (headers) => {
+    if (headers['x-ratelimit-remaining'] && headers['x-ratelimit-limit']) {
+        bus.emit('rate-limit-update', {
+            remaining: headers['x-ratelimit-remaining'],
+            limit: headers['x-ratelimit-limit'],
+        })
+    }
+}
+
 api.interceptors.response.use(
-    response => response,
+    response => {
+        handleRateLimitHeaders(response.headers)
+        return response
+    },
     error => {
         if (error.response) {
+            handleRateLimitHeaders(error.response.headers)
             switch (error.response.status) {
                 case 401:
-                    // Déconnexion et redirection
                     localStorage.removeItem('token')
                     localStorage.removeItem('loggedIn')
                     localStorage.removeItem('userPhoto')

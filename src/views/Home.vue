@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import * as THREE from 'three'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -81,6 +81,38 @@ const handleResize = () => {
   }
 }
 
+const initScrollTriggers = () => {
+  // Animations au scroll
+  gsap.utils.toArray('.section-title').forEach(title => {
+    gsap.from(title, {
+      scrollTrigger: {
+        trigger: title,
+        start: 'top 85%',
+        toggleActions: 'play none none none'
+      },
+      opacity: 0,
+      y: 50,
+      duration: 0.8,
+      ease: 'power3.out'
+    })
+  })
+
+  gsap.utils.toArray('.movie-card, .actor-card').forEach((card, index) => {
+    gsap.from(card, {
+      scrollTrigger: {
+        trigger: card,
+        start: 'top 90%',
+        toggleActions: 'play none none none'
+      },
+      opacity: 0,
+      y: 30,
+      delay: (index % 4) * 0.1,
+      duration: 0.6,
+      ease: 'power3.out'
+    })
+  })
+}
+
 onMounted(async () => {
   loading.value = true
   errorMessage.value = ""
@@ -126,17 +158,11 @@ onMounted(async () => {
     const dataActors = actorRes.data.member || []
     actors.value = dataActors.sort((a, b) => b.id - a.id).slice(0, 4)
 
-    // Animations au scroll
-    gsap.from('.section-title', {
-      scrollTrigger: {
-        trigger: '.section-title',
-        start: 'top 80%'
-      },
-      opacity: 0,
-      y: 50,
-      duration: 0.8,
-      ease: 'power3.out'
-    })
+    // Attendre que Vue mette à jour le DOM
+    await nextTick()
+
+    // Initialiser les animations de scroll
+    initScrollTriggers()
 
   } catch (err) {
     if (err.response) {
