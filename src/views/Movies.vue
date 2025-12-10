@@ -17,7 +17,6 @@ const search = ref("")
 const page = ref(1)
 const totalPages = ref(1)
 const loading = ref(false)
-const errorMessage = ref("")
 const showForm = ref(false)
 const showConfirm = ref(false)
 const selectedMovie = ref(null)
@@ -28,7 +27,6 @@ const limit = 12
 
 const fetchMovies = async () => {
   loading.value = true
-  errorMessage.value = ""
   try {
     const res = await api.get("/movies", {
       params: {
@@ -36,6 +34,7 @@ const fetchMovies = async () => {
         itemsPerPage: limit,
         "order[id]": "desc",
         name: search.value || undefined,
+        'groups[]': ['movie:read', 'movie:categories'], // Demander les données complètes des catégories
       },
     })
 
@@ -55,13 +54,9 @@ const fetchMovies = async () => {
       })
     }
   } catch (err) {
-    if (err.response) {
-      errorMessage.value = `Erreur ${err.response.status}`
-    } else if (err.request) {
-      errorMessage.value = "Aucun film trouvé"
-    } else {
-      errorMessage.value = err.message
-    }
+    // L'intercepteur global gérera l'affichage de l'erreur 429
+    console.error("Erreur lors du chargement des films :", err);
+    movies.value = [] // Vider les films en cas d'erreur
   } finally {
     loading.value = false
   }
@@ -174,7 +169,9 @@ onMounted(async () => {
 
       <!-- Grille de films -->
       <div v-else-if="movies.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div v-for="movie in movies" :key="movie.id" class="movie-card-wrapper">
+        <div v-for="movie in movies" :key="movie.id" class="movie-card-wrapper group"
+             @mouseenter="gsap.to($event.currentTarget, { scale: 1.03, boxShadow: '0 0 25px rgba(255, 215, 0, 0.4)', duration: 0.3, ease: 'power2.out' })"
+             @mouseleave="gsap.to($event.currentTarget, { scale: 1, boxShadow: '0 0 10px rgba(255, 215, 0, 0.1)', duration: 0.3, ease: 'power2.out' })">
           <div @click="goToMovie(movie.id)">
             <MovieCard :movie="movie" />
           </div>
@@ -203,7 +200,7 @@ onMounted(async () => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
           </svg>
         </div>
-        <p class="text-[#C1C1C7] text-lg">{{ errorMessage || "Aucun film trouvé" }}</p>
+        <p class="text-[#C1C1C7] text-lg">Aucun film trouvé</p>
       </div>
 
       <!-- Pagination -->

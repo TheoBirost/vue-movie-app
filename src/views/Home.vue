@@ -13,7 +13,6 @@ gsap.registerPlugin(ScrollTrigger)
 const movies = ref([])
 const actors = ref([])
 const router = useRouter()
-const errorMessage = ref("")
 const loading = ref(false)
 const canvasRef = ref(null)
 
@@ -41,23 +40,27 @@ const initThreeJS = () => {
 
   // Particules dorées
   const particlesGeometry = new THREE.BufferGeometry()
-  const particlesCount = 2000
-  const posArray = new Float32Array(particlesCount * 3)
+  const particlesCount = 5000 // Plus de particules
+  const positions = new Float32Array(particlesCount * 3)
+  const scales = new Float32Array(particlesCount) // Pour des tailles différentes
 
-  for(let i = 0; i < particlesCount * 3; i += 3) {
-    posArray[i] = (Math.random() - 0.5) * 50
-    posArray[i + 1] = (Math.random() - 0.5) * 50
-    posArray[i + 2] = (Math.random() - 0.5) * 30
+  for(let i = 0; i < particlesCount; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 100 // Étendue plus large
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 100
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 100
+    scales[i] = Math.random() * 0.8 + 0.2 // Tailles aléatoires
   }
 
-  particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3))
+  particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  particlesGeometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1))
 
   const particlesMaterial = new THREE.PointsMaterial({
-    size: 0.04,
+    size: 0.1, // Taille de base
     color: 0xFFD700,
     transparent: true,
-    opacity: 0.6,
-    blending: THREE.AdditiveBlending
+    opacity: 0.7,
+    blending: THREE.AdditiveBlending,
+    sizeAttenuation: true // Les particules plus éloignées sont plus petites
   })
 
   particles = new THREE.Points(particlesGeometry, particlesMaterial)
@@ -65,8 +68,13 @@ const initThreeJS = () => {
 
   const animate = () => {
     animationId = requestAnimationFrame(animate)
-    particles.rotation.y += 0.0005
-    particles.rotation.x += 0.0003
+
+    // Animation des particules
+    particles.rotation.y += 0.0008
+    particles.rotation.x += 0.0004
+    particles.position.z += 0.05 // Déplacement léger vers l'avant
+    if (particles.position.z > 10) particles.position.z = -10 // Réinitialiser la position
+
     renderer.render(scene, camera)
   }
 
@@ -97,7 +105,7 @@ const initScrollTriggers = () => {
     })
   })
 
-  gsap.utils.toArray('.movie-card, .actor-card').forEach((card, index) => {
+  gsap.utils.toArray('.movie-card-wrapper, .actor-card-wrapper').forEach((card, index) => {
     gsap.from(card, {
       scrollTrigger: {
         trigger: card,
@@ -115,7 +123,6 @@ const initScrollTriggers = () => {
 
 onMounted(async () => {
   loading.value = true
-  errorMessage.value = ""
 
   initThreeJS()
   window.addEventListener('resize', handleResize)
@@ -147,13 +154,13 @@ onMounted(async () => {
 
   try {
     const movieRes = await api.get('/movies', {
-      params: { 'order[release_date]': 'desc', 'limit': 4, 'page': 1 },
+      params: { 'order[release_date]': 'desc', 'limit': 4, 'page': 1, 'groups[]': ['movie:read', 'movie:categories'] },
     })
     const dataMovies = movieRes.data.member || []
     movies.value = dataMovies.sort((a, b) => b.id - a.id).slice(0, 4)
 
     const actorRes = await api.get('/actors', {
-      params: { limit: 10000 },
+      params: { limit: 10000, 'groups[]': 'actor:read' },
     })
     const dataActors = actorRes.data.member || []
     actors.value = dataActors.sort((a, b) => b.id - a.id).slice(0, 4)
@@ -165,13 +172,8 @@ onMounted(async () => {
     initScrollTriggers()
 
   } catch (err) {
-    if (err.response) {
-      errorMessage.value = `Erreur ${err.response.status}`
-    } else if (err.request) {
-      errorMessage.value = "Erreur réseau"
-    } else {
-      errorMessage.value = err.message
-    }
+    // L'intercepteur global gérera l'affichage de l'erreur 429
+    console.error("Erreur lors du chargement des données :", err);
   } finally {
     loading.value = false
   }
@@ -254,16 +256,16 @@ onUnmounted(() => {
 
           <div class="h-px bg-gradient-to-r from-transparent via-[#FFD700] to-transparent opacity-30" />
 
-          <div v-if="errorMessage" class="text-center text-white/60 py-12">
-            {{ errorMessage }}
+          <div v-if="movies.length === 0" class="text-center text-white/60 py-12">
+            Aucun film trouvé.
           </div>
           <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <MovieCard
-                v-for="movie in movies"
-                :key="movie.id"
-                :movie="movie"
-                @click="goToMovie(movie.id)"
-            />
+            <div v-for="movie in movies" :key="movie.id" class="movie-card-wrapper">
+              <MovieCard
+                  :movie="movie"
+                  @click="goToMovie(movie.id)"
+              />
+            </div>
           </div>
         </section>
 
@@ -286,16 +288,16 @@ onUnmounted(() => {
 
           <div class="h-px bg-gradient-to-r from-transparent via-[#FFD700] to-transparent opacity-30" />
 
-          <div v-if="errorMessage" class="text-center text-white/60 py-12">
-            {{ errorMessage }}
+          <div v-if="actors.length === 0" class="text-center text-white/60 py-12">
+            Aucun acteur trouvé.
           </div>
           <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <ActorCard
-                v-for="actor in actors"
-                :key="actor.id"
-                :actor="actor"
-                @click="goToActor(actor.id)"
-            />
+            <div v-for="actor in actors" :key="actor.id" class="actor-card-wrapper">
+              <ActorCard
+                  :actor="actor"
+                  @click="goToActor(actor.id)"
+              />
+            </div>
           </div>
         </section>
       </template>
