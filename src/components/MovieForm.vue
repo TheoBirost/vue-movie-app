@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import { gsap } from 'gsap'
 import api from '/src/api/api.js'
 
 const emit = defineEmits(['close', 'refresh'])
@@ -27,7 +28,7 @@ const initFromMovie = (m) => {
   }
   title.value = m.name || ''
   description.value = m.description || ''
-  releaseDate.value = m.releaseDate || ''
+  releaseDate.value = m.releaseDate ? m.releaseDate.split('T')[0] : ''
   budget.value = m.budget || ''
   duration.value = m.duration || ''
   selectedActors.value = (m.actors || []).map(a => {
@@ -46,7 +47,7 @@ const initFromMovie = (m) => {
 
 const fetchActors = async () => {
   try {
-    const res = await api.get('/actors')
+    const res = await api.get('/actors', { params: { pagination: false } })
     allActors.value = res.data.member || res.data['hydra:member'] || []
   } catch (err) {
     console.error('Erreur chargement acteurs :', err)
@@ -64,6 +65,12 @@ const toggleActor = (id) => {
 onMounted(async () => {
   await fetchActors()
   initFromMovie(props.movie)
+  gsap.from('.form-container', {
+    opacity: 0,
+    y: 50,
+    duration: 0.5,
+    ease: 'power3.out'
+  })
 })
 watch(() => props.movie, (m) => initFromMovie(m))
 
@@ -77,63 +84,14 @@ const saveMovie = async () => {
       description: description.value,
       releaseDate: releaseDate.value,
       budget: budget.value,
-      duration: duration.value
+      duration: duration.value,
+      actors: selectedActors.value.map(id => `/api/actors/${id}`)
     }
 
     if (props.movie?.id) {
       await api.patch(`/movies/${props.movie.id}`, movieData, { headers: { 'Content-Type': 'application/merge-patch+json' } })
-
-      const currentMovieRes = await api.get(`/movies/${props.movie.id}`)
-      const currentActorIds = (currentMovieRes.data.actors || []).map(a => {
-        if (typeof a === 'string') {
-          const match = a.match(/\/(\d+)$/)
-          return match ? Number(match[1]) : null
-        }
-        return a.id || null
-      }).filter(id => id !== null)
-
-      const toAdd = selectedActors.value.filter(id => !currentActorIds.includes(id))
-      const toRemove = currentActorIds.filter(id => !selectedActors.value.includes(id))
-
-      for (const actorId of toRemove) {
-        const actorRes = await api.get(`/actors/${actorId}`)
-        const actorMovies = (actorRes.data.movies || [])
-            .map(m => typeof m === 'string' ? m : `/api/movies/${m.id}`)
-            .filter(iri => !iri.includes(`/${props.movie.id}`))
-
-        await api.patch(`/actors/${actorId}`, { movies: actorMovies }, {
-          headers: { 'Content-Type': 'application/merge-patch+json' }
-        })
-      }
-
-      for (const actorId of toAdd) {
-        const actorRes = await api.get(`/actors/${actorId}`)
-        const actorMovies = (actorRes.data.movies || [])
-            .map(m => typeof m === 'string' ? m : `/api/actors/${m.id}`)
-
-        if (!actorMovies.includes(`/api/movies/${props.movie.id}`)) {
-          actorMovies.push(`/api/movies/${props.movie.id}`)
-        }
-
-        await api.patch(`/actors/${actorId}`, { movies: actorMovies }, {
-          headers: { 'Content-Type': 'application/merge-patch+json' }
-        })
-      }
-
     } else {
-      const response = await api.post('/movies', movieData, { headers: { 'Content-Type': 'application/ld+json' } })
-      const newMovieId = response.data.id
-
-      for (const actorId of selectedActors.value) {
-        const actorRes = await api.get(`/actors/${actorId}`)
-        const actorMovies = (actorRes.data.movies || [])
-            .map(m => typeof m === 'string' ? m : `/api/movies/${m.id}`)
-        actorMovies.push(`/api/movies/${newMovieId}`)
-
-        await api.patch(`/actors/${actorId}`, { movies: actorMovies }, {
-          headers: { 'Content-Type': 'application/merge-patch+json' }
-        })
-      }
+      await api.post('/movies', movieData, { headers: { 'Content-Type': 'application/ld+json' } })
     }
 
     emit('refresh')
@@ -148,65 +106,65 @@ const saveMovie = async () => {
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="emit('close')">
-    <div class="bg-color-surface border border-color-border rounded-lg w-full max-w-2xl shadow-2xl max-h-[90vh] flex flex-col" data-aos="fade-up">
-      <header class="p-6 flex items-center justify-between border-b border-color-border">
-        <h2 class="text-2xl font-gloock font-bold text-color-heading">
-          {{ props.movie ? 'Edit Movie' : 'New Movie' }}
+  <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="emit('close')">
+    <div class="form-container bg-[#16181E] border border-[#2A2D36] rounded-lg w-full max-w-2xl shadow-2xl max-h-[90vh] flex flex-col">
+      <header class="p-6 flex items-center justify-between border-b border-[#2A2D36]">
+        <h2 class="garamond text-2xl font-bold text-white">
+          {{ props.movie ? 'Modifier le film' : 'Nouveau film' }}
         </h2>
-        <button @click="emit('close')" class="p-2 rounded-full hover:bg-color-bg dark:hover:bg-color-surface text-color-text" aria-label="Close form">
+        <button @click="emit('close')" class="p-2 rounded-full text-[#82828A] hover:bg-white/10" aria-label="Fermer">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </header>
 
       <main class="p-6 space-y-6 overflow-y-auto">
         <div>
-          <label for="movie-title" class="block text-sm font-medium text-color-text mb-1">Title</label>
-          <input id="movie-title" v-model="title" type="text" placeholder="e.g., Inception" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md focus:outline-none focus:ring-2 focus:ring-color-primary" />
+          <label for="movie-title" class="block text-sm font-medium text-[#C1C1C7] mb-1">Titre</label>
+          <input id="movie-title" v-model="title" type="text" placeholder="ex: Inception" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
         </div>
 
         <div>
-          <label for="movie-description" class="block text-sm font-medium text-color-text mb-1">Description</label>
-          <textarea id="movie-description" v-model="description" placeholder="Describe the movie's plot..." rows="4" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md resize-y focus:outline-none focus:ring-2 focus:ring-color-primary"></textarea>
+          <label for="movie-description" class="block text-sm font-medium text-[#C1C1C7] mb-1">Description</label>
+          <textarea id="movie-description" v-model="description" placeholder="Décrivez l'intrigue du film..." rows="4" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md resize-y text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]"></textarea>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label for="movie-release-date" class="block text-sm font-medium text-color-text mb-1">Release Date</label>
-            <input id="movie-release-date" v-model="releaseDate" type="date" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md focus:outline-none focus:ring-2 focus:ring-color-primary" />
+            <label for="movie-release-date" class="block text-sm font-medium text-[#C1C1C7] mb-1">Date de sortie</label>
+            <input id="movie-release-date" v-model="releaseDate" type="date" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
           </div>
           <div>
-            <label for="movie-duration" class="block text-sm font-medium text-color-text mb-1">Duration (minutes)</label>
-            <input id="movie-duration" v-model="duration" type="number" placeholder="120" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md focus:outline-none focus:ring-2 focus:ring-color-primary" />
+            <label for="movie-duration" class="block text-sm font-medium text-[#C1C1C7] mb-1">Durée (minutes)</label>
+            <input id="movie-duration" v-model="duration" type="number" placeholder="120" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
           </div>
         </div>
 
         <div>
-          <label for="movie-budget" class="block text-sm font-medium text-color-text mb-1">Budget ($)</label>
-          <input id="movie-budget" v-model="budget" type="number" placeholder="10000000" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md focus:outline-none focus:ring-2 focus:ring-color-primary" />
+          <label for="movie-budget" class="block text-sm font-medium text-[#C1C1C7] mb-1">Budget ($)</label>
+          <input id="movie-budget" v-model="budget" type="number" placeholder="10000000" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-color-text mb-1">Actors ({{ selectedActors.length }} selected)</label>
-          <div class="bg-color-bg border border-color-border rounded-md p-4 max-h-48 overflow-y-auto space-y-2">
-            <label v-for="actor in allActors" :key="actor.id" class="flex items-center gap-3 p-2 rounded-md hover:bg-color-border dark:hover:bg-color-surface cursor-pointer">
-              <input type="checkbox" :value="actor.id" :checked="selectedActors.includes(actor.id)" @change="toggleActor(actor.id)" class="w-4 h-4 rounded border-color-border text-color-primary focus:ring-color-primary" />
-              <span class="text-color-heading">{{ actor.firstname }} {{ actor.lastname }}</span>
+          <label class="block text-sm font-medium text-[#C1C1C7] mb-1">Acteurs ({{ selectedActors.length }} sélectionné{{ selectedActors.length > 1 ? 's' : '' }})</label>
+          <div class="bg-[#0d0d0f] border border-[#2A2D36] rounded-md p-4 max-h-48 overflow-y-auto space-y-2">
+            <label v-for="actor in allActors" :key="actor.id" class="flex items-center gap-3 p-2 rounded-md hover:bg-[#1E2129] cursor-pointer">
+              <input type="checkbox" :value="actor.id" :checked="selectedActors.includes(actor.id)" @change="toggleActor(actor.id)" class="w-4 h-4 rounded border-[#2A2D36] bg-[#0d0d0f] text-[#FFD700] focus:ring-[#FFD700]" />
+              <span class="text-white">{{ actor.firstname }} {{ actor.lastname }}</span>
             </label>
           </div>
         </div>
 
-        <div v-if="errors" class="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-md text-sm">
+        <div v-if="errors" class="bg-red-900/20 border border-red-800/30 text-red-400 p-3 rounded-md text-sm">
           {{ errors }}
         </div>
       </main>
 
-      <footer class="p-6 flex justify-end gap-4 border-t border-color-border">
-        <button @click="emit('close')" class="btn-secondary">
-          Cancel
+      <footer class="p-6 flex justify-end gap-4 border-t border-[#2A2D36]">
+        <button @click="emit('close')" class="px-6 py-2.5 rounded-lg text-sm font-bold text-[#C1C1C7] border border-[#2A2D36] hover:bg-white/10 transition-colors">
+          Annuler
         </button>
-        <button @click="saveMovie" :disabled="loading" class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
-          {{ loading ? 'Saving...' : 'Save Movie' }}
+        <button @click="saveMovie" :disabled="loading" class="px-6 py-2.5 rounded-lg text-sm font-bold text-black bg-[#FFD700] hover:bg-[#FFE55C] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+          {{ loading ? 'Sauvegarde...' : 'Sauvegarder' }}
         </button>
       </footer>
     </div>

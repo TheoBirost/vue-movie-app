@@ -1,7 +1,8 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { gsap } from 'gsap'
 import api from '/src/api/api.js'
 
 const router = useRouter()
@@ -10,10 +11,12 @@ const emit = defineEmits(['login-success'])
 const email = ref('')
 const password = ref('')
 const errorMessage = ref('')
+const loading = ref(false)
 
 const login = async (e) => {
   e.preventDefault()
   errorMessage.value = ''
+  loading.value = true
 
   try {
     const response = await axios.post(import.meta.env.VITE_API_URL_AUTH, {
@@ -25,56 +28,91 @@ const login = async (e) => {
     localStorage.setItem('token', token)
     localStorage.setItem('loggedIn', 'true')
 
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+
     const userRes = await api.get(import.meta.env.VITE_API_URL_USER)
+    const user = userRes.data
+
     const baseUrl = import.meta.env.VITE_API_BASE_URL
-    const photo = userRes.data.photo
-        ? `${baseUrl}${userRes.data.photo}`
-        : '/default-avatar.png'
+    const photo = user.photo ? `${baseUrl}${user.photo}` : '/default-avatar.png'
 
     localStorage.setItem('userPhoto', photo)
-    emit('login-success', photo)
+    if (user.roles && user.roles.length > 0) {
+        const isAdmin = user.roles.includes('ROLE_ADMIN')
+        localStorage.setItem('role', isAdmin ? 'admin' : 'user')
+    } else {
+        localStorage.setItem('role', 'user')
+    }
 
-    await router.push('/home')
-  } catch {
-    errorMessage.value = "Incorrect email or password"
+    emit('login-success', photo)
+    await router.push('/')
+  } catch (err) {
+    errorMessage.value = "Email ou mot de passe incorrect."
+    delete api.defaults.headers.common['Authorization']
+    gsap.fromTo('.error-message', { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' })
+  } finally {
+    loading.value = false
   }
 }
+
+onMounted(() => {
+  gsap.from('.auth-card', {
+    opacity: 0,
+    scale: 0.9,
+    duration: 0.8,
+    ease: 'power3.out'
+  })
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-color-bg flex items-center justify-center px-4 sm:px-6 lg:px-8">
-    <div class="w-full max-w-md space-y-8" data-aos="fade-up">
+  <div class="min-h-screen bg-[#0d0d0f] flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.05),transparent_60%)]"></div>
+
+    <div class="auth-card w-full max-w-md space-y-8 z-10">
       <div class="text-center">
-        <img class="mx-auto h-16 w-auto" src="/logo.png" alt="World View Logo" />
-        <h2 class="mt-6 text-center text-4xl font-gloock font-bold text-color-heading">
-          Sign in to your account
+        <h1 class="garamond text-6xl font-bold text-[#FFD700]">Cinéaste</h1>
+        <h2 class="mt-2 text-2xl font-bold text-white">
+          Connectez-vous
         </h2>
-        <p class="mt-2 text-center text-sm text-color-text">
-          Or
-          <router-link to="/inscription" class="font-medium text-color-primary hover:text-color-primary-accent">
-            create a new account
+        <p class="mt-2 text-sm text-[#C1C1C7]">
+          Pas encore de compte ?
+          <router-link to="/inscription" class="font-medium text-[#FFD700] hover:text-[#FFE55C]">
+            Inscrivez-vous
           </router-link>
         </p>
       </div>
-      <form class="mt-8 space-y-6 bg-color-surface p-8 rounded-lg shadow-lg border border-color-border" @submit="login">
-        <div class="rounded-md shadow-sm space-y-4">
+
+      <form class="mt-8 space-y-6 bg-[#16181E] p-8 rounded-lg shadow-2xl border border-[#2A2D36]" @submit="login">
+        <div class="space-y-4">
           <div>
-            <label for="email-address" class="sr-only">Email address</label>
-            <input id="email-address" v-model="email" name="email" type="email" autocomplete="email" required class="appearance-none rounded-md relative block w-full px-4 py-3 border border-color-border bg-color-bg placeholder-gray-500 text-color-text focus:outline-none focus:ring-color-primary focus:border-color-primary focus:z-10 sm:text-sm" placeholder="Email address">
+            <label for="email-address" class="text-[#C1C1C7] text-sm tracking-wider uppercase">Email</label>
+            <input id="email-address" v-model="email" name="email" type="email" autocomplete="email" required
+                   class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[#2A2D36] bg-[#0d0d0f] placeholder-gray-500 text-white focus:outline-none focus:ring-[#FFD700] focus:border-[#FFD700] sm:text-sm transition-all"
+                   placeholder="votre@email.com">
           </div>
           <div>
-            <label for="password" class="sr-only">Password</label>
-            <input id="password" v-model="password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-md relative block w-full px-4 py-3 border border-color-border bg-color-bg placeholder-gray-500 text-color-text focus:outline-none focus:ring-color-primary focus:border-color-primary focus:z-10 sm:text-sm" placeholder="Password">
+            <label for="password" class="text-[#C1C1C7] text-sm tracking-wider uppercase">Mot de passe</label>
+            <input id="password" v-model="password" name="password" type="password" autocomplete="current-password" required
+                   class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[#2A2D36] bg-[#0d0d0f] placeholder-gray-500 text-white focus:outline-none focus:ring-[#FFD700] focus:border-[#FFD700] sm:text-sm transition-all"
+                   placeholder="********">
           </div>
         </div>
 
-        <div v-if="errorMessage" class="text-red-500 text-sm text-center">
+        <div v-if="errorMessage" class="error-message text-red-400 text-sm text-center bg-red-900/20 p-3 rounded-md border border-red-800/30">
           {{ errorMessage }}
         </div>
 
         <div>
-          <button type="submit" class="group relative w-full flex justify-center btn-primary">
-            Sign in
+          <button type="submit" :disabled="loading"
+                  class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-black bg-[#FFD700] hover:bg-[#FFE55C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            <span v-if="loading" class="absolute left-0 inset-y-0 flex items-center pl-3">
+              <svg class="h-5 w-5 text-black animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </span>
+            {{ loading ? 'Connexion...' : 'Se connecter' }}
           </button>
         </div>
       </form>

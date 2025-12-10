@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import { gsap } from 'gsap'
 import api from '/src/api/api.js'
 
 const emit = defineEmits(['close', 'refresh'])
@@ -48,6 +49,12 @@ const initFromUser = (u) => {
 
 onMounted(() => {
   initFromUser(props.user)
+  gsap.from('.form-container', {
+    opacity: 0,
+    y: 50,
+    duration: 0.5,
+    ease: 'power3.out'
+  })
 })
 
 watch(() => props.user, (u) => initFromUser(u))
@@ -71,10 +78,11 @@ const saveUser = async () => {
       })
     } else {
       if (!password.value || !password.value.trim()) {
-        errors.value = 'Password is required to create a user'
+        errors.value = 'Le mot de passe est requis pour créer un utilisateur'
         loading.value = false
         return
       }
+      userData.plainPassword = password.value
     }
 
     await new Promise(resolve => setTimeout(resolve, 500))
@@ -87,9 +95,9 @@ const saveUser = async () => {
           err.response.data?.['hydra:description'] ||
           err.response.data?.message ||
           err.response.data?.error ||
-          `Error ${err.response.status}`
+          `Erreur ${err.response.status}`
     } else if (err.request) {
-      errors.value = "Could not contact the server"
+      errors.value = "Impossible de contacter le serveur"
     } else {
       errors.value = err.message
     }
@@ -100,13 +108,13 @@ const saveUser = async () => {
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="emit('close')">
-    <div class="bg-color-surface border border-color-border rounded-lg w-full max-w-lg shadow-2xl" data-aos="fade-up">
-      <header class="p-6 flex items-center justify-between border-b border-color-border">
-        <h2 class="text-2xl font-gloock font-bold text-color-heading">
-          {{ userId ? 'Edit User' : 'Add User' }}
+  <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="emit('close')">
+    <div class="form-container bg-[#16181E] border border-[#2A2D36] rounded-lg w-full max-w-lg shadow-2xl">
+      <header class="p-6 flex items-center justify-between border-b border-[#2A2D36]">
+        <h2 class="garamond text-2xl font-bold text-white">
+          {{ userId ? 'Modifier l\'utilisateur' : 'Ajouter un utilisateur' }}
         </h2>
-        <button @click="emit('close')" class="p-2 rounded-full hover:bg-color-bg dark:hover:bg-color-surface text-color-text" aria-label="Close form">
+        <button @click="emit('close')" class="p-2 rounded-full text-[#82828A] hover:bg-white/10" aria-label="Fermer">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </header>
@@ -114,38 +122,38 @@ const saveUser = async () => {
       <main class="p-6 space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label for="user-firstname" class="block text-sm font-medium text-color-text mb-1">First Name</label>
-            <input id="user-firstname" v-model="firstname" type="text" placeholder="First Name" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md focus:outline-none focus:ring-2 focus:ring-color-primary" />
+            <label for="user-firstname" class="block text-sm font-medium text-[#C1C1C7] mb-1">Prénom</label>
+            <input id="user-firstname" v-model="firstname" type="text" placeholder="Prénom" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
           </div>
           <div>
-            <label for="user-lastname" class="block text-sm font-medium text-color-text mb-1">Last Name</label>
-            <input id="user-lastname" v-model="lastname" type="text" placeholder="Last Name" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md focus:outline-none focus:ring-2 focus:ring-color-primary" />
+            <label for="user-lastname" class="block text-sm font-medium text-[#C1C1C7] mb-1">Nom</label>
+            <input id="user-lastname" v-model="lastname" type="text" placeholder="Nom" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
           </div>
         </div>
         <div>
-          <label for="user-email" class="block text-sm font-medium text-color-text mb-1">Email</label>
-          <input id="user-email" v-model="email" type="email" placeholder="email@example.com" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md focus:outline-none focus:ring-2 focus:ring-color-primary" />
+          <label for="user-email" class="block text-sm font-medium text-[#C1C1C7] mb-1">Email</label>
+          <input id="user-email" v-model="email" type="email" placeholder="email@example.com" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
         </div>
         <div>
-          <label for="user-dob" class="block text-sm font-medium text-color-text mb-1">Date of Birth</label>
-          <input id="user-dob" v-model="dob" type="date" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md focus:outline-none focus:ring-2 focus:ring-color-primary" />
+          <label for="user-dob" class="block text-sm font-medium text-[#C1C1C7] mb-1">Date de naissance</label>
+          <input id="user-dob" v-model="dob" type="date" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
         </div>
         <div v-if="!userId">
-          <label for="user-password" class="block text-sm font-medium text-color-text mb-1">Password</label>
-          <input id="user-password" v-model="password" type="password" placeholder="Password" class="w-full px-4 py-2 bg-color-bg border border-color-border rounded-md focus:outline-none focus:ring-2 focus:ring-color-primary" />
+          <label for="user-password" class="block text-sm font-medium text-[#C1C1C7] mb-1">Mot de passe</label>
+          <input id="user-password" v-model="password" type="password" placeholder="Mot de passe" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
         </div>
 
-        <div v-if="errors" class="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-md text-sm">
+        <div v-if="errors" class="bg-red-900/20 border border-red-800/30 text-red-400 p-3 rounded-md text-sm">
           {{ errors }}
         </div>
       </main>
 
-      <footer class="p-6 flex justify-end gap-4 border-t border-color-border">
-        <button @click="emit('close')" class="btn-secondary">
-          Cancel
+      <footer class="p-6 flex justify-end gap-4 border-t border-[#2A2D36]">
+        <button @click="emit('close')" class="px-6 py-2.5 rounded-lg text-sm font-bold text-[#C1C1C7] border border-[#2A2D36] hover:bg-white/10 transition-colors">
+          Annuler
         </button>
-        <button @click="saveUser" :disabled="loading" class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
-          {{ loading ? 'Saving...' : 'Save User' }}
+        <button @click="saveUser" :disabled="loading" class="px-6 py-2.5 rounded-lg text-sm font-bold text-black bg-[#FFD700] hover:bg-[#FFE55C] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+          {{ loading ? 'Sauvegarde...' : 'Sauvegarder' }}
         </button>
       </footer>
     </div>

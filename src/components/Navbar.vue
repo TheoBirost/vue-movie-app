@@ -1,7 +1,7 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import ThemeToggle from './ThemeToggle.vue'
+import { gsap } from 'gsap'
 
 const props = defineProps({
   loggedIn: Boolean,
@@ -11,6 +11,7 @@ const props = defineProps({
 const emit = defineEmits(['logout'])
 const router = useRouter()
 const isOpen = ref(false)
+const isScrolled = ref(false)
 
 const toggleMenu = () => {
   isOpen.value = !isOpen.value
@@ -18,73 +19,101 @@ const toggleMenu = () => {
 
 const logout = () => {
   emit('logout')
+  localStorage.removeItem('token')
   localStorage.removeItem('loggedIn')
-  router.push('/')
+  localStorage.removeItem('role')
+  localStorage.removeItem('userPhoto')
+  router.push('/connexion')
 }
 
 const navigation = [
-  { name: 'Home', href: '/home' },
-  { name: 'Movies', href: '/movies' },
-  { name: 'Actors', href: '/actors' },
-  { name: 'Categories', href: '/categories' },
+  { name: 'Accueil', href: '/' },
+  { name: 'Films', href: '/movies' },
+  { name: 'Acteurs', href: '/actors' },
+  { name: 'Catégories', href: '/categories' },
 ]
+
+const handleScroll = () => {
+  isScrolled.value = window.scrollY > 10
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+  gsap.from('.nav-item', {
+    opacity: 0,
+    y: -20,
+    duration: 0.5,
+    stagger: 0.1,
+    delay: 1.5,
+    ease: 'power3.out'
+  })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 </script>
 
 <template>
-  <nav class="fixed top-0 left-0 right-0 z-50 bg-color-surface/80 backdrop-blur-md border-b border-color-border transition-colors duration-300">
+  <nav
+    :class="[
+      'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+      isScrolled || isOpen ? 'bg-[#0d0d0f]/80 backdrop-blur-lg border-b border-[#2A2D36]' : 'bg-transparent'
+    ]"
+  >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-20">
+      <div class="flex items-center justify-between h-24">
         <div class="flex items-center">
-          <router-link to="/home" class="flex-shrink-0 flex items-center gap-2">
-            <img class="h-10 w-auto" src="/logo.png" alt="World View Logo" />
-            <span class="text-2xl font-bold font-gloock text-color-heading">World View</span>
+          <router-link to="/" class="flex-shrink-0 flex items-center gap-3">
+            <span class="garamond text-3xl font-bold text-[#FFD700]">Cinéaste</span>
           </router-link>
         </div>
-        <div class="hidden md:block">
-          <div class="ml-10 flex items-baseline space-x-4">
-            <router-link
-              v-for="item in navigation"
-              :key="item.name"
-              :to="item.href"
-              class="px-3 py-2 rounded-md text-sm font-medium text-color-text hover:text-color-primary transition-colors"
-              active-class="text-color-primary"
-            >
-              {{ item.name }}
-            </router-link>
-          </div>
+
+        <div class="hidden md:flex items-center space-x-2">
+          <router-link
+            v-for="item in navigation"
+            :key="item.name"
+            :to="item.href"
+            class="nav-item px-4 py-2 rounded-md text-sm font-medium text-[#C1C1C7] hover:text-white hover:bg-white/5 transition-colors"
+            active-class="text-white bg-white/10"
+          >
+            {{ item.name }}
+          </router-link>
         </div>
-        <div class="hidden md:block">
-          <div class="ml-4 flex items-center md:ml-6">
-            <ThemeToggle />
+
+        <div class="hidden md:flex items-center gap-4">
+          <template v-if="props.loggedIn">
             <button
-              v-if="props.loggedIn"
               @click="logout"
-              class="ml-4 p-2 rounded-full btn-secondary"
+              class="nav-item p-2 rounded-full text-[#C1C1C7] hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Logout"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>
             </button>
-            <div class="ml-3 relative">
-              <router-link to="/profile">
-                <img
-                  class="h-10 w-10 rounded-full object-cover border-2 border-transparent hover:border-color-primary transition"
-                  :src="props.photo"
-                  alt="User profile"
-                />
-              </router-link>
-            </div>
-          </div>
+            <router-link to="/profile" class="nav-item">
+              <img
+                class="h-10 w-10 rounded-full object-cover border-2 border-[#2A2D36] hover:border-[#FFD700] transition"
+                :src="props.photo"
+                alt="Photo de profil"
+              />
+            </router-link>
+          </template>
+          <template v-else>
+            <router-link to="/connexion" class="nav-item px-6 py-2.5 rounded-lg text-sm font-bold text-[#FFD700] border border-[#FFD700] hover:bg-[#FFD700] hover:text-black transition-colors">
+              Connexion
+            </router-link>
+          </template>
         </div>
+
         <div class="-mr-2 flex md:hidden">
-          <ThemeToggle />
           <button
             @click="toggleMenu"
-            class="ml-2 inline-flex items-center justify-center p-2 rounded-md btn-secondary"
+            class="inline-flex items-center justify-center p-2 rounded-md text-[#C1C1C7] hover:text-white hover:bg-white/10 focus:outline-none"
           >
-            <svg class="h-6 w-6" :class="{'hidden': isOpen, 'block': !isOpen }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="h-6 w-6" :class="{'hidden': isOpen, 'block': !isOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            <svg class="h-6 w-6" :class="{'hidden': !isOpen, 'block': isOpen }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="h-6 w-6" :class="{'hidden': !isOpen, 'block': isOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -92,36 +121,51 @@ const navigation = [
       </div>
     </div>
 
-    <div v-if="isOpen" class="md:hidden">
-      <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-        <router-link
-          v-for="item in navigation"
-          :key="item.name"
-          :to="item.href"
-          @click="isOpen = false"
-          class="block px-3 py-2 rounded-md text-base font-medium text-color-text hover:text-color-primary"
-          active-class="text-color-primary"
-        >
-          {{ item.name }}
-        </router-link>
-      </div>
-      <div class="pt-4 pb-3 border-t border-color-border">
-        <div class="flex items-center px-5">
-          <router-link to="/profile" @click="isOpen = false" class="flex-shrink-0">
-            <img class="h-10 w-10 rounded-full object-cover" :src="props.photo" alt="User profile" />
+    <transition
+      enter-active-class="transition ease-out duration-200"
+      enter-from-class="transform opacity-0 scale-95"
+      enter-to-class="transform opacity-100 scale-100"
+      leave-active-class="transition ease-in duration-150"
+      leave-from-class="transform opacity-100 scale-100"
+      leave-to-class="transform opacity-0 scale-95"
+    >
+      <div v-if="isOpen" class="md:hidden border-t border-[#2A2D36]">
+        <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          <router-link
+            v-for="item in navigation"
+            :key="item.name"
+            :to="item.href"
+            @click="isOpen = false"
+            class="block px-3 py-2 rounded-md text-base font-medium text-[#C1C1C7] hover:text-white hover:bg-white/5"
+            active-class="text-white bg-white/10"
+          >
+            {{ item.name }}
           </router-link>
-          <div class="ml-auto">
-            <button
-              v-if="props.loggedIn"
-              @click="logout"
-              class="p-2 rounded-full btn-secondary"
-              aria-label="Logout"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>
-            </button>
+        </div>
+        <div class="pt-4 pb-3 border-t border-[#2A2D36]">
+          <div class="flex items-center px-5">
+            <template v-if="props.loggedIn">
+              <router-link to="/profile" @click="isOpen = false" class="flex-shrink-0">
+                <img class="h-10 w-10 rounded-full object-cover" :src="props.photo" alt="Photo de profil" />
+              </router-link>
+              <div class="ml-auto">
+                <button
+                  @click="logout"
+                  class="p-2 rounded-full text-[#C1C1C7] hover:text-white hover:bg-white/10"
+                  aria-label="Logout"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>
+                </button>
+              </div>
+            </template>
+            <template v-else>
+              <router-link to="/connexion" @click="isOpen = false" class="w-full text-center px-6 py-2.5 rounded-lg text-sm font-bold text-[#FFD700] border border-[#FFD700] hover:bg-[#FFD700] hover:text-black transition-colors">
+                Connexion
+              </router-link>
+            </template>
           </div>
         </div>
       </div>
-    </div>
+    </transition>
   </nav>
 </template>

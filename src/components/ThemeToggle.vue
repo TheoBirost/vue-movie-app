@@ -29,7 +29,7 @@ onMounted(() => {
 <template>
   <button
     @click="toggleTheme"
-    class="p-2 rounded-full btn-secondary"
+    class="p-2 rounded-full text-[#C1C1C7] hover:text-white hover:bg-white/10 transition-colors"
   >
     <svg
       v-if="isDarkMode"

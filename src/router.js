@@ -9,20 +9,24 @@ import ActorDetails from './views/ActorDetails.vue'
 import Categories from './views/Categories.vue'
 import Profile from './views/Profile.vue'
 import UserManagement from './views/UserManagement.vue'
+import ServerError from './views/ServerError.vue'
+import NotFound from './views/NotFound.vue'
 
 const getUserRole = () => localStorage.getItem('role') || 'user'
 
 const routes = [
-    { path: '/', component: Connexion, meta: { hideNavbar: true } },
+    { path: '/', component: Home }, // Page d'accueil accessible à tous
+    { path: '/connexion', component: Connexion, meta: { hideNavbar: true } }, // Page de connexion
     { path: '/inscription', component: Inscription, meta: { hideNavbar: true } },
-    { path: '/home', component: Home, meta: { requiresAuth: true } },
-    { path: '/movies', component: Movies, meta: { requiresAuth: true } },
-    { path: '/movies/:id', component: MovieDetails },
-    { path: '/actors', component: Actors, meta: { requiresAuth: true } },
-    { path: '/actors/:id', component: ActorDetails },
-    { path: '/categories', component: Categories, meta: { requiresAuth: true } },
-    { path: '/profile', component: Profile, meta: { requiresAuth: true } },
-    { path: '/users', component: UserManagement, meta: { requiresAuth: true, requiresAdmin: true } },
+    { path: '/movies', component: Movies }, // Accessible à tous
+    { path: '/movies/:id', component: MovieDetails }, // Accessible à tous
+    { path: '/actors', component: Actors }, // Accessible à tous
+    { path: '/actors/:id', component: ActorDetails }, // Accessible à tous
+    { path: '/categories', component: Categories }, // Accessible à tous
+    { path: '/profile', component: Profile, meta: { requiresAuth: true } }, // Nécessite une authentification
+    { path: '/users', component: UserManagement, meta: { requiresAuth: true, requiresAdmin: true } }, // Nécessite une authentification et le rôle admin
+    { path: '/500', component: ServerError },
+    { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
 ]
 
 const router = createRouter({
@@ -35,9 +39,9 @@ router.beforeEach((to, from, next) => {
     const role = getUserRole()
 
     if (to.meta.requiresAuth && !loggedIn) {
-        next('/')
+        next('/connexion') // Redirige vers la page de connexion si authentification requise et non connecté
     } else if (to.meta.requiresAdmin && role !== 'admin') {
-        next('/home')
+        next('/') // Redirige vers la page d'accueil si non admin
     } else {
         next()
     }
