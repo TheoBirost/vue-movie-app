@@ -5,7 +5,9 @@ import { gsap } from 'gsap'
 import api from "/src/api/api.js"
 import ConfirmDeleteUser from "../components/ConfirmDeleteUser.vue"
 import UserForm from '../components/UserForm.vue'
+import TwoFactorSetup from '../components/TwoFactorSetup.vue'
 
+// User Profile State
 const userId = ref(null)
 const firstname = ref("")
 const lastname = ref("")
@@ -26,6 +28,20 @@ const selectedUser = ref(null)
 
 const fileInput = ref(null)
 const selectedFile = ref(null)
+
+// API Key State
+const apiKeyInfo = ref(null)
+const newlyGeneratedApiKey = ref("")
+const apiKeyLoading = ref(true)
+const apiKeyError = ref("")
+
+// 2FA State
+const twoFactorStatus = ref({ enabled: false })
+const twoFactorLoading = ref(true)
+const twoFactorError = ref("")
+const showTwoFactorSetup = ref(false)
+
+// --- User Profile Methods ---
 
 const confirmDelete = (user) => {
   userToDelete.value = user
@@ -146,13 +162,127 @@ const uploadPhoto = async () => {
   }
 }
 
+// --- API Key Methods ---
+
+async function fetchApiKeyStatus() {
+  apiKeyLoading.value = true
+  apiKeyError.value = ""
+  try {
+    const res = await api.get('/me/api-key')
+    apiKeyInfo.value = res.data
+  } catch (err) {
+    if (err.response && err.response.status === 404) {
+      apiKeyInfo.value = null
+    } else {
+      console.error("Erreur récupération statut clé API:", err)
+      apiKeyError.value = "Impossible de récupérer le statut de la clé API."
+    }
+  } finally {
+    apiKeyLoading.value = false
+  }
+}
+
+async function generateApiKey() {
+  try {
+    const res = await api.post('/me/api-key')
+    newlyGeneratedApiKey.value = res.data.apiKey
+    await fetchApiKeyStatus()
+  } catch (err) {
+    console.error("Erreur génération clé API:", err)
+    apiKeyError.value = "Une erreur est survenue lors de la génération de la clé."
+  }
+}
+
+async function toggleApiKeyStatus() {
+  if (!apiKeyInfo.value) return
+  const originalStatus = apiKeyInfo.value.enabled
+  try {
+    const newStatus = !originalStatus
+    apiKeyInfo.value.enabled = newStatus // Optimistic update
+    await api.patch('/me/api-key', { enabled: newStatus })
+  } catch (err) {
+    console.error("Erreur changement statut clé API:", err)
+    apiKeyError.value = "Impossible de modifier le statut de la clé."
+    if (apiKeyInfo.value) apiKeyInfo.value.enabled = originalStatus // Revert on failure
+  }
+}
+
+async function revokeApiKey() {
+    if (!confirm("Êtes-vous sûr de vouloir révoquer cette clé API ? Cette action est irréversible et prendra effet immédiatement.")) {
+        return
+    }
+  try {
+    await api.delete('/me/api-key')
+    apiKeyInfo.value = null
+    newlyGeneratedApiKey.value = ""
+  } catch (err) {
+    console.error("Erreur révocation clé API:", err)
+    apiKeyError.value = "Impossible de révoquer la clé API."
+  }
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    alert("Copié dans le presse-papiers !")
+  }).catch(err => {
+    console.error('Could not copy text: ', err);
+    alert("Impossible de copier. Veuillez copier manuellement.");
+  });
+}
+
+function closeApiKeyDisplay() {
+    newlyGeneratedApiKey.value = ""
+}
+
+function formatApiKeyDate(dateString) {
+    if (!dateString) return "Jamais"
+    const date = new Date(dateString)
+    return date.toLocaleString('fr-FR')
+}
+
+// --- 2FA Methods ---
+
+async function fetchTwoFactorStatus() {
+  twoFactorLoading.value = true
+  try {
+    const res = await api.get('/2fa/status')
+    twoFactorStatus.value = res.data
+  } catch (err) {
+    console.error("Erreur récupération statut 2FA:", err)
+    twoFactorError.value = "Impossible de récupérer le statut 2FA."
+  } finally {
+    twoFactorLoading.value = false
+  }
+}
+
+async function disableTwoFactor() {
+  const code = prompt("Pour désactiver l'authentification à deux facteurs, veuillez entrer un code de votre application d'authentification.")
+  if (!code) return
+
+  try {
+    await api.post('/2fa/disable', { code })
+    alert("L'authentification à deux facteurs a été désactivée.")
+    await fetchTwoFactorStatus()
+  } catch (err) {
+    console.error("Erreur désactivation 2FA:", err)
+    alert(err.response?.data?.error || "Impossible de désactiver le 2FA. Le code est peut-être invalide.")
+  }
+}
+
+// --- Lifecycle Hooks ---
+
 onMounted(() => {
   fetchUser()
+  fetchApiKeyStatus()
+  fetchTwoFactorStatus()
+  // Correction ici : on attend que le DOM soit prêt et on cible les éléments avec la classe .profile-card
+  // qui doit être ajoutée aux divs correspondantes dans le template
   gsap.from('.profile-card', {
     opacity: 0,
     y: 50,
     duration: 0.8,
-    ease: 'power3.out'
+    ease: 'power3.out',
+    stagger: 0.1
   })
 })
 </script>
@@ -181,13 +311,13 @@ onMounted(() => {
       </div>
 
       <!-- Profile Content -->
-      <div v-else class="profile-card space-y-12">
-        <div class="flex flex-col md:flex-row items-center gap-8">
+      <div v-else class="space-y-12">
+        <div class="profile-card flex flex-col md:flex-row items-center gap-8">
           <div class="relative group">
             <img :src="photo" alt="Photo de profil" class="w-32 h-32 rounded-full object-cover border-4 border-[#FFD700] shadow-lg">
             <button @click="openFilePicker" :disabled="uploadingPhoto" class="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <svg v-if="!uploadingPhoto" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              <svg v-else class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              <svg v-else class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             </button>
             <input type="file" ref="fileInput" @change="handleFileChange" accept="image/*" class="hidden">
           </div>
@@ -197,7 +327,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="bg-[#16181E] border border-[#2A2D36] rounded-lg p-8 space-y-6">
+        <div class="profile-card bg-[#16181E] border border-[#2A2D36] rounded-lg p-8 space-y-6">
           <h2 class="text-white font-bold text-2xl garamond border-b border-[#2A2D36] pb-4 mb-4">Informations personnelles</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">
             <div>
@@ -219,12 +349,84 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="flex flex-col sm:flex-row gap-4">
+        <!-- 2FA Management -->
+        <div class="profile-card bg-[#16181E] border border-[#2A2D36] rounded-lg p-8 space-y-6">
+          <h2 class="text-white font-bold text-2xl garamond border-b border-[#2A2D36] pb-4 mb-4">Sécurité - Authentification à deux facteurs (2FA)</h2>
+          <div v-if="twoFactorLoading" class="text-center text-[#C1C1C7]">Chargement...</div>
+          <div v-else-if="twoFactorError" class="text-center text-red-400 p-4 bg-red-900/20 rounded-md">{{ twoFactorError }}</div>
+          <div v-else-if="twoFactorStatus.enabled" class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <p class="text-green-400 font-semibold">L'authentification à deux facteurs est activée.</p>
+            </div>
+            <button @click="disableTwoFactor" class="px-6 py-3 bg-red-900/30 hover:bg-red-900/50 border border-red-800/40 text-red-400 font-bold rounded-lg transition-all text-xs tracking-[0.2em]">DÉSACTIVER</button>
+          </div>
+          <div v-else class="text-center py-4">
+            <p class="text-[#C1C1C7] mb-6">Protégez votre compte en ajoutant une deuxième couche de sécurité.</p>
+            <button @click="showTwoFactorSetup = true" class="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all hover:scale-105 text-xs tracking-[0.2em]">ACTIVER LE 2FA</button>
+          </div>
+        </div>
+
+        <!-- API Key Management -->
+        <div class="profile-card bg-[#16181E] border border-[#2A2D36] rounded-lg p-8 space-y-6">
+          <h2 class="text-white font-bold text-2xl garamond border-b border-[#2A2D36] pb-4 mb-4">Gestion de la Clé API</h2>
+
+          <div v-if="apiKeyLoading" class="text-center text-[#C1C1C7]">Chargement...</div>
+          <div v-else-if="apiKeyError" class="text-center text-red-400 p-4 bg-red-900/20 rounded-md">{{ apiKeyError }}</div>
+
+          <div v-else-if="newlyGeneratedApiKey" class="bg-yellow-900/20 border border-yellow-800/30 rounded-lg p-6 space-y-4">
+              <h3 class="text-lg font-semibold text-yellow-300">Votre nouvelle clé API</h3>
+              <p class="text-yellow-200">Copiez cette clé et conservez-la en lieu sûr. <strong>Vous ne pourrez plus la voir après avoir fermé cet encadré.</strong></p>
+              <div class="bg-black/50 rounded-md p-4 flex items-center justify-between gap-4">
+                  <code class="text-white font-mono break-all text-sm">{{ newlyGeneratedApiKey }}</code>
+                  <button @click="copyToClipboard(newlyGeneratedApiKey)" title="Copier la clé" class="p-2 hover:bg-white/20 rounded-md transition flex-shrink-0">
+                      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                  </button>
+              </div>
+              <button @click="closeApiKeyDisplay" class="w-full mt-4 px-8 py-3 bg-[#FFD700] hover:bg-[#FFE55C] text-black font-bold rounded-lg transition-all text-xs tracking-[0.2em]">J'AI BIEN COPIÉ MA CLÉ</button>
+          </div>
+
+          <div v-else-if="apiKeyInfo && apiKeyInfo.prefix" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+              <div>
+                <span class="text-[#82828A] text-sm uppercase tracking-wider">Préfixe</span>
+                <p class="text-white font-semibold mt-1 font-mono">{{ apiKeyInfo.prefix }}...</p>
+              </div>
+              <div>
+                <span class="text-[#82828A] text-sm uppercase tracking-wider">Statut</span>
+                <div class="flex items-center gap-3 mt-2">
+                    <button @click="toggleApiKeyStatus" :class="apiKeyInfo.enabled ? 'bg-green-500' : 'bg-gray-600'" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0">
+                        <span :class="apiKeyInfo.enabled ? 'translate-x-6' : 'translate-x-1'" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"></span>
+                    </button>
+                    <span :class="apiKeyInfo.enabled ? 'text-green-400' : 'text-gray-400'" class="font-semibold text-lg">{{ apiKeyInfo.enabled ? 'Activée' : 'Désactivée' }}</span>
+                </div>
+              </div>
+              <div>
+                <span class="text-[#82828A] text-sm uppercase tracking-wider">Créée le</span>
+                <p class="text-white font-semibold mt-1">{{ formatApiKeyDate(apiKeyInfo.createdAt) }}</p>
+              </div>
+              <div>
+                <span class="text-[#82828A] text-sm uppercase tracking-wider">Dernière utilisation</span>
+                <p class="text-white font-semibold mt-1">{{ formatApiKeyDate(apiKeyInfo.lastUsedAt) }}</p>
+              </div>
+            </div>
+            <div class="pt-6 border-t border-[#2A2D36]">
+                <button @click="revokeApiKey" class="w-full px-8 py-3 bg-red-900/30 hover:bg-red-900/50 border border-red-800/40 text-red-400 font-bold rounded-lg transition-all text-xs tracking-[0.2em]">RÉVOQUER LA CLÉ API</button>
+            </div>
+          </div>
+
+          <div v-else class="text-center py-4">
+            <p class="text-[#C1C1C7] mb-6">Vous n'avez pas de clé API. Générez-en une pour l'utiliser avec des scripts ou des services externes.</p>
+            <button @click="generateApiKey" class="px-8 py-4 bg-[#FFD700] hover:bg-[#FFE55C] text-black font-bold rounded-lg transition-all hover:scale-105 text-xs tracking-[0.2em]">GÉNÉRER UNE CLÉ API</button>
+          </div>
+        </div>
+
+        <div class="profile-card flex flex-col sm:flex-row gap-4">
           <button @click="editUser({ id: userId, firstname, lastname, email, dob, roles: [userRole], photo })" class="flex-1 px-8 py-4 bg-[#FFD700] hover:bg-[#FFE55C] text-black font-bold rounded-lg transition-all hover:scale-105 text-xs tracking-[0.2em]">MODIFIER LE PROFIL</button>
           <router-link v-if="userRole === 'ROLE_ADMIN'" to="/users" class="flex-1 text-center px-8 py-4 border border-[#FFD700] hover:bg-[#FFD700] hover:text-black text-[#FFD700] font-bold rounded-lg transition-all text-xs tracking-[0.2em]">GÉRER LES UTILISATEURS</router-link>
         </div>
 
-        <div class="border-t border-[#2A2D36] pt-8 mt-12">
+        <div class="profile-card border-t border-[#2A2D36] pt-8 mt-12">
           <h3 class="text-lg font-semibold text-red-500 mb-2">Zone de danger</h3>
           <p class="text-[#82828A] mb-4">La suppression de votre compte est une action irréversible.</p>
           <button @click="confirmDelete({ id: userId, firstname, lastname, email, dob, roles: [userRole] })" class="w-full px-8 py-4 bg-red-900/20 hover:bg-red-900/40 border border-red-800/30 text-red-400 font-bold rounded-lg transition-all text-xs tracking-[0.2em]">SUPPRIMER MON COMPTE</button>
@@ -234,5 +436,9 @@ onMounted(() => {
 
     <UserForm v-if="showForm" :user="selectedUser" @close="showForm = false" @refresh="fetchUser"/>
     <ConfirmDeleteUser v-if="showConfirm" :user="userToDelete" @cancel="showConfirm = false" @confirm="deleteUser"/>
+
+    <!-- Modal pour le setup 2FA -->
+    <TwoFactorSetup v-if="showTwoFactorSetup" @close="showTwoFactorSetup = false" @enabled="fetchTwoFactorStatus" />
+
   </div>
 </template>
