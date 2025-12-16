@@ -33,6 +33,7 @@ const navigation = [
   { name: 'Accueil', href: '/' },
   { name: 'Films', href: '/movies' },
   { name: 'Acteurs', href: '/actors' },
+  { name: 'Réalisateurs', href: '/directors' }, // Nouveau lien
   { name: 'Catégories', href: '/categories' },
 ]
 

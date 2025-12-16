@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { gsap } from 'gsap'
 import api from '/src/api/api.js'
@@ -8,13 +8,69 @@ import ActorCard from '/src/components/ActorCard.vue'
 const route = useRoute()
 const router = useRouter()
 const movie = ref(null)
+const categories = ref([]) // Déclarer categories ici
 const loading = ref(true)
+const loadingCategories = ref(true) // Nouvel état de chargement pour les catégories
+
+// Mapping pour raccourcir les noms de catégories
+const categoryShortNames = {
+  'Documentaire': 'Docu',
+  'Science Fiction': 'SF',
+  'Science-Fiction': 'SF'
+}
+
+const getShortCategoryName = (categoryName) => {
+  return categoryShortNames[categoryName] || categoryName
+}
+
+
+const loadActorData = async (actorIriOrObject) => {
+  if (typeof actorIriOrObject === 'object') return actorIriOrObject
+
+  // Si c'est une string (IRI), on extrait l'ID et on charge
+  const id = actorIriOrObject.split('/').pop()
+  try {
+    const res = await api.get(`/actors/${id}`)
+    return res.data
+  } catch (e) {
+    console.error("Erreur chargement acteur", id, e)
+    return null
+  }
+}
+
+// Fonction pour charger les catégories
+const fetchCategories = async (categoryUrls) => {
+  if (!categoryUrls || categoryUrls.length === 0) {
+    loadingCategories.value = false
+    return
+  }
+
+  try {
+    const categoryPromises = categoryUrls.map(async (categoryUrl) => {
+      const path = categoryUrl.replace('/api', '')
+      const response = await api.get(path)
+      return response.data
+    })
+
+    categories.value = await Promise.all(categoryPromises)
+  } catch (error) {
+    console.error('Erreur lors du chargement des catégories:', error)
+    categories.value = []
+  } finally {
+    loadingCategories.value = false
+  }
+}
 
 onMounted(async () => {
   try {
-    const res = await api.get(`/movies/${route.params.id}`)
+    const res = await api.get(`/movies/${route.params.id}`, {
+      params: {
+        'groups[]': ['movie:read', 'movie:detail'],
+      }
+    })
     const movieData = res.data
 
+    // Formatage de la date
     if (movieData.releaseDate) {
       const date = new Date(movieData.releaseDate)
       const day = String(date.getDate()).padStart(2, '0')
@@ -23,47 +79,54 @@ onMounted(async () => {
       movieData.releaseDate = `${day}-${month}-${year}`
     }
 
-    if (Array.isArray(movieData.actors) && typeof movieData.actors[0] === 'string') {
-      const actorPromises = movieData.actors.map(async (iri) => {
-        const actorId = iri.match(/\/(\d+)$/)?.[1]
-        if (!actorId) return null
-        try {
-          const actorRes = await api.get(`/actors/${actorId}`)
-          return actorRes.data
-        } catch {
-          return null
-        }
-      })
-      const actorsLoaded = await Promise.all(actorPromises)
-      movieData.actors = actorsLoaded.filter(a => a !== null)
+    // Chargement des acteurs si nécessaire
+    if (movieData.actors && movieData.actors.length > 0) {
+      const actorsPromises = movieData.actors.map(loadActorData)
+      const loadedActors = await Promise.all(actorsPromises)
+      movieData.actors = loadedActors.filter(a => a !== null)
+    }
+
+    // Chargement des catégories
+    if (movieData.categories && movieData.categories.length > 0) {
+      await fetchCategories(movieData.categories)
+    } else {
+      loadingCategories.value = false
     }
 
     movie.value = movieData
 
-    // Animations GSAP
-    gsap.from('.movie-poster', {
-      opacity: 0,
-      x: -100,
-      duration: 1,
-      ease: 'power3.out'
-    })
+    await nextTick()
 
-    gsap.from('.movie-info', {
-      opacity: 0,
-      x: 100,
-      duration: 1,
-      delay: 0.2,
-      ease: 'power3.out'
-    })
+    // Animations GSAP avec sécurité
+    if (document.querySelector('.movie-poster')) {
+      gsap.from('.movie-poster', {
+        opacity: 0,
+        x: -50,
+        duration: 0.8,
+        ease: 'power3.out'
+      })
+    }
 
-    gsap.from('.actor-grid-item', {
-      opacity: 0,
-      y: 50,
-      duration: 0.6,
-      stagger: 0.1,
-      delay: 0.4,
-      ease: 'power3.out'
-    })
+    if (document.querySelector('.movie-info')) {
+      gsap.from('.movie-info', {
+        opacity: 0,
+        x: 50,
+        duration: 0.8,
+        delay: 0.2,
+        ease: 'power3.out'
+      })
+    }
+
+    if (document.querySelectorAll('.actor-grid-item').length > 0) {
+      gsap.from('.actor-grid-item', {
+        opacity: 0,
+        y: 30,
+        duration: 0.5,
+        stagger: 0.05,
+        delay: 0.4,
+        ease: 'power3.out'
+      })
+    }
   } catch (err) {
     console.error('Erreur lors du chargement du film :', err)
   } finally {
@@ -84,7 +147,7 @@ onMounted(async () => {
     </div>
 
     <!-- Contenu -->
-    <div v-else-if="movie" class="max-w-7xl mx-auto px-6 py-16 space-y-16">
+    <div v-else-if="movie" class="max-w-7xl mx-auto px-6 py-12 space-y-12">
       <!-- Bouton retour -->
       <button
           @click="router.back()"
@@ -97,80 +160,90 @@ onMounted(async () => {
       </button>
 
       <!-- En-tête du film -->
-      <div class="grid lg:grid-cols-[400px,1fr] gap-12">
-        <!-- Poster -->
-        <div class="movie-poster">
-          <div class="relative overflow-hidden rounded-lg border border-[#2A2D36] group">
+      <div class="flex flex-col md:flex-row gap-8 md:gap-12 items-start">
+
+        <!-- Poster (Taille réduite et fixe) -->
+        <div class="movie-poster w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
+          <div class="relative overflow-hidden rounded-lg border border-[#2A2D36] shadow-2xl group max-w-[300px] mx-auto md:max-w-none">
             <img
-                :src="movie.url || '/default-film.jpeg'"
+                :src="movie.url || '/default-film.jpg'"
                 :alt="movie.name"
-                class="w-full aspect-[2/3] object-cover"
+                class="w-full h-auto object-cover aspect-[2/3]"
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-40" />
           </div>
         </div>
 
         <!-- Informations -->
-        <div class="movie-info space-y-8">
+        <div class="movie-info flex-1 space-y-6">
           <div>
-            <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-3">FILM</div>
-            <h1 class="garamond text-6xl md:text-7xl font-bold text-white leading-none mb-6">
+            <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">FILM</div>
+            <h1 class="garamond text-4xl md:text-6xl font-bold text-white leading-tight mb-4">
               {{ movie.name }}
             </h1>
-            <div class="h-1 w-32 bg-gradient-to-r from-[#FFD700] to-transparent mb-8" />
+            <div class="h-1 w-24 bg-gradient-to-r from-[#FFD700] to-transparent mb-6" />
           </div>
 
+          <!-- Stats -->
           <div class="flex flex-wrap gap-3">
             <div class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded-lg">
-              <span class="text-[#82828A] text-xs uppercase tracking-wider">Sortie</span>
-              <p class="text-white font-semibold mt-1">{{ movie.releaseDate }}</p>
+              <span class="text-[#82828A] text-[10px] uppercase tracking-wider block mb-1">Sortie</span>
+              <p class="text-white font-semibold text-sm">{{ movie.releaseDate }}</p>
             </div>
             <div class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded-lg">
-              <span class="text-[#82828A] text-xs uppercase tracking-wider">Durée</span>
-              <p class="text-white font-semibold mt-1">{{ movie.duration }} min</p>
+              <span class="text-[#82828A] text-[10px] uppercase tracking-wider block mb-1">Durée</span>
+              <p class="text-white font-semibold text-sm">{{ movie.duration }} min</p>
             </div>
             <div class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded-lg">
-              <span class="text-[#82828A] text-xs uppercase tracking-wider">Budget</span>
-              <p class="text-white font-semibold mt-1">{{ movie.budget?.toLocaleString() }} $</p>
+              <span class="text-[#82828A] text-[10px] uppercase tracking-wider block mb-1">Budget</span>
+              <p class="text-white font-semibold text-sm">{{ movie.budget?.toLocaleString() }} $</p>
             </div>
           </div>
 
-          <div class="space-y-4">
-            <h3 class="text-[#FFD700] text-sm tracking-[0.2em] uppercase font-semibold">Synopsis</h3>
-            <p class="text-[#C1C1C7] leading-relaxed text-lg">
+          <!-- Synopsis -->
+          <div class="space-y-2">
+            <h3 class="text-[#FFD700] text-xs tracking-[0.2em] uppercase font-bold">Synopsis</h3>
+            <p class="text-[#C1C1C7] leading-relaxed text-base">
               {{ movie.description }}
             </p>
           </div>
 
-          <div v-if="movie.categories?.length" class="space-y-4">
-            <h3 class="text-[#FFD700] text-sm tracking-[0.2em] uppercase font-semibold">Genres</h3>
+          <!-- Genres/Catégories -->
+          <div class="space-y-2">
+            <h3 class="text-[#FFD700] text-xs tracking-[0.2em] uppercase font-bold">Genres</h3>
             <div class="flex flex-wrap gap-2">
-              <span
-                  v-for="category in movie.categories"
-                  :key="category.id"
-                  class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded-lg text-white hover:border-[#FFD700] hover:text-[#FFD700] transition-colors text-sm"
-              >
-                {{ category.name }}
-              </span>
+              <template v-if="loadingCategories">
+                <span class="px-3 py-1.5 text-xs bg-[#16181E] border border-[#2A2D36] rounded text-[#82828A] animate-pulse">
+                  ...
+                </span>
+              </template>
+              <template v-else-if="categories.length > 0">
+                <span
+                    v-for="category in categories"
+                    :key="category.id"
+                    class="px-3 py-1.5 text-xs bg-[#16181E] border border-[#2A2D36] rounded text-white hover:border-[#FFD700] hover:text-[#FFD700] transition-colors text-sm"
+                >
+                  {{ getShortCategoryName(category.name) }}
+                </span>
+              </template>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Distribution -->
-      <div v-if="movie.actors && movie.actors.length > 0" class="space-y-8">
+      <div v-if="movie.actors && movie.actors.length > 0" class="space-y-6 pt-8 border-t border-[#2A2D36]">
         <div>
-          <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-3">DISTRIBUTION</div>
-          <h2 class="garamond text-4xl md:text-5xl font-bold text-white">Acteurs</h2>
-          <div class="h-1 w-24 bg-gradient-to-r from-[#FFD700] to-transparent mt-4" />
+          <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">DISTRIBUTION</div>
+          <h2 class="garamond text-3xl md:text-4xl font-bold text-white">Acteurs</h2>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           <div
               v-for="actor in movie.actors"
               :key="actor.id"
               @click="router.push(`/actors/${actor.id}`)"
-              class="actor-grid-item"
+              class="actor-grid-item cursor-pointer"
           >
             <ActorCard :actor="actor" />
           </div>

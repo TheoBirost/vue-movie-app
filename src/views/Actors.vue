@@ -171,7 +171,9 @@ onMounted(async () => {
 
       <!-- Grille d'acteurs -->
       <div v-else-if="actors.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div v-for="actor in actors" :key="actor.id" class="actor-card-wrapper">
+        <div v-for="actor in actors" :key="actor.id" class="actor-card-wrapper group"
+             @mouseenter="gsap.to($event.currentTarget, { scale: 1.03, boxShadow: '0 0 25px rgba(255, 215, 0, 0.4)', duration: 0.3, ease: 'power2.out' })"
+             @mouseleave="gsap.to($event.currentTarget, { scale: 1, boxShadow: '0 0 10px rgba(255, 215, 0, 0.1)', duration: 0.3, ease: 'power2.out' })">
           <div @click="goToActor(actor.id)">
             <ActorCard :actor="actor" />
           </div>

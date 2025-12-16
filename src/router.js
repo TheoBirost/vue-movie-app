@@ -7,6 +7,8 @@ import MovieDetails from '/src/views/MovieDetails.vue'
 import Actors from './views/Actors.vue'
 import ActorDetails from './views/ActorDetails.vue'
 import Categories from './views/Categories.vue'
+import Directors from './views/Directors.vue'
+import DirectorDetails from './views/DirectorDetails.vue' // Nouvelle importation
 import Profile from './views/Profile.vue'
 import UserManagement from './views/UserManagement.vue'
 import ServerError from './views/ServerError.vue'
@@ -15,16 +17,18 @@ import NotFound from './views/NotFound.vue'
 const getUserRole = () => localStorage.getItem('role') || 'user'
 
 const routes = [
-    { path: '/', component: Home }, // Page d'accueil accessible à tous
-    { path: '/connexion', component: Connexion, meta: { hideNavbar: true } }, // Page de connexion
+    { path: '/', component: Home },
+    { path: '/connexion', component: Connexion, meta: { hideNavbar: true } },
     { path: '/inscription', component: Inscription, meta: { hideNavbar: true } },
-    { path: '/movies', component: Movies }, // Accessible à tous
-    { path: '/movies/:id', component: MovieDetails }, // Accessible à tous
-    { path: '/actors', component: Actors }, // Accessible à tous
-    { path: '/actors/:id', component: ActorDetails }, // Accessible à tous
-    { path: '/categories', component: Categories }, // Accessible à tous
-    { path: '/profile', component: Profile, meta: { requiresAuth: true } }, // Nécessite une authentification
-    { path: '/users', component: UserManagement, meta: { requiresAuth: true, requiresAdmin: true } }, // Nécessite une authentification et le rôle admin
+    { path: '/movies', component: Movies },
+    { path: '/movies/:id', component: MovieDetails },
+    { path: '/actors', component: Actors },
+    { path: '/actors/:id', component: ActorDetails },
+    { path: '/categories', component: Categories },
+    { path: '/directors', component: Directors },
+    { path: '/directors/:id', component: DirectorDetails }, // Nouvelle route
+    { path: '/profile', component: Profile, meta: { requiresAuth: true } },
+    { path: '/users', component: UserManagement, meta: { requiresAuth: true, requiresAdmin: true } },
     { path: '/500', component: ServerError },
     { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
 ]
@@ -39,9 +43,9 @@ router.beforeEach((to, from, next) => {
     const role = getUserRole()
 
     if (to.meta.requiresAuth && !loggedIn) {
-        next('/connexion') // Redirige vers la page de connexion si authentification requise et non connecté
+        next('/connexion')
     } else if (to.meta.requiresAdmin && role !== 'admin') {
-        next('/') // Redirige vers la page d'accueil si non admin
+        next('/')
     } else {
         next()
     }
