@@ -1,53 +1,62 @@
 <script setup>
-import { ref, onMounted, watch, nextTick } from "vue"
+import { ref, onMounted, watch, nextTick, computed } from "vue"
 import { useRouter } from "vue-router"
 import { gsap } from 'gsap'
 import * as THREE from 'three'
-import api from "/src/api/api.js"
+import { useDataStore } from '../stores/useDataStore'
 import DirectorCard from "/src/components/DirectorCard.vue"
 
 const router = useRouter()
-const directors = ref([])
+const dataStore = useDataStore()
 const search = ref("")
 const page = ref(1)
-const totalPages = ref(1)
 const loading = ref(true)
 const canvasRef = ref(null)
 
 const limit = 12
 
-const fetchDirectors = async () => {
+const filteredDirectors = computed(() => {
+  if (!search.value) {
+    return dataStore.directors;
+  }
+  return dataStore.directors.filter(director =>
+    (director.firstname && director.firstname.toLowerCase().includes(search.value.toLowerCase())) ||
+    (director.lastname && director.lastname.toLowerCase().includes(search.value.toLowerCase()))
+  );
+});
+
+const totalPages = computed(() => {
+  return Math.max(1, Math.ceil(filteredDirectors.value.length / limit));
+});
+
+const paginatedDirectors = computed(() => {
+  const start = (page.value - 1) * limit;
+  const end = start + limit;
+  return filteredDirectors.value.slice(start, end);
+});
+
+const fetchDirectors = async (force = false) => {
   loading.value = true
   try {
-    const res = await api.get("/directors", {
-      params: {
-        page: page.value,
-        itemsPerPage: limit,
-        "order[id]": "desc",
-        lastname: search.value || undefined,
-      },
-    })
-    directors.value = res.data['hydra:member'] || res.data.member || []
-    const totalItems = res.data['hydra:totalItems'] || res.data.totalItems || 0
-    totalPages.value = Math.max(1, Math.ceil(totalItems / limit))
-
+    await dataStore.fetchDirectors(force)
     await nextTick()
-
-    if (document.querySelectorAll('.director-card-wrapper').length > 0) {
-      gsap.from('.director-card-wrapper', {
-        opacity: 0,
-        y: 50,
-        duration: 0.6,
-        stagger: 0.08,
-        ease: 'power3.out'
-      })
-    }
+    animateCards()
   } catch (err) {
-    // L'intercepteur global gérera l'affichage de l'erreur 429
     console.error("Erreur lors du chargement des réalisateurs :", err);
-    directors.value = [] // Vider les réalisateurs en cas d'erreur
   } finally {
     loading.value = false
+  }
+}
+
+const animateCards = () => {
+  if (document.querySelectorAll('.director-card-wrapper').length > 0) {
+    gsap.from('.director-card-wrapper', {
+      opacity: 0,
+      y: 50,
+      duration: 0.6,
+      stagger: 0.08,
+      ease: 'power3.out'
+    })
   }
 }
 
@@ -91,15 +100,15 @@ const initThreeJS = () => {
   animate()
 }
 
-watch(page, fetchDirectors)
-let searchTimeout
 watch(search, () => {
-  clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    page.value = 1
-    fetchDirectors()
-  }, 300)
-})
+  page.value = 1;
+});
+
+watch(page, () => {
+  nextTick().then(() => {
+    animateCards();
+  });
+});
 
 onMounted(async () => {
   await fetchDirectors()
@@ -142,8 +151,8 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div v-else-if="directors.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div v-for="director in directors" :key="director.id" class="director-card-wrapper">
+      <div v-else-if="paginatedDirectors.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div v-for="director in paginatedDirectors" :key="director.id" class="director-card-wrapper">
           <DirectorCard :director="director" />
         </div>
       </div>

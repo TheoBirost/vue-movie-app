@@ -1,18 +1,18 @@
 <script setup>
-import { ref, onMounted, watch, nextTick } from "vue"
+import { ref, onMounted, watch, nextTick, computed } from "vue"
 import { useRouter } from "vue-router"
 import { gsap } from 'gsap'
-import api from "/src/api/api.js"
+import { useDataStore } from '../stores/useDataStore'
 import ActorForm from "/src/components/ActorForm.vue"
 import ConfirmDeleteActor from "/src/components/ConfirmDeleteActor.vue"
 import ActorCard from "../components/ActorCard.vue"
+import api from '../api/api'
 
 const router = useRouter()
+const dataStore = useDataStore()
 
-const actors = ref([])
 const search = ref("")
 const page = ref(1)
-const totalPages = ref(1)
 const loading = ref(false)
 const errorMessage = ref("")
 const showForm = ref(false)
@@ -23,35 +23,33 @@ const userRole = ref("")
 
 const limit = 12
 
-const fetchActors = async () => {
+const filteredActors = computed(() => {
+  if (!search.value) {
+    return dataStore.actors;
+  }
+  return dataStore.actors.filter(actor =>
+    (actor.firstname && actor.firstname.toLowerCase().includes(search.value.toLowerCase())) ||
+    (actor.lastname && actor.lastname.toLowerCase().includes(search.value.toLowerCase()))
+  );
+});
+
+const totalPages = computed(() => {
+  return Math.max(1, Math.ceil(filteredActors.value.length / limit));
+});
+
+const paginatedActors = computed(() => {
+  const start = (page.value - 1) * limit;
+  const end = start + limit;
+  return filteredActors.value.slice(start, end);
+});
+
+const fetchActors = async (force = false) => {
   loading.value = true
   errorMessage.value = ""
-
   try {
-    const res = await api.get("/actors", {
-      params: {
-        page: page.value,
-        itemsPerPage: limit,
-        "order[id]": "desc",
-        firstname: search.value || undefined,
-      },
-    })
-
-    actors.value = res.data["hydra:member"] || res.data.member || []
-    const totalItems = res.data["hydra:totalItems"] || res.data.totalItems || actors.value.length
-    totalPages.value = Math.max(1, Math.ceil(totalItems / limit))
-
+    await dataStore.fetchActors(force)
     await nextTick()
-
-    if (document.querySelectorAll('.actor-card-wrapper').length > 0) {
-      gsap.from('.actor-card-wrapper', {
-        opacity: 0,
-        y: 50,
-        duration: 0.6,
-        stagger: 0.1,
-        ease: 'power3.out'
-      })
-    }
+    animateCards()
   } catch (err) {
     if (err.response) {
       errorMessage.value = `Erreur ${err.response.status}`
@@ -62,6 +60,18 @@ const fetchActors = async () => {
     }
   } finally {
     loading.value = false
+  }
+}
+
+const animateCards = () => {
+  if (document.querySelectorAll('.actor-card-wrapper').length > 0) {
+    gsap.from('.actor-card-wrapper', {
+      opacity: 0,
+      y: 50,
+      duration: 0.6,
+      stagger: 0.1,
+      ease: 'power3.out'
+    })
   }
 }
 
@@ -78,26 +88,31 @@ const confirmDelete = (actor) => {
 }
 
 const deleteActor = async () => {
+  if (!actorToDelete.value) return;
   try {
     await api.delete(`/actors/${actorToDelete.value.id}`)
+    dataStore.removeActorById(actorToDelete.value.id);
     showConfirm.value = false
     actorToDelete.value = null
-    await fetchActors()
   } catch (err) {
     console.error("Erreur lors de la suppression :", err)
   }
 }
 
-watch(page, fetchActors)
+const onFormSaved = async () => {
+  showForm.value = false;
+  await fetchActors(true);
+};
 
-let searchTimeout
 watch(search, () => {
-  clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    page.value = 1
-    fetchActors()
-  }, 300)
-})
+  page.value = 1;
+});
+
+watch(page, () => {
+  nextTick().then(() => {
+    animateCards();
+  });
+});
 
 onMounted(async () => {
   const role = localStorage.getItem('role')
@@ -107,7 +122,6 @@ onMounted(async () => {
 
   await fetchActors()
 
-  // Animations initiales
   gsap.from('.page-title', {
     opacity: 0,
     y: -50,
@@ -129,7 +143,7 @@ onMounted(async () => {
   <div class="min-h-screen bg-[#0d0d0f]">
     <div class="max-w-7xl mx-auto px-6 py-20 space-y-12">
 
-      <!-- Header -->
+
       <div class="flex justify-between items-end">
         <div class="page-title">
           <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">TALENTS</div>
@@ -170,10 +184,10 @@ onMounted(async () => {
       </div>
 
       <!-- Grille d'acteurs -->
-      <div v-else-if="actors.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div v-for="actor in actors" :key="actor.id" class="actor-card-wrapper group"
-             @mouseenter="gsap.to($event.currentTarget, { scale: 1.03, boxShadow: '0 0 25px rgba(255, 215, 0, 0.4)', duration: 0.3, ease: 'power2.out' })"
-             @mouseleave="gsap.to($event.currentTarget, { scale: 1, boxShadow: '0 0 10px rgba(255, 215, 0, 0.1)', duration: 0.3, ease: 'power2.out' })">
+      <div v-else-if="paginatedActors.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div v-for="actor in paginatedActors" :key="actor.id" class="actor-card-wrapper group"
+             @mouseenter="gsap.to($event.currentTarget, { scale: 1.03,  duration: 0.3, ease: 'power2.out' })"
+             @mouseleave="gsap.to($event.currentTarget, { scale: 1,  duration: 0.3, ease: 'power2.out' })">
           <div @click="goToActor(actor.id)">
             <ActorCard :actor="actor" />
           </div>
@@ -237,7 +251,7 @@ onMounted(async () => {
         v-if="showForm"
         :actor="selectedActor"
         @close="showForm = false"
-        @refresh="fetchActors"
+        @refresh="onFormSaved"
     />
 
     <ConfirmDeleteActor

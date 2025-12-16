@@ -10,5 +10,4 @@
 </template>
 
 <script setup>
-// Pas de script nécessaire pour cette page simple
 </script>

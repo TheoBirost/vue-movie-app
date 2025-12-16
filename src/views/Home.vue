@@ -1,17 +1,18 @@
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import * as THREE from 'three'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import api from '/src/api/api.js'
+import { useDataStore } from '../stores/useDataStore'
 import MovieCard from '/src/components/MovieCard.vue'
 import ActorCard from '/src/components/ActorCard.vue'
 import { useRouter } from 'vue-router'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const movies = ref([])
-const actors = ref([])
+const dataStore = useDataStore()
+const movies = computed(() => dataStore.movies.slice(0, 4))
+const actors = computed(() => dataStore.actors.slice(0, 4))
 const router = useRouter()
 const loading = ref(false)
 const canvasRef = ref(null)
@@ -153,17 +154,10 @@ onMounted(async () => {
   })
 
   try {
-    const movieRes = await api.get('/movies', {
-      params: { 'order[release_date]': 'desc', 'limit': 4, 'page': 1, 'groups[]': ['movie:read', 'movie:categories'] },
-    })
-    const dataMovies = movieRes.data.member || []
-    movies.value = dataMovies.sort((a, b) => b.id - a.id).slice(0, 4)
-
-    const actorRes = await api.get('/actors', {
-      params: { limit: 10000, 'groups[]': 'actor:read' },
-    })
-    const dataActors = actorRes.data.member || []
-    actors.value = dataActors.sort((a, b) => b.id - a.id).slice(0, 4)
+    await Promise.all([
+        dataStore.fetchMovies(),
+        dataStore.fetchActors()
+    ]);
 
     // Attendre que Vue mette à jour le DOM
     await nextTick()

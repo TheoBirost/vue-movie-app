@@ -1,21 +1,21 @@
 <script setup>
-import { ref, onMounted, watch, nextTick } from "vue"
+import { ref, onMounted, watch, nextTick, computed } from "vue"
 import { useRouter } from "vue-router"
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import api from "/src/api/api.js"
+import { useDataStore } from '../stores/useDataStore'
 import MovieForm from "/src/components/MovieForm.vue"
 import ConfirmDelete from "/src/components/ConfirmDeleteMovie.vue"
 import MovieCard from "/src/components/MovieCard.vue"
+import api from '../api/api'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const router = useRouter()
+const dataStore = useDataStore()
 
-const movies = ref([])
 const search = ref("")
 const page = ref(1)
-const totalPages = ref(1)
 const loading = ref(false)
 const showForm = ref(false)
 const showConfirm = ref(false)
@@ -25,40 +25,50 @@ const userRole = ref('')
 
 const limit = 12
 
-const fetchMovies = async () => {
+const filteredMovies = computed(() => {
+  if (!search.value) {
+    return dataStore.movies;
+  }
+  return dataStore.movies.filter(movie =>
+    movie.name.toLowerCase().includes(search.value.toLowerCase())
+  );
+});
+
+const totalPages = computed(() => {
+  return Math.max(1, Math.ceil(filteredMovies.value.length / limit));
+});
+
+const paginatedMovies = computed(() => {
+  const start = (page.value - 1) * limit;
+  const end = start + limit;
+  return filteredMovies.value.slice(start, end);
+});
+
+const fetchData = async (force = false) => {
   loading.value = true
   try {
-    const res = await api.get("/movies", {
-      params: {
-        page: page.value,
-        itemsPerPage: limit,
-        "order[id]": "desc",
-        name: search.value || undefined,
-        'groups[]': ['movie:read', 'movie:categories'], // Demander les données complètes des catégories
-      },
-    })
-
-    movies.value = res.data.member || []
-    const totalItems = res.data.totalItems || 0
-    totalPages.value = Math.max(1, Math.ceil(totalItems / limit))
-
+    await Promise.all([
+      dataStore.fetchMovies(force),
+      dataStore.fetchCategories(force)
+    ]);
     await nextTick()
-
-    if (document.querySelectorAll('.movie-card-wrapper').length > 0) {
-      gsap.from('.movie-card-wrapper', {
-        opacity: 0,
-        y: 50,
-        duration: 0.6,
-        stagger: 0.1,
-        ease: 'power3.out'
-      })
-    }
+    animateCards()
   } catch (err) {
-    // L'intercepteur global gérera l'affichage de l'erreur 429
-    console.error("Erreur lors du chargement des films :", err);
-    movies.value = [] // Vider les films en cas d'erreur
+    console.error("Erreur lors du chargement des données :", err);
   } finally {
     loading.value = false
+  }
+}
+
+const animateCards = () => {
+  if (document.querySelectorAll('.movie-card-wrapper').length > 0) {
+    gsap.from('.movie-card-wrapper', {
+      opacity: 0,
+      y: 50,
+      duration: 0.6,
+      stagger: 0.1,
+      ease: 'power3.out'
+    })
   }
 }
 
@@ -75,35 +85,42 @@ const confirmDelete = (movie) => {
 }
 
 const deleteMovie = async () => {
+  if (!movieToDelete.value) return;
   try {
     await api.delete(`/movies/${movieToDelete.value.id}`)
+    dataStore.removeMovieById(movieToDelete.value.id); // Use the new store action
     showConfirm.value = false
     movieToDelete.value = null
-    await fetchMovies()
+    // No need to call fetchData, the store is updated locally
   } catch (err) {
     console.error("Erreur suppression :", err)
   }
 }
 
-watch(page, fetchMovies)
+const onFormSaved = async () => {
+  showForm.value = false;
+  await fetchData(true); // Force refresh after save
+};
 
-let searchTimeout = null
+
 watch(search, () => {
-  clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    page.value = 1
-    fetchMovies()
-  }, 300)
-})
+  page.value = 1;
+});
+
+watch(page, () => {
+  nextTick().then(() => {
+    animateCards();
+  });
+});
+
 
 onMounted(async () => {
-  // Lire le rôle depuis le localStorage au lieu de faire un appel API
   const role = localStorage.getItem('role')
   if (role === 'admin') {
     userRole.value = 'ROLE_ADMIN'
   }
 
-  await fetchMovies()
+  await fetchData()
 
   // Animations initiales
   gsap.from('.page-title', {
@@ -127,7 +144,7 @@ onMounted(async () => {
   <div class="min-h-screen bg-[#0d0d0f]">
     <div class="max-w-7xl mx-auto px-6 py-20 space-y-12">
 
-      <!-- Header -->
+
       <div class="flex justify-between items-end">
         <div class="page-title">
           <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">COLLECTION</div>
@@ -144,7 +161,6 @@ onMounted(async () => {
         </button>
       </div>
 
-      <!-- Barre de recherche -->
       <div class="search-bar">
         <div class="relative">
           <input
@@ -168,10 +184,10 @@ onMounted(async () => {
       </div>
 
       <!-- Grille de films -->
-      <div v-else-if="movies.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div v-for="movie in movies" :key="movie.id" class="movie-card-wrapper group"
-             @mouseenter="gsap.to($event.currentTarget, { scale: 1.03, boxShadow: '0 0 25px rgba(255, 215, 0, 0.4)', duration: 0.3, ease: 'power2.out' })"
-             @mouseleave="gsap.to($event.currentTarget, { scale: 1, boxShadow: '0 0 10px rgba(255, 215, 0, 0.1)', duration: 0.3, ease: 'power2.out' })">
+      <div v-else-if="paginatedMovies.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div v-for="movie in paginatedMovies" :key="movie.id" class="movie-card-wrapper group"
+             @mouseenter="gsap.to($event.currentTarget, { scale: 1.03, duration: 0.3, ease: 'power2.out' })"
+             @mouseleave="gsap.to($event.currentTarget, { scale: 1,  duration: 0.3, ease: 'power2.out' })">
           <div @click="goToMovie(movie.id)">
             <MovieCard :movie="movie" />
           </div>
@@ -235,7 +251,7 @@ onMounted(async () => {
         v-if="showForm"
         :movie="selectedMovie"
         @close="showForm = false"
-        @refresh="fetchMovies"
+        @refresh="onFormSaved"
     />
 
     <ConfirmDelete

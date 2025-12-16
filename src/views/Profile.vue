@@ -1,22 +1,26 @@
 <script setup>
-import { ref, onMounted } from "vue"
+import { ref, onMounted, computed } from "vue"
 import { useRouter } from 'vue-router'
 import { gsap } from 'gsap'
+import { useDataStore } from '../stores/useDataStore'
 import api from "/src/api/api.js"
 import ConfirmDeleteUser from "../components/ConfirmDeleteUser.vue"
 import UserForm from '../components/UserForm.vue'
 import TwoFactorSetup from '../components/TwoFactorSetup.vue'
 
 // User Profile State
-const userId = ref(null)
-const firstname = ref("")
-const lastname = ref("")
-const email = ref("")
-const dob = ref("")
+const dataStore = useDataStore()
+const user = computed(() => dataStore.user)
+const userId = computed(() => user.value?.id)
+const firstname = computed(() => user.value?.firstname || "")
+const lastname = computed(() => user.value?.lastname || "")
+const email = computed(() => user.value?.email || "")
+const dob = computed(() => user.value?.dob?.date ? user.value.dob.date.split(' ')[0] : "")
+const userRole = computed(() => user.value?.roles ? user.value.roles[0] : "ROLE_USER")
+const formattedRole = computed(() => formatRole(userRole.value))
+const photo = computed(() => user.value?.photo ? `${import.meta.env.VITE_API_BASE_URL}${user.value.photo}` : "/default-avatar.png")
+
 const errorMessage = ref("")
-const userRole = ref("")
-const formattedRole = ref("")
-const photo = ref("")
 const loading = ref(true)
 const uploadingPhoto = ref(false)
 
@@ -90,19 +94,10 @@ async function fetchUser() {
   loading.value = true
   errorMessage.value = ""
   try {
-    const res = await api.get(import.meta.env.VITE_API_URL_USER)
-    if (res.data) {
-      userId.value = res.data.id
-      firstname.value = res.data.firstname || ""
-      lastname.value = res.data.lastname || ""
-      email.value = res.data.email || ""
-      userRole.value = res.data.roles ? res.data.roles[0] : "ROLE_USER"
-      formattedRole.value = formatRole(userRole.value)
+    await dataStore.fetchUser()
+    if (user.value) {
       localStorage.setItem("role", userRole.value === "ROLE_ADMIN" ? "admin" : "user")
-      const baseUrl = import.meta.env.VITE_API_BASE_URL
-      photo.value = res.data.photo ? `${baseUrl}${res.data.photo}` : "/default-avatar.png"
       localStorage.setItem("userPhoto", photo.value)
-      dob.value = res.data.dob?.date ? res.data.dob.date.split(' ')[0] : ""
     }
   } catch (err) {
     console.error("Erreur récupération profil:", err)
