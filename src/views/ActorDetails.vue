@@ -17,7 +17,7 @@ const loadMovieData = async (movieIriOrObject) => {
   try {
     const res = await api.get(`/movies/${id}`, {
       params: {
-        'groups[]': ['movie:read', 'movie:categories'], // Demander les données complètes des catégories
+        'groups[]': ['movie:read', 'movie:categories'],
       }
     })
     return res.data
@@ -180,8 +180,8 @@ const formatDate = (dateString) => {
               :key="movie.id"
               @click="router.push(`/movies/${movie.id}`)"
               class="movie-grid-item cursor-pointer group"
-              @mouseenter="gsap.to($event.currentTarget, { scale: 1.03, boxShadow: '0 0 25px rgba(255, 215, 0, 0.4)', duration: 0.3, ease: 'power2.out' })"
-              @mouseleave="gsap.to($event.currentTarget, { scale: 1, boxShadow: '0 0 10px rgba(255, 215, 0, 0.1)', duration: 0.3, ease: 'power2.out' })"
+              @mouseenter="gsap.to($event.currentTarget, { scale: 1.03,  duration: 0.3, ease: 'power2.out' })"
+              @mouseleave="gsap.to($event.currentTarget, { scale: 1,  duration: 0.3, ease: 'power2.out' })"
           >
             <MovieCard :movie="movie" />
           </div>
@@ -189,7 +189,7 @@ const formatDate = (dateString) => {
       </div>
     </div>
 
-    <!-- État erreur -->
+
     <div v-else class="flex flex-col items-center justify-center min-h-[80vh] text-center px-6">
       <div class="inline-block p-8 bg-[#16181E] rounded-full mb-8">
         <svg class="w-16 h-16 text-[#FFD700]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

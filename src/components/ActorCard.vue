@@ -5,14 +5,14 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="universal-card group cursor-pointer">
-    <div class="relative w-full h-72 overflow-hidden">
+  <div class="universal-card group cursor-pointer bg-black rounded-lg hover:rounded-lg">
+    <div class="relative w-full h-72 overflow-hidden rounded-lg hover:rounded-lg">
       <img
           :src="actor.url || '/default_actor.jpeg'"
           :alt="`${actor.firstname} ${actor.lastname}`"
-          class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
+          class="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
       />
-      <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+      <div class="absolute inset-0"></div>
       <div class="absolute bottom-0 left-0 right-0 p-5">
         <h3 class="text-white font-bold text-xl leading-tight group-hover:text-[#FFD700] transition-colors duration-300">
           {{ actor.firstname }}

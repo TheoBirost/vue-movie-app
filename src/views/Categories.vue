@@ -1,14 +1,14 @@
 <script setup>
-import { ref, onMounted, watch, nextTick } from "vue"
+import { ref, onMounted, watch, nextTick, computed } from "vue"
 import { gsap } from 'gsap'
-import api from "/src/api/api.js"
+import { useDataStore } from '../stores/useDataStore'
 import CategoryForm from "/src/components/CategoryForm.vue"
 import ConfirmDeleteCategory from "/src/components/ConfirmDeleteCategory.vue"
+import api from '../api/api'
 
-const categories = ref([])
+const dataStore = useDataStore()
 const search = ref("")
 const page = ref(1)
-const totalPages = ref(1)
 const loading = ref(true)
 const errorMessage = ref("")
 const showForm = ref(false)
@@ -20,35 +20,33 @@ const loggedIn = ref(false)
 
 const limit = 12
 
-const fetchCategories = async () => {
+const filteredCategories = computed(() => {
+  if (!search.value) {
+    return dataStore.categories;
+  }
+  return dataStore.categories.filter(category =>
+    category.name.toLowerCase().includes(search.value.toLowerCase())
+  );
+});
+
+const totalPages = computed(() => {
+  return Math.max(1, Math.ceil(filteredCategories.value.length / limit));
+});
+
+const paginatedCategories = computed(() => {
+  const start = (page.value - 1) * limit;
+  const end = start + limit;
+  return filteredCategories.value.slice(start, end);
+});
+
+const fetchCategories = async (force = false) => {
   loading.value = true
   errorMessage.value = ""
   try {
-    const res = await api.get("/categories", {
-      params: {
-        page: page.value,
-        itemsPerPage: limit,
-        "order[id]": "desc",
-        name: search.value || undefined,
-      },
-    })
-    categories.value = res.data['hydra:member'] || res.data.member || []
-    const totalItems = res.data['hydra:totalItems'] || res.data.totalItems || 0
-    totalPages.value = Math.max(1, Math.ceil(totalItems / limit))
-
+    await dataStore.fetchCategories(force)
     await nextTick()
-
-    if (document.querySelectorAll('.category-card-wrapper').length > 0) {
-      gsap.from('.category-card-wrapper', {
-        opacity: 0,
-        y: 50,
-        duration: 0.6,
-        stagger: 0.1,
-        ease: 'power3.out'
-      })
-    }
+    animateCards()
   } catch (err) {
-    categories.value = []
     if (err.response) {
       errorMessage.value = `Erreur ${err.response.status}`
     } else if (err.request) {
@@ -58,6 +56,18 @@ const fetchCategories = async () => {
     }
   } finally {
     loading.value = false
+  }
+}
+
+const animateCards = () => {
+  if (document.querySelectorAll('.category-card-wrapper').length > 0) {
+    gsap.from('.category-card-wrapper', {
+      opacity: 0,
+      y: 50,
+      duration: 0.6,
+      stagger: 0.1,
+      ease: 'power3.out'
+    })
   }
 }
 
@@ -72,6 +82,7 @@ const confirmDelete = (category) => {
 }
 
 const deleteCategory = async () => {
+  if (!categoryToDelete.value) return;
   try {
     if (categoryToDelete.value.moviesCount > 0) {
       alert("This category cannot be deleted as it is linked to movies.")
@@ -79,24 +90,28 @@ const deleteCategory = async () => {
       return
     }
     await api.delete(`/categories/${categoryToDelete.value.id}`)
+    dataStore.removeCategoryById(categoryToDelete.value.id);
     showConfirm.value = false
     categoryToDelete.value = null
-    await fetchCategories()
   } catch {
     errorMessage.value = "An error occurred during deletion."
   }
 }
 
-watch(page, fetchCategories)
+const onFormSaved = async () => {
+  showForm.value = false;
+  await fetchCategories(true);
+};
 
-let searchTimeout = null
 watch(search, () => {
-  clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    page.value = 1
-    fetchCategories()
-  }, 300)
-})
+  page.value = 1;
+});
+
+watch(page, () => {
+  nextTick().then(() => {
+    animateCards();
+  });
+});
 
 onMounted(async () => {
   const role = localStorage.getItem('role')
@@ -106,7 +121,6 @@ onMounted(async () => {
 
   await fetchCategories()
 
-  // Animations initiales
   gsap.from('.page-title', {
     opacity: 0,
     y: -50,
@@ -169,8 +183,8 @@ onMounted(async () => {
       </div>
 
       <!-- Grille de catégories -->
-      <div v-else-if="categories.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div v-for="category in categories" :key="category.id" class="category-card-wrapper bg-[#16181E] border border-[#2A2D36] rounded-lg p-6 space-y-4 transition-all hover:border-[#FFD700]">
+      <div v-else-if="paginatedCategories.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div v-for="category in paginatedCategories" :key="category.id" class="category-card-wrapper bg-[#16181E] border border-[#2A2D36] rounded-lg p-6 space-y-4 transition-all hover:border-[#FFD700]">
           <div>
             <h3 class="text-xl font-bold text-white">{{ category.name }}</h3>
             <p class="text-sm text-[#82828A]">{{ category.moviesCount || 0 }} films</p>
@@ -220,7 +234,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <CategoryForm v-if="showForm" :category="selectedCategory" @close="showForm = false" @refresh="fetchCategories" />
+    <CategoryForm v-if="showForm" :category="selectedCategory" @close="showForm = false" @refresh="onFormSaved" />
     <ConfirmDeleteCategory v-if="showConfirm" :category="categoryToDelete" @cancel="showConfirm = false" @confirm="deleteCategory" />
   </div>
 </template>
