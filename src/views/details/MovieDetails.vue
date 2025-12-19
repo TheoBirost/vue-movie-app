@@ -3,16 +3,19 @@ import { ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { gsap } from 'gsap'
 import api from '/src/api/api.js'
-import ActorCard from '/src/components/ActorCard.vue'
+import ActorCard from '../../components/domain/ActorCard.vue'
+import ReviewList from '../../components/features/reviews/ReviewList.vue'
+import ReviewForm from '../../components/features/reviews/ReviewForm.vue'
 
 const route = useRoute()
 const router = useRouter()
 const movie = ref(null)
-const categories = ref([]) // Déclarer categories ici
+const categories = ref([])
+const reviews = ref([])
 const loading = ref(true)
-const loadingCategories = ref(true) // Nouvel état de chargement pour les catégories
+const loadingCategories = ref(true)
+const loadingReviews = ref(true)
 
-// Mapping pour raccourcir les noms de catégories
 const categoryShortNames = {
   'Documentaire': 'Docu',
   'Science Fiction': 'SF',
@@ -23,11 +26,9 @@ const getShortCategoryName = (categoryName) => {
   return categoryShortNames[categoryName] || categoryName
 }
 
-
 const loadActorData = async (actorIriOrObject) => {
   if (typeof actorIriOrObject === 'object') return actorIriOrObject
 
-  // Si c'est une string (IRI), on extrait l'ID et on charge
   const id = actorIriOrObject.split('/').pop()
   try {
     const res = await api.get(`/actors/${id}`)
@@ -38,7 +39,6 @@ const loadActorData = async (actorIriOrObject) => {
   }
 }
 
-// Fonction pour charger les catégories
 const fetchCategories = async (categoryUrls) => {
   if (!categoryUrls || categoryUrls.length === 0) {
     loadingCategories.value = false
@@ -61,6 +61,18 @@ const fetchCategories = async (categoryUrls) => {
   }
 }
 
+const fetchReviews = async () => {
+  loadingReviews.value = true
+  try {
+    const response = await api.get(`/movies/${route.params.id}/reviews`)
+    reviews.value = response.data['hydra:member']
+  } catch (error) {
+    console.error('Erreur lors du chargement des avis:', error)
+  } finally {
+    loadingReviews.value = false
+  }
+}
+
 onMounted(async () => {
   try {
     const res = await api.get(`/movies/${route.params.id}`, {
@@ -70,7 +82,6 @@ onMounted(async () => {
     })
     const movieData = res.data
 
-    // Formatage de la date
     if (movieData.releaseDate) {
       const date = new Date(movieData.releaseDate)
       const day = String(date.getDate()).padStart(2, '0')
@@ -79,14 +90,12 @@ onMounted(async () => {
       movieData.releaseDate = `${day}-${month}-${year}`
     }
 
-    // Chargement des acteurs si nécessaire
     if (movieData.actors && movieData.actors.length > 0) {
       const actorsPromises = movieData.actors.map(loadActorData)
       const loadedActors = await Promise.all(actorsPromises)
       movieData.actors = loadedActors.filter(a => a !== null)
     }
 
-    // Chargement des catégories
     if (movieData.categories && movieData.categories.length > 0) {
       await fetchCategories(movieData.categories)
     } else {
@@ -94,10 +103,10 @@ onMounted(async () => {
     }
 
     movie.value = movieData
+    await fetchReviews()
 
     await nextTick()
 
-    // Animations GSAP avec sécurité
     if (document.querySelector('.movie-poster')) {
       gsap.from('.movie-poster', {
         opacity: 0,
@@ -248,6 +257,13 @@ onMounted(async () => {
             <ActorCard :actor="actor" />
           </div>
         </div>
+      </div>
+
+      <!-- Reviews -->
+      <div class="space-y-6 pt-8 border-t border-[#2A2D36]">
+        <ReviewList :reviews="reviews" v-if="!loadingReviews" />
+        <div v-else class="text-center">Loading reviews...</div>
+        <ReviewForm :movie-id="movie.id" @review-submitted="fetchReviews" />
       </div>
     </div>
 

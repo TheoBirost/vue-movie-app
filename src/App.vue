@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import Navbar from './components/Navbar.vue'
-import ErrorDisplay from './components/ErrorDisplay.vue'
+import Navbar from './components/common/Navbar.vue'
+import ErrorDisplay from './components/common/ErrorDisplay.vue'
 import { useRoute } from 'vue-router'
 import api from '/src/api/api.js'
 import { gsap } from 'gsap'
