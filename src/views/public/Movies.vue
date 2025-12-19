@@ -3,11 +3,8 @@ import { ref, onMounted, watch, nextTick, computed } from "vue"
 import { useRouter } from "vue-router"
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { useDataStore } from '../stores/useDataStore'
-import MovieForm from "/src/components/MovieForm.vue"
-import ConfirmDelete from "/src/components/ConfirmDeleteMovie.vue"
-import MovieCard from "/src/components/MovieCard.vue"
-import api from '../api/api'
+import { useDataStore } from '../../stores/useDataStore'
+import MovieCard from "../../components/domain/MovieCard.vue"
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -17,11 +14,6 @@ const dataStore = useDataStore()
 const search = ref("")
 const page = ref(1)
 const loading = ref(false)
-const showForm = ref(false)
-const showConfirm = ref(false)
-const selectedMovie = ref(null)
-const movieToDelete = ref(null)
-const userRole = ref('')
 
 const limit = 12
 
@@ -47,10 +39,7 @@ const paginatedMovies = computed(() => {
 const fetchData = async (force = false) => {
   loading.value = true
   try {
-    await Promise.all([
-      dataStore.fetchMovies(force),
-      dataStore.fetchCategories(force)
-    ]);
+    await dataStore.fetchMovies(force);
     await nextTick()
     animateCards()
   } catch (err) {
@@ -74,35 +63,6 @@ const animateCards = () => {
 
 const goToMovie = (id) => router.push(`/movies/${id}`)
 
-const editMovie = (movie) => {
-  selectedMovie.value = { ...movie }
-  showForm.value = true
-}
-
-const confirmDelete = (movie) => {
-  movieToDelete.value = movie
-  showConfirm.value = true
-}
-
-const deleteMovie = async () => {
-  if (!movieToDelete.value) return;
-  try {
-    await api.delete(`/movies/${movieToDelete.value.id}`)
-    dataStore.removeMovieById(movieToDelete.value.id); // Use the new store action
-    showConfirm.value = false
-    movieToDelete.value = null
-    // No need to call fetchData, the store is updated locally
-  } catch (err) {
-    console.error("Erreur suppression :", err)
-  }
-}
-
-const onFormSaved = async () => {
-  showForm.value = false;
-  await fetchData(true); // Force refresh after save
-};
-
-
 watch(search, () => {
   page.value = 1;
 });
@@ -115,11 +75,6 @@ watch(page, () => {
 
 
 onMounted(async () => {
-  const role = localStorage.getItem('role')
-  if (role === 'admin') {
-    userRole.value = 'ROLE_ADMIN'
-  }
-
   await fetchData()
 
   // Animations initiales
@@ -151,14 +106,6 @@ onMounted(async () => {
           <h1 class="garamond text-6xl md:text-7xl font-bold text-white mb-3">Films</h1>
           <div class="h-1 w-24 bg-gradient-to-r from-[#FFD700] to-transparent" />
         </div>
-
-        <button
-            v-if="userRole === 'ROLE_ADMIN'"
-            @click="selectedMovie = null; showForm = true"
-            class="px-8 py-4 bg-[#FFD700] hover:bg-[#FFE55C] text-black font-bold rounded-lg transition-all hover:scale-105 text-xs tracking-[0.2em]"
-        >
-          + AJOUTER UN FILM
-        </button>
       </div>
 
       <div class="search-bar">
@@ -190,21 +137,6 @@ onMounted(async () => {
              @mouseleave="gsap.to($event.currentTarget, { scale: 1,  duration: 0.3, ease: 'power2.out' })">
           <div @click="goToMovie(movie.id)">
             <MovieCard :movie="movie" />
-          </div>
-
-          <div v-if="userRole === 'ROLE_ADMIN'" class="flex gap-2 mt-4">
-            <button
-                @click.stop="editMovie(movie)"
-                class="flex-1 px-4 py-2.5 bg-[#1E2129] hover:bg-[#2A2D36] border border-[#2A2D36] text-[#C1C1C7] hover:text-white text-xs rounded-lg transition-all font-medium tracking-wide"
-            >
-              MODIFIER
-            </button>
-            <button
-                @click.stop="confirmDelete(movie)"
-                class="flex-1 px-4 py-2.5 bg-red-900/20 hover:bg-red-900/40 border border-red-800/30 text-red-400 text-xs rounded-lg transition-all font-medium tracking-wide"
-            >
-              SUPPRIMER
-            </button>
           </div>
         </div>
       </div>
@@ -246,19 +178,5 @@ onMounted(async () => {
         </button>
       </div>
     </div>
-
-    <MovieForm
-        v-if="showForm"
-        :movie="selectedMovie"
-        @close="showForm = false"
-        @refresh="onFormSaved"
-    />
-
-    <ConfirmDelete
-        v-if="showConfirm"
-        :movie="movieToDelete"
-        @cancel="showConfirm = false"
-        @confirm="deleteMovie"
-    />
   </div>
 </template>

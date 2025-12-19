@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { gsap } from 'gsap'
 import api from '/src/api/api.js'
-import ThreeBackground from '../components/ThreeBackground.vue'
+import ThreeBackground from '../../components/common/ThreeBackground.vue'
 
 const router = useRouter()
 const emit = defineEmits(['login-success'])

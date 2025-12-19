@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, onUnmounted, computed } from 'vue';
-import { bus } from '../bus';
+import { bus } from '../../bus';
 import { gsap } from 'gsap';
 
 const isVisible = ref(false);

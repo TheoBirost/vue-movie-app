@@ -3,7 +3,7 @@ import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { gsap } from 'gsap'
-import ThreeBackground from '../components/ThreeBackground.vue'
+import ThreeBackground from '../../components/common/ThreeBackground.vue'
 
 const router = useRouter()
 

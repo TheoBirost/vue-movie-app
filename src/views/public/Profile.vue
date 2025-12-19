@@ -2,11 +2,11 @@
 import { ref, onMounted, computed } from "vue"
 import { useRouter } from 'vue-router'
 import { gsap } from 'gsap'
-import { useDataStore } from '../stores/useDataStore'
+import { useDataStore } from '../../stores/useDataStore'
 import api from "/src/api/api.js"
-import ConfirmDeleteUser from "../components/ConfirmDeleteUser.vue"
-import UserForm from '../components/UserForm.vue'
-import TwoFactorSetup from '../components/TwoFactorSetup.vue'
+import ConfirmDeleteUser from "../../components/admin/modals/ConfirmDeleteUser.vue"
+import UserForm from '../../components/admin/forms/UserForm.vue'
+import TwoFactorSetup from '../../components/features/auth/TwoFactorSetup.vue'
 
 // User Profile State
 const dataStore = useDataStore()
@@ -418,7 +418,7 @@ onMounted(() => {
 
         <div class="profile-card flex flex-col sm:flex-row gap-4">
           <button @click="editUser({ id: userId, firstname, lastname, email, dob, roles: [userRole], photo })" class="flex-1 px-8 py-4 bg-[#FFD700] hover:bg-[#FFE55C] text-black font-bold rounded-lg transition-all hover:scale-105 text-xs tracking-[0.2em]">MODIFIER LE PROFIL</button>
-          <router-link v-if="userRole === 'ROLE_ADMIN'" to="/users" class="flex-1 text-center px-8 py-4 border border-[#FFD700] hover:bg-[#FFD700] hover:text-black text-[#FFD700] font-bold rounded-lg transition-all text-xs tracking-[0.2em]">GÉRER LES UTILISATEURS</router-link>
+          <router-link v-if="userRole === 'ROLE_ADMIN'" to="/admin" class="flex-1 text-center px-8 py-4 border border-[#FFD700] hover:bg-[#FFD700] hover:text-black text-[#FFD700] font-bold rounded-lg transition-all text-xs tracking-[0.2em]">ADMIN</router-link>
         </div>
 
         <div class="profile-card border-t border-[#2A2D36] pt-8 mt-12">

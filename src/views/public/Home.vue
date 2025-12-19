@@ -3,9 +3,9 @@ import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import * as THREE from 'three'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { useDataStore } from '../stores/useDataStore'
-import MovieCard from '/src/components/MovieCard.vue'
-import ActorCard from '/src/components/ActorCard.vue'
+import { useDataStore } from '../../stores/useDataStore'
+import MovieCard from '../../components/domain/MovieCard.vue'
+import ActorCard from '../../components/domain/ActorCard.vue'
 import { useRouter } from 'vue-router'
 
 gsap.registerPlugin(ScrollTrigger)

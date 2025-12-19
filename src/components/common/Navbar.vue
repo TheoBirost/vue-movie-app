@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { gsap } from 'gsap'
-import { bus } from '../bus'
+import { bus } from '../../bus'
 
 const props = defineProps({
   loggedIn: Boolean,

@@ -1,18 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Connexion from './views/Connexion.vue'
-import Inscription from './views/Inscription.vue'
-import Home from './views/Home.vue'
-import Movies from './views/Movies.vue'
-import MovieDetails from '/src/views/MovieDetails.vue'
-import Actors from './views/Actors.vue'
-import ActorDetails from './views/ActorDetails.vue'
-import Categories from './views/Categories.vue'
-import Directors from './views/Directors.vue'
-import DirectorDetails from './views/DirectorDetails.vue' // Nouvelle importation
-import Profile from './views/Profile.vue'
-import UserManagement from './views/UserManagement.vue'
-import ServerError from './views/ServerError.vue'
-import NotFound from './views/NotFound.vue'
+import Connexion from './views/auth/Connexion.vue'
+import Inscription from './views/auth/Inscription.vue'
+import Home from './views/public/Home.vue'
+import Movies from './views/public/Movies.vue'
+import MovieDetails from './views/details/MovieDetails.vue'
+import Actors from './views/public/Actors.vue'
+import ActorDetails from './views/details/ActorDetails.vue'
+import Categories from './views/public/Categories.vue'
+import Directors from './views/public/Directors.vue'
+import DirectorDetails from './views/details/DirectorDetails.vue'
+import Profile from './views/public/Profile.vue'
+import AdminPanel from './views/admin/Admin.vue'
+import ServerError from './views/errors/ServerError.vue'
+import NotFound from './views/errors/NotFound.vue'
 
 const getUserRole = () => localStorage.getItem('role') || 'user'
 
@@ -26,9 +26,9 @@ const routes = [
     { path: '/actors/:id', component: ActorDetails },
     { path: '/categories', component: Categories },
     { path: '/directors', component: Directors },
-    { path: '/directors/:id', component: DirectorDetails }, // Nouvelle route
+    { path: '/directors/:id', component: DirectorDetails },
     { path: '/profile', component: Profile, meta: { requiresAuth: true } },
-    { path: '/users', component: UserManagement, meta: { requiresAuth: true, requiresAdmin: true } },
+    { path: '/admin', component: AdminPanel, meta: { requiresAuth: true, requiresAdmin: true } },
     { path: '/500', component: ServerError },
     { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
 ]

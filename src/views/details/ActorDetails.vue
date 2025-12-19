@@ -3,20 +3,23 @@ import { ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { gsap } from 'gsap'
 import api from '/src/api/api.js'
-import MovieCard from '/src/components/MovieCard.vue'
+import MovieCard from '../../components/domain/MovieCard.vue'
 
 const route = useRoute()
 const router = useRouter()
-const director = ref(null)
+const actor = ref(null)
 const loading = ref(true)
-const error = ref(null)
 
 const loadMovieData = async (movieIriOrObject) => {
   if (typeof movieIriOrObject === 'object') return movieIriOrObject
 
   const id = movieIriOrObject.split('/').pop()
   try {
-    const res = await api.get(`/movies/${id}`)
+    const res = await api.get(`/movies/${id}`, {
+      params: {
+        'groups[]': ['movie:read', 'movie:categories'],
+      }
+    })
     return res.data
   } catch (e) {
     console.error("Erreur chargement film", id, e)
@@ -26,25 +29,25 @@ const loadMovieData = async (movieIriOrObject) => {
 
 onMounted(async () => {
   try {
-    const res = await api.get(`/directors/${route.params.id}`, {
+    const res = await api.get(`/actors/${route.params.id}`, {
       params: {
-        'groups[]': ['director:read', 'director:detail'],
+        'groups[]': ['actor:read', 'actor:detail'],
       }
     })
-    const directorData = res.data
+    const actorData = res.data
 
-    if (directorData.movies && directorData.movies.length > 0) {
-      const moviesPromises = directorData.movies.map(loadMovieData)
+    if (actorData.movies && actorData.movies.length > 0) {
+      const moviesPromises = actorData.movies.map(loadMovieData)
       const loadedMovies = await Promise.all(moviesPromises)
-      directorData.movies = loadedMovies.filter(m => m !== null)
+      actorData.movies = loadedMovies.filter(m => m !== null)
     }
 
-    director.value = directorData
+    actor.value = actorData
 
     await nextTick()
 
-    if (document.querySelector('.director-photo')) {
-      gsap.from('.director-photo', {
+    if (document.querySelector('.actor-photo')) {
+      gsap.from('.actor-photo', {
         opacity: 0,
         scale: 0.9,
         duration: 0.8,
@@ -52,8 +55,8 @@ onMounted(async () => {
       })
     }
 
-    if (document.querySelector('.director-info')) {
-      gsap.from('.director-info', {
+    if (document.querySelector('.actor-info')) {
+      gsap.from('.actor-info', {
         opacity: 0,
         y: 50,
         duration: 0.8,
@@ -73,7 +76,8 @@ onMounted(async () => {
       })
     }
   } catch (err) {
-    error.value = err.message
+    // L'intercepteur global gérera l'affichage de l'erreur 429
+    console.error("Erreur lors du chargement de l'acteur :", err);
   } finally {
     loading.value = false
   }
@@ -87,21 +91,6 @@ const formatDate = (dateString) => {
   const month = String(date.getMonth()+1).padStart(2,'0')
   const year = date.getFullYear()
   return `${day}-${month}-${year}`
-}
-
-const getAge = (dobString, dodString) => {
-  const dob = new Date(dobString)
-  if (isNaN(dob)) return '?'
-
-  const endDate = dodString ? new Date(dodString) : new Date()
-  if (isNaN(endDate)) return '?'
-
-  let age = endDate.getFullYear() - dob.getFullYear()
-  const m = endDate.getMonth() - dob.getMonth()
-  if (m < 0 || (m === 0 && endDate.getDate() < dob.getDate())) {
-    age--
-  }
-  return age
 }
 </script>
 
@@ -117,7 +106,7 @@ const getAge = (dobString, dodString) => {
     </div>
 
     <!-- Contenu -->
-    <div v-else-if="director" class="max-w-7xl mx-auto px-6 py-12 space-y-12">
+    <div v-else-if="actor" class="max-w-7xl mx-auto px-6 py-12 space-y-12">
       <!-- Bouton retour -->
       <button
           @click="router.back()"
@@ -129,14 +118,14 @@ const getAge = (dobString, dodString) => {
         <span class="text-sm tracking-[0.15em] uppercase font-medium">Retour</span>
       </button>
 
-      <!-- En-tête réalisateur -->
+      <!-- En-tête acteur -->
       <div class="flex flex-col md:flex-row gap-8 md:gap-12 items-start">
         <!-- Photo -->
-        <div class="director-photo w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
+        <div class="actor-photo w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
           <div class="relative overflow-hidden rounded-lg border border-[#2A2D36] shadow-2xl group max-w-[300px] mx-auto md:max-w-none">
             <img
-                :src="director.url || '/default_director.jpeg'"
-                :alt="`${director.firstname} ${director.lastname}`"
+                :src="actor.url || '/default_actor.jpeg'"
+                :alt="`${actor.firstname} ${actor.lastname}`"
                 class="w-full h-auto object-cover aspect-[2/3]"
             />
             <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-40" />
@@ -144,14 +133,14 @@ const getAge = (dobString, dodString) => {
         </div>
 
         <!-- Informations -->
-        <div class="director-info flex-1 space-y-6">
+        <div class="actor-info flex-1 space-y-6">
           <div>
-            <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">RÉALISATEUR</div>
+            <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">ACTEUR</div>
             <h1 class="garamond text-5xl md:text-6xl font-bold text-white leading-tight">
-              {{ director.firstname }}
+              {{ actor.firstname }}
             </h1>
             <h2 class="garamond text-4xl md:text-5xl font-bold text-[#FFD700] leading-tight mb-4">
-              {{ director.lastname }}
+              {{ actor.lastname }}
             </h2>
             <div class="h-1 w-24 bg-gradient-to-r from-[#FFD700] to-transparent" />
           </div>
@@ -159,37 +148,40 @@ const getAge = (dobString, dodString) => {
           <div class="flex flex-wrap gap-3">
             <div class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded-lg">
               <span class="text-[#82828A] text-[10px] uppercase tracking-wider block mb-1">Naissance</span>
-              <p class="text-white font-semibold text-sm">{{ formatDate(director.dob) }}</p>
+              <p class="text-white font-semibold text-sm">{{ formatDate(actor.dob) }}</p>
             </div>
-            <div v-if="director.dod" class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded-lg">
+            <div v-if="actor.dod" class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded-lg">
               <span class="text-[#82828A] text-[10px] uppercase tracking-wider block mb-1">Décès</span>
-              <p class="text-white font-semibold text-sm">{{ formatDate(director.dod) }}</p>
+              <p class="text-white font-semibold text-sm">{{ formatDate(actor.dod) }}</p>
             </div>
-            <div class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded-lg">
-              <span class="text-[#82828A] text-[10px] uppercase tracking-wider block mb-1">Âge</span>
-              <p class="text-white font-semibold text-sm">{{ getAge(director.dob, director.dod) }} ans</p>
-            </div>
+          </div>
+
+          <div v-if="actor.bio" class="space-y-2">
+            <h3 class="text-[#FFD700] text-xs tracking-[0.2em] uppercase font-bold">Biographie</h3>
+            <p class="text-[#C1C1C7] leading-relaxed text-base">
+              {{ actor.bio }}
+            </p>
           </div>
         </div>
       </div>
 
       <!-- Filmographie -->
-      <div v-if="director.movies && director.movies.length > 0" class="space-y-6 pt-8 border-t border-[#2A2D36]">
+      <div v-if="actor.movies && actor.movies.length > 0" class="space-y-6 pt-8 border-t border-[#2A2D36]">
         <div>
           <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">FILMOGRAPHIE</div>
           <h2 class="garamond text-3xl md:text-4xl font-bold text-white">
-            Films <span class="text-[#FFD700]">({{ director.movies.length }})</span>
+            Films <span class="text-[#FFD700]">({{ actor.movies.length }})</span>
           </h2>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           <div
-              v-for="movie in director.movies"
+              v-for="movie in actor.movies"
               :key="movie.id"
               @click="router.push(`/movies/${movie.id}`)"
               class="movie-grid-item cursor-pointer group"
-              @mouseenter="gsap.to($event.currentTarget, { scale: 1.03, boxShadow: '0 0 25px rgba(255, 215, 0, 0.4)', duration: 0.3, ease: 'power2.out' })"
-              @mouseleave="gsap.to($event.currentTarget, { scale: 1, boxShadow: '0 0 10px rgba(255, 215, 0, 0.1)', duration: 0.3, ease: 'power2.out' })"
+              @mouseenter="gsap.to($event.currentTarget, { scale: 1.03,  duration: 0.3, ease: 'power2.out' })"
+              @mouseleave="gsap.to($event.currentTarget, { scale: 1,  duration: 0.3, ease: 'power2.out' })"
           >
             <MovieCard :movie="movie" />
           </div>
@@ -197,20 +189,20 @@ const getAge = (dobString, dodString) => {
       </div>
     </div>
 
-    <!-- État erreur -->
+
     <div v-else class="flex flex-col items-center justify-center min-h-[80vh] text-center px-6">
       <div class="inline-block p-8 bg-[#16181E] rounded-full mb-8">
         <svg class="w-16 h-16 text-[#FFD700]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
         </svg>
       </div>
-      <h2 class="garamond text-3xl font-bold text-white mb-3">Réalisateur introuvable</h2>
-      <p class="text-[#C1C1C7] mb-8">{{ error || 'Ce réalisateur n\'existe pas ou a été supprimé' }}</p>
+      <h2 class="garamond text-3xl font-bold text-white mb-3">Acteur introuvable</h2>
+      <p class="text-[#C1C1C7] mb-8">Cet acteur n'existe pas ou a été supprimé</p>
       <button
-          @click="router.push('/directors')"
+          @click="router.push('/actors')"
           class="px-8 py-4 bg-[#FFD700] hover:bg-[#FFE55C] text-black font-bold rounded-lg transition-all hover:scale-105 text-xs tracking-[0.2em]"
       >
-        RETOUR AUX RÉALISATEURS
+        RETOUR AUX ACTEURS
       </button>
     </div>
   </div>

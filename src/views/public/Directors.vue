@@ -3,8 +3,8 @@ import { ref, onMounted, watch, nextTick, computed } from "vue"
 import { useRouter } from "vue-router"
 import { gsap } from 'gsap'
 import * as THREE from 'three'
-import { useDataStore } from '../stores/useDataStore'
-import DirectorCard from "/src/components/DirectorCard.vue"
+import { useDataStore } from '../../stores/useDataStore'
+import DirectorCard from "../../components/domain/DirectorCard.vue"
 
 const router = useRouter()
 const dataStore = useDataStore()

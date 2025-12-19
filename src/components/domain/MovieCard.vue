@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { useDataStore } from '../stores/useDataStore';
+import { useDataStore } from '../../stores/useDataStore';
 
 const props = defineProps({
   movie: { type: Object, required: true }

@@ -1,49 +1,45 @@
 <script setup>
 import { ref, onMounted, watch, nextTick, computed } from "vue"
+import { useRouter } from "vue-router"
 import { gsap } from 'gsap'
-import { useDataStore } from '../stores/useDataStore'
-import CategoryForm from "/src/components/CategoryForm.vue"
-import ConfirmDeleteCategory from "/src/components/ConfirmDeleteCategory.vue"
-import api from '../api/api'
+import { useDataStore } from '../../stores/useDataStore'
+import ActorCard from "../../components/domain/ActorCard.vue"
 
+const router = useRouter()
 const dataStore = useDataStore()
+
 const search = ref("")
 const page = ref(1)
-const loading = ref(true)
+const loading = ref(false)
 const errorMessage = ref("")
-const showForm = ref(false)
-const showConfirm = ref(false)
-const selectedCategory = ref(null)
-const categoryToDelete = ref(null)
-const userRole = ref('')
-const loggedIn = ref(false)
 
 const limit = 12
 
-const filteredCategories = computed(() => {
+const filteredActors = computed(() => {
   if (!search.value) {
-    return dataStore.categories;
+    return dataStore.actors;
   }
-  return dataStore.categories.filter(category =>
-    category.name.toLowerCase().includes(search.value.toLowerCase())
+  return dataStore.actors.filter(actor =>
+    (actor.firstname && actor.firstname.toLowerCase().includes(search.value.toLowerCase())) ||
+    (actor.lastname && actor.lastname.toLowerCase().includes(search.value.toLowerCase()))
   );
 });
 
 const totalPages = computed(() => {
-  return Math.max(1, Math.ceil(filteredCategories.value.length / limit));
+  return Math.max(1, Math.ceil(filteredActors.value.length / limit));
 });
 
-const paginatedCategories = computed(() => {
+const paginatedActors = computed(() => {
   const start = (page.value - 1) * limit;
   const end = start + limit;
-  return filteredCategories.value.slice(start, end);
+  return filteredActors.value.slice(start, end);
 });
 
-const fetchCategories = async (force = false) => {
+const fetchActors = async (force = false) => {
   loading.value = true
   errorMessage.value = ""
   try {
-    await dataStore.fetchCategories(force)
+    await dataStore.fetchActors(force)
     await nextTick()
     animateCards()
   } catch (err) {
@@ -60,8 +56,8 @@ const fetchCategories = async (force = false) => {
 }
 
 const animateCards = () => {
-  if (document.querySelectorAll('.category-card-wrapper').length > 0) {
-    gsap.from('.category-card-wrapper', {
+  if (document.querySelectorAll('.actor-card-wrapper').length > 0) {
+    gsap.from('.actor-card-wrapper', {
       opacity: 0,
       y: 50,
       duration: 0.6,
@@ -71,37 +67,7 @@ const animateCards = () => {
   }
 }
 
-const editCategory = (category) => {
-  selectedCategory.value = { ...category }
-  showForm.value = true
-}
-
-const confirmDelete = (category) => {
-  categoryToDelete.value = category
-  showConfirm.value = true
-}
-
-const deleteCategory = async () => {
-  if (!categoryToDelete.value) return;
-  try {
-    if (categoryToDelete.value.moviesCount > 0) {
-      alert("This category cannot be deleted as it is linked to movies.")
-      showConfirm.value = false
-      return
-    }
-    await api.delete(`/categories/${categoryToDelete.value.id}`)
-    dataStore.removeCategoryById(categoryToDelete.value.id);
-    showConfirm.value = false
-    categoryToDelete.value = null
-  } catch {
-    errorMessage.value = "An error occurred during deletion."
-  }
-}
-
-const onFormSaved = async () => {
-  showForm.value = false;
-  await fetchCategories(true);
-};
+const goToActor = (id) => router.push(`/actors/${id}`)
 
 watch(search, () => {
   page.value = 1;
@@ -114,12 +80,7 @@ watch(page, () => {
 });
 
 onMounted(async () => {
-  const role = localStorage.getItem('role')
-  if (role === 'admin') {
-    userRole.value = 'ROLE_ADMIN'
-  }
-
-  await fetchCategories()
+  await fetchActors()
 
   gsap.from('.page-title', {
     opacity: 0,
@@ -142,21 +103,13 @@ onMounted(async () => {
   <div class="min-h-screen bg-[#0d0d0f]">
     <div class="max-w-7xl mx-auto px-6 py-20 space-y-12">
 
-      <!-- Header -->
+
       <div class="flex justify-between items-end">
         <div class="page-title">
-          <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">GENRES</div>
-          <h1 class="garamond text-6xl md:text-7xl font-bold text-white mb-3">Catégories</h1>
+          <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">TALENTS</div>
+          <h1 class="garamond text-6xl md:text-7xl font-bold text-white mb-3">Acteurs</h1>
           <div class="h-1 w-24 bg-gradient-to-r from-[#FFD700] to-transparent" />
         </div>
-
-        <button
-            v-if="userRole === 'ROLE_ADMIN'"
-            @click="selectedCategory = null; showForm = true"
-            class="px-8 py-4 bg-[#FFD700] hover:bg-[#FFE55C] text-black font-bold rounded-lg transition-all hover:scale-105 text-xs tracking-[0.2em]"
-        >
-          + AJOUTER UNE CATÉGORIE
-        </button>
       </div>
 
       <!-- Barre de recherche -->
@@ -164,7 +117,7 @@ onMounted(async () => {
         <div class="relative">
           <input
               v-model="search"
-              placeholder="Rechercher une catégorie..."
+              placeholder="Rechercher un acteur..."
               class="w-full px-6 py-4 bg-[#16181E] text-white border border-[#2A2D36] rounded-lg focus:outline-none focus:border-[#FFD700] transition-all text-lg"
           />
           <svg class="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-[#FFD700]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,16 +135,13 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Grille de catégories -->
-      <div v-else-if="paginatedCategories.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div v-for="category in paginatedCategories" :key="category.id" class="category-card-wrapper bg-[#16181E] border border-[#2A2D36] rounded-lg p-6 space-y-4 transition-all hover:border-[#FFD700]">
-          <div>
-            <h3 class="text-xl font-bold text-white">{{ category.name }}</h3>
-            <p class="text-sm text-[#82828A]">{{ category.moviesCount || 0 }} films</p>
-          </div>
-          <div v-if="userRole === 'ROLE_ADMIN'" class="flex gap-2">
-            <button @click.stop="editCategory(category)" class="flex-1 px-4 py-2.5 bg-[#1E2129] hover:bg-[#2A2D36] border border-[#2A2D36] text-[#C1C1C7] hover:text-white text-xs rounded-lg transition-all font-medium tracking-wide">MODIFIER</button>
-            <button @click.stop="confirmDelete(category)" class="flex-1 px-4 py-2.5 bg-red-900/20 hover:bg-red-900/40 border border-red-800/30 text-red-400 text-xs rounded-lg transition-all font-medium tracking-wide">SUPPRIMER</button>
+      <!-- Grille d'acteurs -->
+      <div v-else-if="paginatedActors.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div v-for="actor in paginatedActors" :key="actor.id" class="actor-card-wrapper group"
+             @mouseenter="gsap.to($event.currentTarget, { scale: 1.03,  duration: 0.3, ease: 'power2.out' })"
+             @mouseleave="gsap.to($event.currentTarget, { scale: 1,  duration: 0.3, ease: 'power2.out' })">
+          <div @click="goToActor(actor.id)">
+            <ActorCard :actor="actor" />
           </div>
         </div>
       </div>
@@ -200,10 +150,10 @@ onMounted(async () => {
       <div v-else class="text-center py-20">
         <div class="inline-block p-6 bg-[#16181E] rounded-full mb-6">
           <svg class="w-12 h-12 text-[#FFD700]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
           </svg>
         </div>
-        <p class="text-[#C1C1C7] text-lg">{{ errorMessage || "Aucune catégorie trouvée" }}</p>
+        <p class="text-[#C1C1C7] text-lg">{{ errorMessage || "Aucun acteur trouvé" }}</p>
       </div>
 
       <!-- Pagination -->
@@ -233,8 +183,5 @@ onMounted(async () => {
         </button>
       </div>
     </div>
-
-    <CategoryForm v-if="showForm" :category="selectedCategory" @close="showForm = false" @refresh="onFormSaved" />
-    <ConfirmDeleteCategory v-if="showConfirm" :category="categoryToDelete" @cancel="showConfirm = false" @confirm="deleteCategory" />
   </div>
 </template>
