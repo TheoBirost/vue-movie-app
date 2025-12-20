@@ -1,8 +1,10 @@
 <script setup>
 import { ref, onMounted, watch, nextTick, computed } from "vue"
+import { useRouter } from "vue-router"
 import { gsap } from 'gsap'
 import { useDataStore } from '../../stores/useDataStore'
 
+const router = useRouter()
 const dataStore = useDataStore()
 const search = ref("")
 const page = ref(1)
@@ -60,6 +62,10 @@ const animateCards = () => {
       ease: 'power3.out'
     })
   }
+}
+
+const goToCategory = (id) => {
+  router.push(`/movies?category=${id}`)
 }
 
 watch(search, () => {
@@ -132,9 +138,14 @@ onMounted(async () => {
 
       <!-- Grille de catégories -->
       <div v-else-if="paginatedCategories.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div v-for="category in paginatedCategories" :key="category.id" class="category-card-wrapper bg-[#16181E] border border-[#2A2D36] rounded-lg p-6 space-y-4 transition-all hover:border-[#FFD700]">
+        <div
+          v-for="category in paginatedCategories"
+          :key="category.id"
+          @click="goToCategory(category.id)"
+          class="category-card-wrapper bg-[#16181E] border border-[#2A2D36] rounded-lg p-6 space-y-4 transition-all hover:border-[#FFD700] cursor-pointer group"
+        >
           <div>
-            <h3 class="text-xl font-bold text-white">{{ category.name }}</h3>
+            <h3 class="text-xl font-bold text-white group-hover:text-[#FFD700] transition-colors">{{ category.name }}</h3>
             <p class="text-sm text-[#82828A]">{{ category.moviesCount || 0 }} films</p>
           </div>
         </div>
