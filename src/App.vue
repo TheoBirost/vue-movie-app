@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import Navbar from './components/common/Navbar.vue'
 import ErrorDisplay from './components/common/ErrorDisplay.vue'
 import { useRoute } from 'vue-router'
@@ -51,9 +51,12 @@ onMounted(async () => {
     }
   }
 
-  window.addEventListener('mousemove', handleMouseMove)
-  document.addEventListener('mouseover', handleMouseOver, true)
-  document.addEventListener('mouseout', handleMouseOut, true)
+  // Only add custom cursor on non-touch devices
+  if (window.matchMedia("(pointer: fine)").matches) {
+    window.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseover', handleMouseOver, true)
+    document.addEventListener('mouseout', handleMouseOut, true)
+  }
 
   if (loggedIn.value) {
     const cachedPhoto = localStorage.getItem('userPhoto')
@@ -95,13 +98,16 @@ const showNavbar = computed(() => !route.meta.hideNavbar)
   <div class="cursor-ring" />
 
   <ErrorDisplay />
-  <Navbar
-      v-if="showNavbar"
-      :logged-in="loggedIn"
-      :photo="photo"
-      @logout="handleLogout"
-  />
-  <router-view @login-success="handleLogin" />
+  <header v-if="showNavbar">
+    <Navbar
+        :logged-in="loggedIn"
+        :photo="photo"
+        @logout="handleLogout"
+    />
+  </header>
+  <main>
+    <router-view @login-success="handleLogin" />
+  </main>
 </template>
 
 <style>

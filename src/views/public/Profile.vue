@@ -286,7 +286,7 @@ onMounted(() => {
   <div class="min-h-screen bg-[#0d0d0f]">
     <div class="max-w-4xl mx-auto px-6 py-20">
       <!-- Loading -->
-      <div v-if="loading" class="flex items-center justify-center min-h-[60vh]">
+      <div v-if="loading" class="flex items-center justify-center min-h-[60vh]" aria-label="Chargement en cours">
         <div class="flex gap-2">
           <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce"></div>
           <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
@@ -310,7 +310,7 @@ onMounted(() => {
         <div class="profile-card flex flex-col md:flex-row items-center gap-8">
           <div class="relative group">
             <img :src="photo" alt="Photo de profil" class="w-32 h-32 rounded-full object-cover border-4 border-[#FFD700] shadow-lg">
-            <button @click="openFilePicker" :disabled="uploadingPhoto" class="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <button @click="openFilePicker" :disabled="uploadingPhoto" class="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Changer la photo">
               <svg v-if="!uploadingPhoto" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               <svg v-else class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             </button>
@@ -390,7 +390,7 @@ onMounted(() => {
               <div>
                 <span class="text-[#82828A] text-sm uppercase tracking-wider">Statut</span>
                 <div class="flex items-center gap-3 mt-2">
-                    <button @click="toggleApiKeyStatus" :class="apiKeyInfo.enabled ? 'bg-green-500' : 'bg-gray-600'" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0">
+                    <button @click="toggleApiKeyStatus" :class="apiKeyInfo.enabled ? 'bg-green-500' : 'bg-gray-600'" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0" aria-label="Basculer le statut de la clé API">
                         <span :class="apiKeyInfo.enabled ? 'translate-x-6' : 'translate-x-1'" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"></span>
                     </button>
                     <span :class="apiKeyInfo.enabled ? 'text-green-400' : 'text-gray-400'" class="font-semibold text-lg">{{ apiKeyInfo.enabled ? 'Activée' : 'Désactivée' }}</span>

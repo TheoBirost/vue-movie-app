@@ -184,11 +184,11 @@ onUnmounted(() => {
 <template>
   <div class="min-h-screen bg-[#0d0d0f] relative overflow-hidden">
     <!-- Hero avec Three.js -->
-    <section class="relative h-screen flex items-center justify-center overflow-hidden">
-      <canvas ref="canvasRef" class="absolute inset-0 w-full h-full" />
+    <section class="relative h-screen flex items-center justify-center overflow-hidden" aria-label="Introduction">
+      <canvas ref="canvasRef" class="absolute inset-0 w-full h-full" aria-hidden="true" />
 
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.03),transparent_70%)]" />
-      <div class="absolute inset-0 bg-gradient-to-b from-[#0d0d0f]/60 via-transparent to-[#0d0d0f]" />
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.03),transparent_70%)]" aria-hidden="true" />
+      <div class="absolute inset-0 bg-gradient-to-b from-[#0d0d0f]/60 via-transparent to-[#0d0d0f]" aria-hidden="true" />
 
       <div class="relative z-10 text-center px-6 max-w-5xl mx-auto">
         <div class="hero-badge inline-block px-6 py-2 border border-[#FFD700]/30 rounded-full mb-8 text-[10px] tracking-[0.25em] text-[#FFD700]">
@@ -207,12 +207,14 @@ onUnmounted(() => {
           <router-link
               to="/movies"
               class="px-10 py-4 bg-[#FFD700] hover:bg-[#FFE55C] text-black text-xs tracking-[0.2em] font-bold rounded-lg transition-all hover:scale-105"
+              aria-label="Explorer les films"
           >
             EXPLORER LES FILMS
           </router-link>
           <router-link
               to="/actors"
               class="px-10 py-4 border border-[#FFD700] hover:bg-[#FFD700] hover:text-black text-[#FFD700] text-xs tracking-[0.2em] font-bold rounded-lg transition-all"
+              aria-label="Découvrir les acteurs"
           >
             DÉCOUVRIR LES ACTEURS
           </router-link>
@@ -222,7 +224,7 @@ onUnmounted(() => {
 
     <!-- Contenu principal -->
     <div class="max-w-7xl mx-auto px-6 py-24 space-y-24">
-      <div v-if="loading" class="flex justify-center py-20">
+      <div v-if="loading" class="flex justify-center py-20" aria-label="Chargement en cours">
         <div class="flex gap-2">
           <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce"></div>
           <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
@@ -232,23 +234,24 @@ onUnmounted(() => {
 
       <template v-else>
         <!-- Films -->
-        <section class="space-y-8">
+        <section class="space-y-8" aria-labelledby="latest-movies-title">
           <div class="flex items-center justify-between">
             <div>
               <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">SÉLECTION</div>
-              <h2 class="section-title garamond text-5xl md:text-6xl font-bold text-white">
+              <h2 id="latest-movies-title" class="section-title garamond text-5xl md:text-6xl font-bold text-white">
                 Derniers Films
               </h2>
             </div>
             <router-link
                 to="/movies"
                 class="text-sm text-[#FFD700] hover:text-[#FFE55C] transition-colors tracking-[0.15em]"
+                aria-label="Voir tous les films"
             >
               VOIR TOUT →
             </router-link>
           </div>
 
-          <div class="h-px bg-gradient-to-r from-transparent via-[#FFD700] to-transparent opacity-30" />
+          <div class="h-px bg-gradient-to-r from-transparent via-[#FFD700] to-transparent opacity-30" aria-hidden="true" />
 
           <div v-if="movies.length === 0" class="text-center text-white/60 py-12">
             Aucun film trouvé.
@@ -264,23 +267,24 @@ onUnmounted(() => {
         </section>
 
         <!-- Acteurs -->
-        <section class="space-y-8">
+        <section class="space-y-8" aria-labelledby="legendary-actors-title">
           <div class="flex items-center justify-between">
             <div>
               <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">TALENTS</div>
-              <h2 class="section-title garamond text-5xl md:text-6xl font-bold text-white">
+              <h2 id="legendary-actors-title" class="section-title garamond text-5xl md:text-6xl font-bold text-white">
                 Acteurs Légendaires
               </h2>
             </div>
             <router-link
                 to="/actors"
                 class="text-sm text-[#FFD700] hover:text-[#FFE55C] transition-colors tracking-[0.15em]"
+                aria-label="Voir tous les acteurs"
             >
               VOIR TOUT →
             </router-link>
           </div>
 
-          <div class="h-px bg-gradient-to-r from-transparent via-[#FFD700] to-transparent opacity-30" />
+          <div class="h-px bg-gradient-to-r from-transparent via-[#FFD700] to-transparent opacity-30" aria-hidden="true" />
 
           <div v-if="actors.length === 0" class="text-center text-white/60 py-12">
             Aucun acteur trouvé.

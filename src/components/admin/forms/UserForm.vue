@@ -73,8 +73,9 @@ const saveUser = async () => {
     if (dob.value) userData.dob = dob.value
 
     if (userId.value) {
-      await api.put(`/users/${userId.value}`, userData, {
-        headers: { 'Content-Type': 'application/json' }
+      // Correction ici : Utilisation de PATCH au lieu de PUT et du bon Content-Type
+      await api.patch(`/users/${userId.value}`, userData, {
+        headers: { 'Content-Type': 'application/merge-patch+json' }
       })
     } else {
       if (!password.value || !password.value.trim()) {
@@ -83,6 +84,11 @@ const saveUser = async () => {
         return
       }
       userData.plainPassword = password.value
+
+      // Pour la création, POST avec application/ld+json est standard
+      await api.post('/users', userData, {
+        headers: { 'Content-Type': 'application/ld+json' }
+      })
     }
 
     await new Promise(resolve => setTimeout(resolve, 500))
@@ -90,12 +96,13 @@ const saveUser = async () => {
     await new Promise(resolve => setTimeout(resolve, 200))
     emit('close')
   } catch (err) {
+    console.error("Erreur saveUser:", err)
     if (err.response) {
       errors.value =
           err.response.data?.['hydra:description'] ||
           err.response.data?.message ||
           err.response.data?.error ||
-          `Erreur ${err.response.status}`
+          `Erreur ${err.response.status}: ${err.response.statusText}`
     } else if (err.request) {
       errors.value = "Impossible de contacter le serveur"
     } else {

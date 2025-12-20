@@ -5,12 +5,15 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="universal-card group cursor-pointer bg-black rounded-lg hover:rounded-lg">
+  <div class="universal-card group cursor-pointer bg-black rounded-lg hover:rounded-lg" role="article" :aria-label="'Acteur : ' + actor.firstname + ' ' + actor.lastname">
     <div class="relative w-full h-72 overflow-hidden rounded-lg hover:rounded-lg">
       <img
           :src="actor.url || '/default_actor.jpeg'"
-          :alt="`${actor.firstname} ${actor.lastname}`"
+          :alt="'Photo de ' + actor.firstname + ' ' + actor.lastname"
           class="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
+          loading="lazy"
+          width="300"
+          height="450"
       />
       <div class="absolute inset-0"></div>
       <div class="absolute bottom-0 left-0 right-0 p-5">

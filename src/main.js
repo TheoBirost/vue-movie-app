@@ -11,8 +11,11 @@ app.use(router)
 app.use(pinia)
 app.mount('#app')
 
-AOS.init({
-  duration: 800,
-  easing: 'ease-in-out',
-  once: true,
-});
+// Initialize AOS only if it exists
+if (typeof AOS !== 'undefined') {
+  AOS.init({
+    duration: 800,
+    easing: 'ease-in-out',
+    once: true,
+  });
+}

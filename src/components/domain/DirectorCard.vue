@@ -16,12 +16,17 @@ const goToDirector = (id) => {
   <div
     class="universal-card group cursor-pointer"
     @click="goToDirector(director.id)"
+    role="article"
+    :aria-label="'Réalisateur : ' + director.firstname + ' ' + director.lastname"
   >
     <div class="relative w-full h-72 overflow-hidden rounded-lg">
       <img
           :src="director.url || '/default_director.jpeg'"
-          :alt="`${director.firstname} ${director.lastname}`"
+          :alt="'Photo de ' + director.firstname + ' ' + director.lastname"
           class="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
+          loading="lazy"
+          width="300"
+          height="450"
       />
 
       <!-- Overlay gradient -->
