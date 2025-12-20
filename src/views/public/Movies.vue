@@ -1,45 +1,65 @@
 <script setup>
 import { ref, onMounted, watch, nextTick, computed } from "vue"
-import { useRouter } from "vue-router"
+import { useRouter, useRoute } from "vue-router"
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useDataStore } from '../../stores/useDataStore'
 import MovieCard from "../../components/domain/MovieCard.vue"
+import api from '/src/api/api.js'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const router = useRouter()
+const route = useRoute()
 const dataStore = useDataStore()
 
 const search = ref("")
 const page = ref(1)
 const loading = ref(false)
+const movies = ref([])
+const totalItems = ref(0)
+const categoryName = ref("")
 
 const limit = 12
 
-const filteredMovies = computed(() => {
-  if (!search.value) {
-    return dataStore.movies;
-  }
-  return dataStore.movies.filter(movie =>
-    movie.name.toLowerCase().includes(search.value.toLowerCase())
-  );
-});
-
 const totalPages = computed(() => {
-  return Math.max(1, Math.ceil(filteredMovies.value.length / limit));
+  return Math.max(1, Math.ceil(totalItems.value / limit));
 });
 
-const paginatedMovies = computed(() => {
-  const start = (page.value - 1) * limit;
-  const end = start + limit;
-  return filteredMovies.value.slice(start, end);
-});
-
-const fetchData = async (force = false) => {
+const fetchMovies = async () => {
   loading.value = true
   try {
-    await dataStore.fetchMovies(force);
+    const params = {
+      page: page.value,
+      itemsPerPage: limit,
+      'groups[]': ['movie:read', 'movie:categories']
+    }
+
+    // Si une catégorie est sélectionnée dans l'URL
+    if (route.query.category) {
+      params['categories.id'] = route.query.category
+
+      // Récupérer le nom de la catégorie pour le titre
+      try {
+        const catRes = await api.get(`/categories/${route.query.category}`)
+        categoryName.value = catRes.data.name
+      } catch (e) {
+        console.error("Erreur récupération catégorie", e)
+      }
+    } else {
+      categoryName.value = ""
+    }
+
+    // Si une recherche textuelle est active (prioritaire sur le store pour la recherche globale)
+    if (search.value) {
+      params['name'] = search.value
+    }
+
+    const response = await api.get('/movies', { params })
+    const data = response.data
+    movies.value = data['hydra:member'] || data['member'] || []
+    totalItems.value = data['hydra:totalItems'] || data['totalItems'] || movies.value.length
+
     await nextTick()
     animateCards()
   } catch (err) {
@@ -63,19 +83,23 @@ const animateCards = () => {
 
 const goToMovie = (id) => router.push(`/movies/${id}`)
 
+// Watchers
 watch(search, () => {
   page.value = 1;
+  fetchMovies();
 });
 
 watch(page, () => {
-  nextTick().then(() => {
-    animateCards();
-  });
+  fetchMovies();
 });
 
+watch(() => route.query.category, () => {
+  page.value = 1;
+  fetchMovies();
+});
 
 onMounted(async () => {
-  await fetchData()
+  await fetchMovies()
 
   // Animations initiales
   gsap.from('.page-title', {
@@ -103,7 +127,9 @@ onMounted(async () => {
       <div class="flex justify-between items-end">
         <div class="page-title">
           <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">COLLECTION</div>
-          <h1 class="garamond text-6xl md:text-7xl font-bold text-white mb-3">Films</h1>
+          <h1 class="garamond text-6xl md:text-7xl font-bold text-white mb-3">
+            {{ categoryName ? `Films - ${categoryName}` : 'Films' }}
+          </h1>
           <div class="h-1 w-24 bg-gradient-to-r from-[#FFD700] to-transparent" />
         </div>
       </div>
@@ -133,8 +159,8 @@ onMounted(async () => {
       </div>
 
       <!-- Grille de films -->
-      <div v-else-if="paginatedMovies.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div v-for="movie in paginatedMovies" :key="movie.id" class="movie-card-wrapper group"
+      <div v-else-if="movies.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div v-for="movie in movies" :key="movie.id" class="movie-card-wrapper group"
              @mouseenter="gsap.to($event.currentTarget, { scale: 1.03, duration: 0.3, ease: 'power2.out' })"
              @mouseleave="gsap.to($event.currentTarget, { scale: 1,  duration: 0.3, ease: 'power2.out' })">
           <div @click="goToMovie(movie.id)">
@@ -151,6 +177,7 @@ onMounted(async () => {
           </svg>
         </div>
         <p class="text-[#C1C1C7] text-lg">Aucun film trouvé</p>
+        <button v-if="categoryName" @click="router.push('/movies')" class="mt-4 text-[#FFD700] hover:underline">Voir tous les films</button>
       </div>
 
       <!-- Pagination -->

@@ -7,6 +7,7 @@ import api from "/src/api/api.js"
 import ConfirmDeleteUser from "../../components/admin/modals/ConfirmDeleteUser.vue"
 import UserForm from '../../components/admin/forms/UserForm.vue'
 import TwoFactorSetup from '../../components/features/auth/TwoFactorSetup.vue'
+import UserReviews from '../../components/features/profile/UserReviews.vue'
 
 // User Profile State
 const dataStore = useDataStore()
@@ -342,6 +343,11 @@ onMounted(() => {
               <p class="text-white font-semibold mt-1">{{ formatDate(dob) }}</p>
             </div>
           </div>
+        </div>
+
+        <!-- Mes Avis -->
+        <div class="profile-card">
+          <UserReviews v-if="userId" :user-id="userId" />
         </div>
 
         <!-- 2FA Management -->
