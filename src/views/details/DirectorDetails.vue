@@ -108,7 +108,7 @@ const getAge = (dobString, dodString) => {
 <template>
   <div class="min-h-screen bg-[#0d0d0f]">
     <!-- Loading -->
-    <div v-if="loading" class="flex items-center justify-center min-h-[80vh]">
+    <div v-if="loading" class="flex items-center justify-center min-h-[80vh]" aria-label="Chargement en cours">
       <div class="flex gap-2">
         <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce"></div>
         <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
@@ -122,6 +122,7 @@ const getAge = (dobString, dodString) => {
       <button
           @click="router.back()"
           class="flex items-center gap-3 text-[#C1C1C7] hover:text-[#FFD700] transition-colors group"
+          aria-label="Retour"
       >
         <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 18-6-6 6-6"/>
@@ -136,8 +137,10 @@ const getAge = (dobString, dodString) => {
           <div class="relative overflow-hidden rounded-lg border border-[#2A2D36] shadow-2xl group max-w-[300px] mx-auto md:max-w-none">
             <img
                 :src="director.url || '/default_director.jpeg'"
-                :alt="`${director.firstname} ${director.lastname}`"
+                :alt="'Photo de ' + director.firstname + ' ' + director.lastname"
                 class="w-full h-auto object-cover aspect-[2/3]"
+                width="300"
+                height="450"
             />
             <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-40" />
           </div>
@@ -209,6 +212,7 @@ const getAge = (dobString, dodString) => {
       <button
           @click="router.push('/directors')"
           class="px-8 py-4 bg-[#FFD700] hover:bg-[#FFE55C] text-black font-bold rounded-lg transition-all hover:scale-105 text-xs tracking-[0.2em]"
+          aria-label="Retour aux réalisateurs"
       >
         RETOUR AUX RÉALISATEURS
       </button>

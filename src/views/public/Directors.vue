@@ -125,7 +125,7 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen bg-[#0d0d0f] relative">
-    <canvas ref="canvasRef" class="fixed top-0 left-0 w-full h-full z-0 opacity-50"></canvas>
+    <canvas ref="canvasRef" class="fixed top-0 left-0 w-full h-full z-0 opacity-50" aria-hidden="true"></canvas>
     <div class="max-w-7xl mx-auto px-6 py-20 space-y-12 relative z-10">
 
       <div class="flex justify-between items-end">
@@ -138,12 +138,13 @@ onMounted(async () => {
 
       <div class="search-bar">
         <div class="relative">
-          <input v-model="search" placeholder="Rechercher un réalisateur..." class="w-full px-6 py-4 bg-[#16181E] text-white border border-[#2A2D36] rounded-lg focus:outline-none focus:border-[#FFD700] transition-all text-lg" />
+          <label for="director-search" class="sr-only">Rechercher un réalisateur</label>
+          <input id="director-search" v-model="search" placeholder="Rechercher un réalisateur..." class="w-full px-6 py-4 bg-[#16181E] text-white border border-[#2A2D36] rounded-lg focus:outline-none focus:border-[#FFD700] transition-all text-lg" />
           <svg class="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-[#FFD700]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         </div>
       </div>
 
-      <div v-if="loading" class="flex items-center justify-center min-h-[40vh]">
+      <div v-if="loading" class="flex items-center justify-center min-h-[40vh]" aria-label="Chargement en cours">
         <div class="flex gap-2">
           <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce"></div>
           <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
@@ -162,9 +163,9 @@ onMounted(async () => {
       </div>
 
       <div v-if="totalPages > 1" class="flex justify-center items-center gap-6 pt-8">
-        <button :disabled="page === 1" @click="page--" class="w-12 h-12 rounded-lg bg-[#16181E] border border-[#2A2D36] hover:border-[#FFD700] disabled:opacity-30 disabled:cursor-not-allowed transition-all text-white flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
+        <button :disabled="page === 1" @click="page--" class="w-12 h-12 rounded-lg bg-[#16181E] border border-[#2A2D36] hover:border-[#FFD700] disabled:opacity-30 disabled:cursor-not-allowed transition-all text-white flex items-center justify-center" aria-label="Page précédente"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
         <span class="text-[#C1C1C7] tracking-[0.2em] text-sm">PAGE <span class="text-[#FFD700] font-bold">{{ page }}</span> / {{ totalPages }}</span>
-        <button :disabled="page === totalPages" @click="page++" class="w-12 h-12 rounded-lg bg-[#16181E] border border-[#2A2D36] hover:border-[#FFD700] disabled:opacity-30 disabled:cursor-not-allowed transition-all text-white flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
+        <button :disabled="page === totalPages" @click="page++" class="w-12 h-12 rounded-lg bg-[#16181E] border border-[#2A2D36] hover:border-[#FFD700] disabled:opacity-30 disabled:cursor-not-allowed transition-all text-white flex items-center justify-center" aria-label="Page suivante"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
       </div>
     </div>
   </div>

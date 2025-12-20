@@ -36,12 +36,15 @@ const getShortCategoryName = (categoryName) => {
 </script>
 
 <template>
-  <div class="universal-card group cursor-pointer bg-black rounded-lg hover:rounded-lg">
+  <div class="universal-card group cursor-pointer bg-black rounded-lg hover:rounded-lg" role="article" :aria-label="'Film : ' + movie.name">
     <div class="relative w-full h-64 overflow-hidden rounded-lg hover:rounded-lg ">
       <img
           :src="movie.url ? movie.url : '/default-film.jpg'"
-          :alt="movie.name"
+          :alt="'Affiche du film ' + movie.name"
           class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          loading="lazy"
+          width="300"
+          height="450"
       />
       <div class="absolute inset-0 "></div>
       <div class="absolute top-3 right-3 px-3 py-1  text-xs font-semibold text-[#FFD700] tracking-wider">

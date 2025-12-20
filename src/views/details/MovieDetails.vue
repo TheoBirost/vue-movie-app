@@ -61,13 +61,44 @@ const fetchCategories = async (categoryUrls) => {
   }
 }
 
+const fetchUserDetails = async (userIri) => {
+  if (!userIri || typeof userIri !== 'string') return null;
+  try {
+    const res = await api.get(userIri.replace('/api', ''));
+    return res.data;
+  } catch (e) {
+    console.error("Erreur chargement utilisateur", e);
+    return null;
+  }
+};
+
 const fetchReviews = async () => {
   loadingReviews.value = true
   try {
-    const response = await api.get(`/movies/${route.params.id}/reviews`)
-    reviews.value = response.data['hydra:member']
+    const response = await api.get('/reviews', {
+      params: {
+        movie: route.params.id,
+        'groups[]': ['review:read']
+      }
+    })
+
+    const data = response.data['hydra:member'] || response.data['member'] || []
+
+    // Enrichir les avis avec les détails de l'utilisateur
+    const enrichedReviews = await Promise.all(data.map(async (review) => {
+      if (review.user && typeof review.user === 'string') {
+        const userDetails = await fetchUserDetails(review.user);
+        return { ...review, user: userDetails };
+      }
+      return review;
+    }));
+
+    console.log("Avis enrichis :", enrichedReviews)
+    reviews.value = enrichedReviews
+
   } catch (error) {
     console.error('Erreur lors du chargement des avis:', error)
+    reviews.value = []
   } finally {
     loadingReviews.value = false
   }
@@ -147,7 +178,7 @@ onMounted(async () => {
 <template>
   <div class="min-h-screen bg-[#0d0d0f]">
     <!-- Loading -->
-    <div v-if="loading" class="flex items-center justify-center min-h-[80vh]">
+    <div v-if="loading" class="flex items-center justify-center min-h-[80vh]" aria-label="Chargement en cours">
       <div class="flex gap-2">
         <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce"></div>
         <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
@@ -161,6 +192,7 @@ onMounted(async () => {
       <button
           @click="router.back()"
           class="flex items-center gap-3 text-[#C1C1C7] hover:text-[#FFD700] transition-colors group"
+          aria-label="Retour"
       >
         <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 18-6-6 6-6"/>
@@ -176,8 +208,10 @@ onMounted(async () => {
           <div class="relative overflow-hidden rounded-lg border border-[#2A2D36] shadow-2xl group max-w-[300px] mx-auto md:max-w-none">
             <img
                 :src="movie.url || '/default-film.jpg'"
-                :alt="movie.name"
+                :alt="'Affiche du film ' + movie.name"
                 class="w-full h-auto object-cover aspect-[2/3]"
+                width="300"
+                height="450"
             />
             <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-40" />
           </div>
@@ -279,6 +313,7 @@ onMounted(async () => {
       <button
           @click="router.push('/movies')"
           class="px-8 py-4 bg-[#FFD700] hover:bg-[#FFE55C] text-black font-bold rounded-lg transition-all hover:scale-105 text-xs tracking-[0.2em]"
+          aria-label="Retour aux films"
       >
         RETOUR AUX FILMS
       </button>

@@ -115,7 +115,9 @@ onMounted(async () => {
       <!-- Barre de recherche -->
       <div class="search-bar">
         <div class="relative">
+          <label for="actor-search" class="sr-only">Rechercher un acteur</label>
           <input
+              id="actor-search"
               v-model="search"
               placeholder="Rechercher un acteur..."
               class="w-full px-6 py-4 bg-[#16181E] text-white border border-[#2A2D36] rounded-lg focus:outline-none focus:border-[#FFD700] transition-all text-lg"
@@ -127,7 +129,7 @@ onMounted(async () => {
       </div>
 
       <!-- Loading -->
-      <div v-if="loading" class="flex items-center justify-center min-h-[40vh]">
+      <div v-if="loading" class="flex items-center justify-center min-h-[40vh]" aria-label="Chargement en cours">
         <div class="flex gap-2">
           <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce"></div>
           <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
@@ -162,6 +164,7 @@ onMounted(async () => {
             :disabled="page === 1"
             @click="page--"
             class="w-12 h-12 rounded-lg bg-[#16181E] border border-[#2A2D36] hover:border-[#FFD700] disabled:opacity-30 disabled:cursor-not-allowed transition-all text-white flex items-center justify-center"
+            aria-label="Page précédente"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -176,6 +179,7 @@ onMounted(async () => {
             :disabled="page === totalPages"
             @click="page++"
             class="w-12 h-12 rounded-lg bg-[#16181E] border border-[#2A2D36] hover:border-[#FFD700] disabled:opacity-30 disabled:cursor-not-allowed transition-all text-white flex items-center justify-center"
+            aria-label="Page suivante"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>

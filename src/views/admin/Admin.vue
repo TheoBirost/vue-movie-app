@@ -14,11 +14,13 @@
               'text-text-gray hover:text-white': currentTab !== tab
             }
           ]"
+          :aria-selected="currentTab === tab"
+          role="tab"
         >
           {{ tab }}
         </button>
       </div>
-      <div class="mt-8">
+      <div class="mt-8" role="tabpanel">
         <component :is="currentTabComponent"></component>
       </div>
     </div>
