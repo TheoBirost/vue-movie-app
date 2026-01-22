@@ -50,6 +50,8 @@ const login = async (e) => {
     const response = await axios.post(import.meta.env.VITE_API_URL_AUTH, {
       email: email.value,
       password: password.value
+    }, {
+      withCredentials: true
     })
 
     // Si le 2FA est activé, on reçoit un token temporaire
