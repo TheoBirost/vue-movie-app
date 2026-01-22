@@ -1,13 +1,25 @@
-# Stage 1: Build the Vue.js application
-FROM node:18-alpine AS build
+# ---- Build ----
+FROM node:20-alpine AS build
+
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm install
+
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve the application with Nginx
+# ---- Nginx ----
 FROM nginx:alpine
+
+# Supprime la config par défaut
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Ajoute notre config
+COPY nginx.conf /etc/nginx/conf.d
+
+# Fichiers build Vite
 COPY --from=build /app/dist /usr/share/nginx/html
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
