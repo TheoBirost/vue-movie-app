@@ -130,7 +130,9 @@ const formatDate = (dateString) => {
             <AppImage
                 :src="resolveImage(actor)"
                 :alt="`Portrait de ${actor.firstname} ${actor.lastname}`"
-                fallback="/placeholder-person.svg"
+                kind="person"
+                :fallback-seed="actor.id"
+                :fallback-label="`${actor.firstname} ${actor.lastname}`"
                 :priority="true"
                 ratio="2 / 3"
                 class="w-full"

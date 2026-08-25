@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
+import FallbackVisual from './FallbackVisual.vue'
 
 /**
  * Image applicative : squelette pendant le chargement, révélation en fondu,
@@ -11,7 +12,12 @@ import { computed, ref, watch } from 'vue'
 const props = defineProps({
     src: { type: String, default: '' },
     alt: { type: String, required: true },
-    fallback: { type: String, default: '/placeholder-poster.svg' },
+    /** 'poster' (œuvre) ou 'person' (portrait) : choisit le motif de repli. */
+    kind: { type: String, default: 'poster' },
+    /** Sert à générer un visuel stable et distinct par élément. */
+    fallbackSeed: { type: [String, Number], default: '' },
+    /** Texte du repli, généralement le nom : les initiales en sont tirées. */
+    fallbackLabel: { type: String, default: '' },
     width: { type: [Number, String], default: 300 },
     height: { type: [Number, String], default: 450 },
     /** `true` sur l'image LCP d'une page (affiche principale d'un détail). */
@@ -24,9 +30,13 @@ const props = defineProps({
 const loaded = ref(false)
 const failed = ref(false)
 
-const resolvedSrc = computed(() =>
-    !props.src || failed.value ? props.fallback : props.src
-)
+/**
+ * Vrai tant qu'aucune image exploitable n'est disponible : source absente, ou
+ * chargement en échec. On bascule alors sur un visuel généré plutôt que sur un
+ * fichier unique — la base ne contenant aucune illustration, une image commune
+ * donnerait huit tuiles identiques par grille.
+ */
+const useFallback = computed(() => !props.src || failed.value)
 
 // Une nouvelle source repart d'un état neutre (pagination, changement de film…)
 watch(
@@ -52,11 +62,19 @@ const onError = () => {
 <template>
     <div
         class="relative overflow-hidden"
-        :class="{ skeleton: !loaded }"
+        :class="{ skeleton: !loaded && !useFallback }"
         :style="ratio ? { aspectRatio: ratio } : null"
     >
+        <FallbackVisual
+            v-if="useFallback"
+            :seed="fallbackSeed || alt"
+            :label="fallbackLabel || alt"
+            :kind="kind"
+        />
+
         <img
-            :src="resolvedSrc"
+            v-else
+            :src="src"
             :alt="alt"
             :width="width"
             :height="height"
