@@ -15,7 +15,9 @@ const fullName = () => `${props.actor.firstname ?? ''} ${props.actor.lastname ??
             <AppImage
                 :src="resolveImage(actor)"
                 :alt="`Portrait de ${fullName()}`"
-                fallback="/placeholder-person.svg"
+                kind="person"
+                :fallback-seed="actor.id"
+                :fallback-label="fullName()"
                 img-class="h-72 transition-transform duration-700 group-hover:scale-[1.06]"
                 class="h-72 w-full"
             />

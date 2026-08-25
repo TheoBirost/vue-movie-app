@@ -211,7 +211,9 @@ onMounted(async () => {
             <AppImage
                 :src="resolveImage(movie)"
                 :alt="`Affiche du film ${movie.name}`"
-                fallback="/placeholder-poster.svg"
+                kind="poster"
+                :fallback-seed="movie.id"
+                :fallback-label="movie.name"
                 :priority="true"
                 ratio="2 / 3"
                 class="w-full"

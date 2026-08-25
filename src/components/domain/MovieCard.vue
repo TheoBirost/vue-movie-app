@@ -37,7 +37,9 @@ const shortName = (name) => SHORT_NAMES[name] || name
             <AppImage
                 :src="resolveImage(movie)"
                 :alt="`Affiche du film ${movie.name}`"
-                fallback="/placeholder-poster.svg"
+                kind="poster"
+                :fallback-seed="movie.id"
+                :fallback-label="movie.name"
                 img-class="h-64 transition-transform duration-700 group-hover:scale-[1.06]"
                 class="h-64 w-full"
             />

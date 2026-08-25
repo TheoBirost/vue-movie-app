@@ -141,7 +141,9 @@ const getAge = (dobString, dodString) => {
             <AppImage
                 :src="resolveImage(director)"
                 :alt="`Portrait de ${director.firstname} ${director.lastname}`"
-                fallback="/placeholder-person.svg"
+                kind="person"
+                :fallback-seed="director.id"
+                :fallback-label="`${director.firstname} ${director.lastname}`"
                 :priority="true"
                 ratio="2 / 3"
                 class="w-full"
