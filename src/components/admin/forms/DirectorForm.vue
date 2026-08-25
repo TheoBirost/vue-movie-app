@@ -1,24 +1,38 @@
 <template>
-  <div class="fixed inset-0 bg-[var(--color-ink)] bg-opacity-50 flex justify-center items-center">
-    <div class="bg-gray-800 p-8 rounded-lg">
-      <h2 class="text-xl font-bold mb-4">{{ director ? 'Edit' : 'Add' }} Director</h2>
-      <form @submit.prevent="saveDirector">
-        <div class="mb-4">
-          <label for="firstname" class="block mb-2">First Name</label>
-          <input type="text" id="firstname" v-model="form.firstname" class="w-full p-2 rounded-lg bg-gray-700">
-        </div>
-        <div class="mb-4">
-          <label for="lastname" class="block mb-2">Last Name</label>
-          <input type="text" id="lastname" v-model="form.lastname" class="w-full p-2 rounded-lg bg-gray-700">
-        </div>
-        <div class="flex justify-end">
-          <button type="button" @click="$emit('close')" class="mr-2">Cancel</button>
-          <button type="submit" class="bg-blue-500 text-[var(--color-ink)] px-4 py-2 rounded-lg">Save</button>
-        </div>
+  <div class="fixed inset-0 bg-[var(--color-ink)]/70 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="$emit('close')">
+    <div class="form-container bg-[var(--color-paper-raised)] border border-[var(--color-rule)] rounded-lg w-full max-w-2xl shadow-2xl max-h-[90vh] flex flex-col">
+      <header class="p-6 flex items-center justify-between border-b border-[var(--color-rule)]">
+        <h2 class="text-2xl font-bold text-[var(--color-ink)]">
+          {{ props.director ? 'Modifier le réalisateur' : 'Nouveau réalisateur' }}
+        </h2>
+        <button @click="$emit('close')" class="p-2 rounded-full text-[var(--color-ink-faint)] hover:bg-[var(--color-paper-sunk)]" aria-label="Fermer">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </header>
+
+      <form @submit.prevent="saveDirector" class="flex flex-col min-h-0">
+        <main class="p-6 overflow-y-auto">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="director-firstname" class="block text-sm font-medium text-[var(--color-ink-soft)] mb-1">Prénom</label>
+              <input id="director-firstname" v-model="form.firstname" type="text" placeholder="ex: Christopher" class="w-full px-4 py-2 bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-md text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-night)]" />
+            </div>
+            <div>
+              <label for="director-lastname" class="block text-sm font-medium text-[var(--color-ink-soft)] mb-1">Nom</label>
+              <input id="director-lastname" v-model="form.lastname" type="text" placeholder="ex: Nolan" class="w-full px-4 py-2 bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-md text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-night)]" />
+            </div>
+          </div>
+        </main>
+
+        <footer class="p-6 flex justify-end gap-4 border-t border-[var(--color-rule)]">
+          <button type="button" @click="$emit('close')" class="btn btn-quiet">Annuler</button>
+          <button type="submit" class="btn btn-primary">Sauvegarder</button>
+        </footer>
       </form>
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { ref, watch } from 'vue';

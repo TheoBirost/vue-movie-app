@@ -63,7 +63,7 @@ const submit = async () => {
         <h2 class="text-2xl font-bold text-[var(--color-ink)]">
           {{ props.category?.id ? "Modifier" : "Ajouter" }} une catégorie
         </h2>
-        <button @click="emit('close')" class="p-2 rounded-full text-[var(--color-ink-faint)] hover:bg-white/10" aria-label="Fermer">
+        <button @click="emit('close')" class="p-2 rounded-full text-[var(--color-ink-faint)] hover:bg-[var(--color-paper-sunk)]" aria-label="Fermer">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </header>
@@ -74,16 +74,16 @@ const submit = async () => {
           <input id="category-name" v-model="name" type="text" placeholder="ex: Action, Comédie..." class="w-full px-4 py-2 bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-md text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-night)]" />
         </div>
 
-        <div v-if="error" class="bg-red-900/20 border border-red-800/30 text-red-400 p-3 rounded-md text-sm">
+        <div v-if="error" class="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 text-[var(--color-danger)] p-3 rounded-md text-sm">
           {{ error }}
         </div>
       </main>
 
       <footer class="p-6 flex justify-end gap-4 border-t border-[var(--color-rule)]">
-        <button @click="emit('close')" class="px-6 py-2.5 rounded-lg text-sm font-bold text-[var(--color-ink-soft)] border border-[var(--color-rule)] hover:bg-white/10 transition-colors">
+        <button @click="emit('close')" class="btn btn-quiet">
           Annuler
         </button>
-        <button @click="submit" :disabled="loading" class="px-6 py-2.5 rounded-lg text-sm font-bold text-black bg-[var(--color-ink)] hover:bg-[var(--color-night)] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+        <button @click="submit" :disabled="loading" class="btn btn-primary">
           {{ loading ? "Sauvegarde..." : props.category?.id ? "Sauvegarder" : "Ajouter" }}
         </button>
       </footer>

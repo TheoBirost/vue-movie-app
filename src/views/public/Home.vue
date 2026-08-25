@@ -52,7 +52,7 @@ onMounted(async () => {
     applyJsonLd({
         '@context': 'https://schema.org',
         '@type': 'WebSite',
-        name: 'Cinéaste',
+        name: 'Générique',
         url: SITE_URL,
         inLanguage: 'fr-FR',
         potentialAction: {
@@ -83,7 +83,7 @@ onMounted(async () => {
         <header class="grid gap-10 pt-14 md:grid-cols-[1.5fr_1fr] md:items-end md:pt-24">
             <div>
                 <p class="eyebrow mb-6">Index du cinéma — édition {{ year }}</p>
-                <h1>Cinéaste</h1>
+                <h1>Générique</h1>
             </div>
 
             <p class="max-w-[34ch] text-lg leading-relaxed text-[var(--color-ink-soft)] md:pb-3">
@@ -97,8 +97,8 @@ onMounted(async () => {
 
         <!-- Chiffres du catalogue : ils remplacent l'image d'en-tête absente,
              et disent quelque chose de vrai sur ce que contient le site. -->
-        <dl class="grid grid-cols-2 gap-px bg-[var(--color-rule)] md:grid-cols-4">
-            <div v-for="f in figures" :key="f.label" class="bg-[var(--color-paper)] py-7 pr-4">
+        <dl class="figures grid grid-cols-2 gap-px bg-[var(--color-rule)] md:grid-cols-4">
+            <div v-for="f in figures" :key="f.label" class="bg-[var(--color-paper)] py-8">
                 <dt class="data mb-2">{{ f.label }}</dt>
                 <dd class="font-[family-name:var(--font-display)] text-5xl font-extrabold leading-none tabular-nums md:text-6xl">
                     {{ f.value }}
@@ -172,6 +172,22 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+/* Chaque filet vertical doit respirer des deux côtés : sans marge à gauche,
+   il vient toucher le libellé de la colonne suivante. Les cellules en tête
+   de rangée gardent le bord franc pour rester alignées sur la marge de page
+   et sur le titre au-dessus. */
+.figures > * {
+    padding-inline: 1.75rem;
+}
+.figures > *:nth-child(odd) { padding-inline-start: 0; }
+.figures > *:nth-child(even) { padding-inline-end: 0; }
+
+@media (min-width: 768px) {
+    .figures > * { padding-inline: 1.75rem; }
+    .figures > *:first-child { padding-inline-start: 0; }
+    .figures > *:last-child { padding-inline-end: 0; }
+}
+
 /*
  * Nom d'interprète : patronyme en display, prénom en labeur, sur la même ligne
  * de base. C'est la convention d'un générique, et cela donne une colonne qui se

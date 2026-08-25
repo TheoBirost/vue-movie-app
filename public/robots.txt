@@ -1,4 +1,4 @@
-# Cinéaste — https://cineaste.theo-birost.fr
+# Générique — https://cineaste.theo-birost.fr
 User-agent: *
 Allow: /
 

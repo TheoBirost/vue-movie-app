@@ -35,7 +35,7 @@ const columns = [
             <div class="grid gap-12 md:grid-cols-[1.6fr_repeat(3,1fr)]">
                 <div>
                     <p class="font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase leading-none">
-                        Cinéaste
+                        Générique
                     </p>
                     <p class="mt-4 max-w-[34ch] text-sm leading-relaxed text-[var(--color-ink-soft)]">
                         Un index de films, d'interprètes et de réalisateurs. Les fiches sont
@@ -58,7 +58,7 @@ const columns = [
             <hr class="rule my-10" />
 
             <div class="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
-                <p class="data">© {{ year }} Cinéaste — projet étudiant</p>
+                <p class="data">© {{ year }} Générique — projet étudiant</p>
                 <p class="data">Vue 3 · Symfony · API Platform</p>
             </div>
         </div>

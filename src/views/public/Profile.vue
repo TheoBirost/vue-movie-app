@@ -294,7 +294,7 @@ onMounted(() => {
           <svg class="w-12 h-12 text-[var(--color-night)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         </div>
         <p class="text-[var(--color-ink-soft)] text-lg mb-6">{{ errorMessage }}</p>
-        <router-link to="/connexion" class="px-8 py-4 bg-[var(--color-ink)] hover:bg-[var(--color-night)] text-black font-bold rounded-lg transition-all hover:scale-105 text-xs tracking-[0.2em]">
+        <router-link to="/connexion" class="btn btn-primary">
           SE RECONNECTER
         </router-link>
       </div>
@@ -347,17 +347,17 @@ onMounted(() => {
         <div class="profile-card bg-[var(--color-paper-raised)] border border-[var(--color-rule)] rounded-lg p-8 space-y-6">
           <h2 class="text-[var(--color-ink)] font-bold text-2xl border-b border-[var(--color-rule)] pb-4 mb-4">Sécurité - Authentification à deux facteurs (2FA)</h2>
           <div v-if="twoFactorLoading" class="text-center text-[var(--color-ink-soft)]">Chargement...</div>
-          <div v-else-if="twoFactorError" class="text-center text-red-400 p-4 bg-red-900/20 rounded-md">{{ twoFactorError }}</div>
+          <div v-else-if="twoFactorError" class="text-center text-[var(--color-danger)] p-4 bg-[var(--color-danger)]/10 rounded-md">{{ twoFactorError }}</div>
           <div v-else-if="twoFactorStatus.enabled" class="flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              <p class="text-green-400 font-semibold">L'authentification à deux facteurs est activée.</p>
+              <svg class="w-8 h-8 text-[var(--color-success)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <p class="text-[var(--color-success)] font-semibold">L'authentification à deux facteurs est activée.</p>
             </div>
-            <button @click="disableTwoFactor" class="px-6 py-3 bg-red-900/30 hover:bg-red-900/50 border border-red-800/40 text-red-400 font-bold rounded-lg transition-all text-xs tracking-[0.2em]">DÉSACTIVER</button>
+            <button @click="disableTwoFactor" class="px-6 py-3 bg-[var(--color-danger)]/10 hover:bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 text-[var(--color-danger)] font-bold rounded-lg transition-all text-xs tracking-[0.2em]">DÉSACTIVER</button>
           </div>
           <div v-else class="text-center py-4">
             <p class="text-[var(--color-ink-soft)] mb-6">Protégez votre compte en ajoutant une deuxième couche de sécurité.</p>
-            <button @click="showTwoFactorSetup = true" class="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-[var(--color-ink)] font-bold rounded-lg transition-all hover:scale-105 text-xs tracking-[0.2em]">ACTIVER LE 2FA</button>
+            <button @click="showTwoFactorSetup = true" class="btn btn-primary">ACTIVER LE 2FA</button>
           </div>
         </div>
 
@@ -366,18 +366,18 @@ onMounted(() => {
           <h2 class="text-[var(--color-ink)] font-bold text-2xl border-b border-[var(--color-rule)] pb-4 mb-4">Gestion de la Clé API</h2>
 
           <div v-if="apiKeyLoading" class="text-center text-[var(--color-ink-soft)]">Chargement...</div>
-          <div v-else-if="apiKeyError" class="text-center text-red-400 p-4 bg-red-900/20 rounded-md">{{ apiKeyError }}</div>
+          <div v-else-if="apiKeyError" class="text-center text-[var(--color-danger)] p-4 bg-[var(--color-danger)]/10 rounded-md">{{ apiKeyError }}</div>
 
-          <div v-else-if="newlyGeneratedApiKey" class="bg-yellow-900/20 border border-yellow-800/30 rounded-lg p-6 space-y-4">
-              <h3 class="text-lg font-semibold text-yellow-300">Votre nouvelle clé API</h3>
-              <p class="text-yellow-200">Copiez cette clé et conservez-la en lieu sûr. <strong>Vous ne pourrez plus la voir après avoir fermé cet encadré.</strong></p>
+          <div v-else-if="newlyGeneratedApiKey" class="bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/30 rounded-lg p-6 space-y-4">
+              <h3 class="text-lg font-semibold text-[var(--color-warning)]">Votre nouvelle clé API</h3>
+              <p class="text-[var(--color-warning)]">Copiez cette clé et conservez-la en lieu sûr. <strong>Vous ne pourrez plus la voir après avoir fermé cet encadré.</strong></p>
               <div class="bg-[var(--color-ink)]/70 rounded-md p-4 flex items-center justify-between gap-4">
                   <code class="text-[var(--color-ink)] font-mono break-all text-sm">{{ newlyGeneratedApiKey }}</code>
-                  <button @click="copyToClipboard(newlyGeneratedApiKey)" title="Copier la clé" class="p-2 hover:bg-white/20 rounded-md transition flex-shrink-0">
+                  <button @click="copyToClipboard(newlyGeneratedApiKey)" title="Copier la clé" class="p-2 hover:bg-[var(--color-paper-sunk)] rounded-md transition flex-shrink-0">
                       <svg class="w-6 h-6 text-[var(--color-ink)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                   </button>
               </div>
-              <button @click="closeApiKeyDisplay" class="w-full mt-4 px-8 py-3 bg-[var(--color-ink)] hover:bg-[var(--color-night)] text-black font-bold rounded-lg transition-all text-xs tracking-[0.2em]">J'AI BIEN COPIÉ MA CLÉ</button>
+              <button @click="closeApiKeyDisplay" class="btn btn-primary w-full mt-4">J'AI BIEN COPIÉ MA CLÉ</button>
           </div>
 
           <div v-else-if="apiKeyInfo && apiKeyInfo.prefix" class="space-y-6">
@@ -389,10 +389,10 @@ onMounted(() => {
               <div>
                 <span class="text-[var(--color-ink-faint)] text-sm uppercase tracking-wider">Statut</span>
                 <div class="flex items-center gap-3 mt-2">
-                    <button @click="toggleApiKeyStatus" :class="apiKeyInfo.enabled ? 'bg-green-500' : 'bg-gray-600'" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0" aria-label="Basculer le statut de la clé API">
-                        <span :class="apiKeyInfo.enabled ? 'translate-x-6' : 'translate-x-1'" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"></span>
+                    <button @click="toggleApiKeyStatus" :class="apiKeyInfo.enabled ? 'bg-[var(--color-success)]' : 'bg-[var(--color-rule)]'" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0" aria-label="Basculer le statut de la clé API">
+                        <span :class="apiKeyInfo.enabled ? 'translate-x-6' : 'translate-x-1'" class="inline-block h-4 w-4 transform rounded-full bg-[var(--color-paper-raised)] transition-transform"></span>
                     </button>
-                    <span :class="apiKeyInfo.enabled ? 'text-green-400' : 'text-gray-400'" class="font-semibold text-lg">{{ apiKeyInfo.enabled ? 'Activée' : 'Désactivée' }}</span>
+                    <span :class="apiKeyInfo.enabled ? 'text-[var(--color-success)]' : 'text-[var(--color-ink-faint)]'" class="font-semibold text-lg">{{ apiKeyInfo.enabled ? 'Activée' : 'Désactivée' }}</span>
                 </div>
               </div>
               <div>
@@ -405,25 +405,25 @@ onMounted(() => {
               </div>
             </div>
             <div class="pt-6 border-t border-[var(--color-rule)]">
-                <button @click="revokeApiKey" class="w-full px-8 py-3 bg-red-900/30 hover:bg-red-900/50 border border-red-800/40 text-red-400 font-bold rounded-lg transition-all text-xs tracking-[0.2em]">RÉVOQUER LA CLÉ API</button>
+                <button @click="revokeApiKey" class="w-full px-8 py-3 bg-[var(--color-danger)]/10 hover:bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 text-[var(--color-danger)] font-bold rounded-lg transition-all text-xs tracking-[0.2em]">RÉVOQUER LA CLÉ API</button>
             </div>
           </div>
 
           <div v-else class="text-center py-4">
             <p class="text-[var(--color-ink-soft)] mb-6">Vous n'avez pas de clé API. Générez-en une pour l'utiliser avec des scripts ou des services externes.</p>
-            <button @click="generateApiKey" class="px-8 py-4 bg-[var(--color-ink)] hover:bg-[var(--color-night)] text-black font-bold rounded-lg transition-all hover:scale-105 text-xs tracking-[0.2em]">GÉNÉRER UNE CLÉ API</button>
+            <button @click="generateApiKey" class="btn btn-primary">GÉNÉRER UNE CLÉ API</button>
           </div>
         </div>
 
         <div class="profile-card flex flex-col sm:flex-row gap-4">
-          <button @click="editUser({ id: userId, firstname, lastname, email, dob, roles: [userRole], photo })" class="flex-1 px-8 py-4 bg-[var(--color-ink)] hover:bg-[var(--color-night)] text-black font-bold rounded-lg transition-all hover:scale-105 text-xs tracking-[0.2em]">MODIFIER LE PROFIL</button>
-          <router-link v-if="userRole === 'ROLE_ADMIN'" to="/admin" class="flex-1 text-center px-8 py-4 border border-[var(--color-ink)] hover:bg-[var(--color-ink)] hover:text-black text-[var(--color-night)] font-bold rounded-lg transition-all text-xs tracking-[0.2em]">ADMIN</router-link>
+          <button @click="editUser({ id: userId, firstname, lastname, email, dob, roles: [userRole], photo })" class="btn btn-primary flex-1">MODIFIER LE PROFIL</button>
+          <router-link v-if="userRole === 'ROLE_ADMIN'" to="/admin" class="btn btn-primary flex-1 text-center">ADMIN</router-link>
         </div>
 
         <div class="profile-card border-t border-[var(--color-rule)] pt-8 mt-12">
-          <h3 class="text-lg font-semibold text-red-500 mb-2">Zone de danger</h3>
+          <h3 class="text-lg font-semibold text-[var(--color-danger)] mb-2">Zone de danger</h3>
           <p class="text-[var(--color-ink-faint)] mb-4">La suppression de votre compte est une action irréversible.</p>
-          <button @click="confirmDelete({ id: userId, firstname, lastname, email, dob, roles: [userRole] })" class="w-full px-8 py-4 bg-red-900/20 hover:bg-red-900/40 border border-red-800/30 text-red-400 font-bold rounded-lg transition-all text-xs tracking-[0.2em]">SUPPRIMER MON COMPTE</button>
+          <button @click="confirmDelete({ id: userId, firstname, lastname, email, dob, roles: [userRole] })" class="w-full px-8 py-4 bg-[var(--color-danger)]/10 hover:bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 text-[var(--color-danger)] font-bold rounded-lg transition-all text-xs tracking-[0.2em]">SUPPRIMER MON COMPTE</button>
         </div>
       </div>
     </div>

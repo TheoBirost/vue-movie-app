@@ -7,7 +7,7 @@ import LegalPage from './LegalPage.vue'
         <section>
             <h2>Éditeur du site</h2>
             <p>
-                Le site <strong>Cinéaste</strong> (cineaste.theo-birost.fr) est édité
+                Le site <strong>Générique</strong> (cineaste.theo-birost.fr) est édité
                 par <span class="todo">NOM ET PRÉNOM / RAISON SOCIALE</span>,
                 <span class="todo">STATUT JURIDIQUE</span>.
             </p>
@@ -38,7 +38,7 @@ import LegalPage from './LegalPage.vue'
         <section>
             <h2>Nature du service</h2>
             <p>
-                Cinéaste est un projet pédagogique présentant un catalogue de films,
+                Générique est un projet pédagogique présentant un catalogue de films,
                 d'acteurs et de réalisateurs. Les données affichées sont des données de
                 démonstration : elles n'ont pas vocation à constituer une source
                 d'information fiable ou exhaustive sur les œuvres présentées.

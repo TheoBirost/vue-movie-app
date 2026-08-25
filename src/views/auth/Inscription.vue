@@ -142,7 +142,7 @@ onMounted(() => {
 
     <div class="auth-card w-full max-w-lg space-y-8 z-10">
       <div class="text-center">
-        <h1 class="text-6xl font-bold text-[var(--color-night)]">Cinéaste</h1>
+        <h1 class="text-6xl font-bold text-[var(--color-night)]">Générique</h1>
         <h2 class="mt-2 text-2xl font-bold text-[var(--color-ink)]">
           Créez votre compte
         </h2>
@@ -158,9 +158,9 @@ onMounted(() => {
         <div class="flex flex-col items-center space-y-4">
           <div class="relative">
             <img :src="photoPreview || '/placeholder-avatar.svg'" alt="Aperçu de l'avatar" class="w-24 h-24 rounded-full object-cover border-4 border-[var(--color-rule)]">
-            <button v-if="photoPreview" @click="removePhoto" type="button" class="absolute -top-1 -right-1 bg-red-500 text-[var(--color-ink)] rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-all" aria-label="Supprimer la photo">&times;</button>
+            <button v-if="photoPreview" @click="removePhoto" type="button" class="absolute -top-1 -right-1 bg-[var(--color-danger)] text-[var(--color-paper)] rounded-full w-6 h-6 flex items-center justify-center hover:bg-[var(--color-ink)] transition-colors" aria-label="Supprimer la photo">&times;</button>
           </div>
-          <label for="photo-upload" class="cursor-pointer px-4 py-2 border border-[var(--color-ink)] text-[var(--color-night)] rounded-lg text-sm hover:bg-[var(--color-ink)] hover:text-black transition-colors">
+          <label for="photo-upload" class="btn btn-primary">
             Choisir une photo
           </label>
           <input id="photo-upload" name="photo" type="file" class="sr-only" @change="handleFileChange" accept="image/*">
@@ -192,13 +192,13 @@ onMounted(() => {
           <input v-model="dob" id="dob" name="dob" type="date" required class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[var(--color-rule)] bg-[var(--color-paper)] placeholder-gray-500 text-[var(--color-ink)] focus:outline-none focus:ring-[var(--color-night)] focus:border-[var(--color-ink)] sm:text-sm">
         </div>
 
-        <div v-if="successMessage" class="text-green-400 text-sm text-center bg-green-900/20 p-3 rounded-md border border-green-800/30">{{ successMessage }}</div>
-        <div v-if="errorMessage" class="error-message text-red-400 text-sm text-center bg-red-900/20 p-3 rounded-md border border-red-800/30">{{ errorMessage }}</div>
+        <div v-if="successMessage" class="text-[var(--color-success)] text-sm text-center bg-[var(--color-success)]/10 p-3 rounded-md border border-[var(--color-success)]/30">{{ successMessage }}</div>
+        <div v-if="errorMessage" class="error-message text-[var(--color-danger)] text-sm text-center bg-[var(--color-danger)]/10 p-3 rounded-md border border-[var(--color-danger)]/30">{{ errorMessage }}</div>
 
         <div>
-          <button :disabled="isLoading" type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-black bg-[var(--color-ink)] hover:bg-[var(--color-night)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-night)] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+          <button :disabled="isLoading" type="submit" class="btn btn-primary w-full">
             <span v-if="isLoading" class="absolute left-0 inset-y-0 flex items-center pl-3">
-              <svg class="h-5 w-5 text-black animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              <svg class="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             </span>
             {{ isLoading ? 'Création du compte...' : 'Créer le compte' }}
           </button>

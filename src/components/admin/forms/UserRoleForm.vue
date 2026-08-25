@@ -79,20 +79,20 @@ function cancel() { emit('cancel') }
           </select>
         </div>
 
-        <div v-if="errorMessage" class="bg-red-900/20 border border-red-800/30 text-red-400 p-3 rounded-md text-sm">
+        <div v-if="errorMessage" class="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 text-[var(--color-danger)] p-3 rounded-md text-sm">
           {{ errorMessage }}
         </div>
-        <div v-if="successMessage" class="bg-green-900/20 border border-green-800/30 text-green-400 p-3 rounded-md text-sm">
+        <div v-if="successMessage" class="bg-[var(--color-success)]/10 border border-[var(--color-success)]/30 text-[var(--color-success)] p-3 rounded-md text-sm">
           {{ successMessage }}
         </div>
       </main>
 
       <footer class="p-6 flex justify-end gap-4 border-t border-[var(--color-rule)]">
-        <button @click="cancel" :disabled="loading" class="px-6 py-2.5 rounded-lg text-sm font-bold text-[var(--color-ink-soft)] border border-[var(--color-rule)] hover:bg-white/10 transition-colors disabled:opacity-50">
+        <button @click="cancel" :disabled="loading" class="btn btn-quiet">
           Annuler
         </button>
-        <button @click="updateRole" :disabled="loading" class="px-6 py-2.5 rounded-lg text-sm font-bold text-black bg-[var(--color-ink)] hover:bg-[var(--color-night)] transition-all disabled:opacity-50 flex items-center gap-2">
-          <svg v-if="loading" class="animate-spin h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <button @click="updateRole" :disabled="loading" class="btn btn-primary">
+          <svg v-if="loading" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
           {{ loading ? 'Mise à jour...' : 'Confirmer' }}
         </button>
       </footer>
