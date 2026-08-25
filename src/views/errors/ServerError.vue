@@ -1,13 +1,30 @@
-<template>
-  <div class="min-h-screen bg-[#0d0d0f] flex flex-col items-center justify-center text-white text-center px-4">
-    <h1 class="text-8xl font-bold text-[#FFD700] garamond">500</h1>
-    <h2 class="mt-4 text-3xl font-bold">Erreur Interne du Serveur</h2>
-    <p class="mt-2 text-[#C1C1C7]">Désolé, une erreur inattendue est survenue de notre côté. Notre équipe a été notifiée.</p>
-    <router-link to="/" class="mt-8 px-6 py-3 bg-[#FFD700] text-black font-bold rounded-lg hover:bg-[#FFE55C] transition-colors" aria-label="Retour à l'accueil">
-      Retour à l'accueil
-    </router-link>
-  </div>
-</template>
-
 <script setup>
+const reload = () => window.location.reload()
 </script>
+
+<template>
+    <div class="flex min-h-screen items-center bg-[#0d0d0f] px-6 py-24">
+        <div class="mx-auto w-full max-w-2xl text-center">
+            <p class="eyebrow mb-4">Erreur 500</p>
+
+            <p class="garamond text-[9rem] font-bold leading-none text-[#FFD700] md:text-[11rem]">
+                500
+            </p>
+
+            <h1 class="garamond mt-2 text-4xl font-bold text-white md:text-5xl">
+                La pellicule a cassé
+            </h1>
+            <p class="mx-auto mt-4 max-w-lg text-[#C1C1C7]">
+                Une erreur inattendue est survenue de notre côté. L'incident a été
+                enregistré ; réessayez dans un instant.
+            </p>
+
+            <div class="mt-10 flex flex-wrap justify-center gap-4">
+                <button type="button" class="btn btn-primary" @click="reload">
+                    Réessayer
+                </button>
+                <router-link to="/" class="btn btn-ghost">Retour à l'accueil</router-link>
+            </div>
+        </div>
+    </div>
+</template>

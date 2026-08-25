@@ -4,6 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { gsap } from 'gsap'
 import api from '/src/api/api.js'
 import MovieCard from '../../components/domain/MovieCard.vue'
+import AppImage from '../../components/common/AppImage.vue'
+import { resolveImage } from '../../utils/media'
+import { logger } from '../../utils/logger'
 
 const route = useRoute()
 const router = useRouter()
@@ -19,7 +22,7 @@ const loadMovieData = async (movieIriOrObject) => {
     const res = await api.get(`/movies/${id}`)
     return res.data
   } catch (e) {
-    console.error("Erreur chargement film", id, e)
+    logger.error('Erreur chargement film', id, e)
     return null
   }
 }
@@ -135,12 +138,13 @@ const getAge = (dobString, dodString) => {
         <!-- Photo -->
         <div class="director-photo w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
           <div class="relative overflow-hidden rounded-lg border border-[#2A2D36] shadow-2xl group max-w-[300px] mx-auto md:max-w-none">
-            <img
-                :src="director.url || '/default_director.jpeg'"
-                :alt="'Photo de ' + director.firstname + ' ' + director.lastname"
-                class="w-full h-auto object-cover aspect-[2/3]"
-                width="300"
-                height="450"
+            <AppImage
+                :src="resolveImage(director)"
+                :alt="`Portrait de ${director.firstname} ${director.lastname}`"
+                fallback="/placeholder-person.svg"
+                :priority="true"
+                ratio="2 / 3"
+                class="w-full"
             />
             <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-40" />
           </div>

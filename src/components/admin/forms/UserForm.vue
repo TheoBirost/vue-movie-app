@@ -2,6 +2,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { gsap } from 'gsap'
 import api from '/src/api/api.js'
+import { logger } from '../../../utils/logger'
 
 const emit = defineEmits(['close', 'refresh'])
 const props = defineProps({ user: Object })
@@ -96,7 +97,7 @@ const saveUser = async () => {
     await new Promise(resolve => setTimeout(resolve, 200))
     emit('close')
   } catch (err) {
-    console.error("Erreur saveUser:", err)
+    logger.error('Erreur saveUser', err)
     if (err.response) {
       errors.value =
           err.response.data?.['hydra:description'] ||

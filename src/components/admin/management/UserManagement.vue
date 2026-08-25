@@ -3,6 +3,7 @@ import { ref, onMounted, nextTick, computed } from "vue"
 import { gsap } from 'gsap'
 import api from "/src/api/api.js"
 import UserRoleForm from "../forms/UserRoleForm.vue"
+import { logger } from '../../../utils/logger'
 
 const users = ref([])
 const loading = ref(true)
@@ -59,7 +60,7 @@ async function fetchUsers() {
     }
 
   } catch (err) {
-    console.error("Erreur fetchUsers:", err)
+    logger.error('Erreur fetchUsers', err)
     if (err.response) {
       errorMessage.value = `Erreur ${err.response.status}: ${err.response.statusText}`
     } else if (err.request) {

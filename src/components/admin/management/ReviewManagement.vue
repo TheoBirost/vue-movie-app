@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue"
 import api from '../../../api/api'
+import { logger } from '../../../utils/logger'
 
 const loading = ref(false)
 const reviews = ref([])
@@ -22,7 +23,7 @@ const fetchMovieDetails = async (movieIri) => {
     const res = await api.get(`/movies/${id}`);
     return res.data;
   } catch (e) {
-    console.error("Erreur chargement film", e);
+    logger.error('Erreur chargement film', e);
     return null;
   }
 };
@@ -55,7 +56,7 @@ const fetchReviews = async () => {
     totalItems.value = data['hydra:totalItems'] || data['totalItems'] || reviews.value.length
 
   } catch (err) {
-    console.error("Erreur lors du chargement des avis :", err);
+    logger.error('Erreur lors du chargement des avis', err);
   } finally {
     loading.value = false
   }
@@ -70,7 +71,7 @@ const deleteReview = async (reviewId) => {
     // Rafraîchir la liste après suppression
     fetchReviews()
   } catch (err) {
-    console.error("Erreur suppression :", err)
+    logger.error('Erreur suppression', err)
   }
 }
 

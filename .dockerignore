@@ -1,0 +1,24 @@
+# Ne jamais copier de secret ni de contexte inutile dans l'image.
+# Sans ce fichier, `COPY . .` embarquait .env, .git et node_modules.
+.env
+.env.*
+!.env.example
+
+.git
+.gitignore
+.github
+
+node_modules
+dist
+dist-ssr
+
+.idea
+.vscode
+.DS_Store
+**/.DS_Store
+
+*.log
+npm-debug.log*
+
+README.md
+.claude

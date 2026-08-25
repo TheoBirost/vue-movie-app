@@ -1,0 +1,91 @@
+/* ---------------------------------------------------------------------------
+   Animations partagées + garde-fou "prefers-reduced-motion".
+   --------------------------------------------------------------------------- */
+
+@keyframes grain {
+    0%, 100% { transform: translate(0, 0); }
+    10%  { transform: translate(-5%, -10%); }
+    20%  { transform: translate(-15%, 5%); }
+    30%  { transform: translate(7%, -25%); }
+    40%  { transform: translate(-5%, 25%); }
+    50%  { transform: translate(-15%, 10%); }
+    60%  { transform: translate(15%, 0); }
+    70%  { transform: translate(0, 15%); }
+    80%  { transform: translate(3%, 35%); }
+    90%  { transform: translate(-10%, 10%); }
+}
+
+@keyframes shimmer {
+    100% { transform: translateX(100%); }
+}
+
+@keyframes pulse-gold {
+    0%, 100% { box-shadow: 0 0 0 0 rgb(255 215 0 / 0.35); }
+    70%      { box-shadow: 0 0 0 12px rgb(255 215 0 / 0); }
+}
+
+@keyframes fade-up {
+    from { opacity: 0; transform: translate3d(0, 24px, 0); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* Révélation d'image : le flou se lève quand la source est décodée */
+.img-reveal {
+    opacity: 0;
+    filter: blur(12px);
+    transform: scale(1.04);
+    transition:
+        opacity var(--duration-slow) var(--ease-cinema),
+        filter var(--duration-slow) var(--ease-cinema),
+        transform var(--duration-slow) var(--ease-cinema);
+}
+.img-reveal.is-loaded {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Mouvement réduit : on neutralise tout ce qui bouge en continu ou sur de
+   longues distances, sans supprimer les retours d'état (couleurs, opacité).
+   GSAP et Three.js lisent la même préférence via useMotionPreference().
+   --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --duration-fast: 0.01ms;
+        --duration-base: 0.01ms;
+        --duration-slow: 0.01ms;
+    }
+
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    /* Les décors purement esthétiques disparaissent plutôt que de clignoter */
+    .film-grain,
+    .universal-card::after,
+    .skeleton::after {
+        animation: none;
+        display: none;
+    }
+
+    .universal-card:hover,
+    .universal-card:focus-within {
+        transform: none;
+    }
+
+    .img-reveal {
+        opacity: 1;
+        filter: none;
+        transform: none;
+    }
+}

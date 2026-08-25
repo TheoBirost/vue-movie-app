@@ -66,6 +66,7 @@
 import { ref, computed } from 'vue';
 import api from '/src/api/api.js';
 import { useDataStore } from '../../../stores/useDataStore';
+import { logger } from '../../../utils/logger'
 
 const props = defineProps({
   movieId: {
@@ -146,7 +147,7 @@ const submitReview = async () => {
     comment.value = '';
 
   } catch (error) {
-    console.error('Error submitting review:', error);
+    logger.error('Error submitting review', error);
     if (error.response && error.response.status === 401) {
         submitError.value = "Votre session a expiré. Veuillez vous reconnecter.";
     } else if (error.response && error.response.status === 500) {

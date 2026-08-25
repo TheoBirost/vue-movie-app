@@ -2,6 +2,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { gsap } from 'gsap'
 import api from '/src/api/api.js'
+import { logger } from '../../../utils/logger'
 
 const emit = defineEmits(['close', 'refresh'])
 const props = defineProps({ actor: Object })
@@ -50,7 +51,7 @@ const fetchMovies = async () => {
     const res = await api.get('/movies', { params: { pagination: false } })
     allMovies.value = res.data.member || res.data['hydra:member'] || []
   } catch (err) {
-    console.error('Erreur chargement films :', err)
+    logger.error('Erreur chargement films', err)
   }
 }
 
@@ -97,7 +98,7 @@ const saveActor = async () => {
     emit('refresh')
     emit('close')
   } catch (err) {
-    console.error('Erreur sauvegarde :', err.response || err)
+    logger.error('Erreur sauvegarde', err.response || err)
     errors.value = err.response?.data?.['hydra:description'] || err.message
   } finally {
     loading.value = false

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import api from '../../../api/api'
+import { logger } from '../../../utils/logger'
 
 const props = defineProps({
   userId: {
@@ -56,7 +57,7 @@ const fetchUserReviews = async () => {
     totalItems.value = data['hydra:totalItems'] || data['totalItems'] || reviews.value.length
 
   } catch (err) {
-    console.error("Erreur chargement avis utilisateur:", err)
+    logger.error('Erreur chargement avis utilisateur', err)
   } finally {
     loading.value = false
   }
@@ -68,7 +69,7 @@ const deleteReview = async (reviewId) => {
     await api.delete(`/reviews/${reviewId}`)
     fetchUserReviews()
   } catch (err) {
-    console.error("Erreur suppression avis:", err)
+    logger.error('Erreur suppression avis', err)
     alert("Impossible de supprimer l'avis.")
   }
 }
@@ -96,7 +97,7 @@ const saveEdit = async (reviewId) => {
     editingReview.value = null
     fetchUserReviews()
   } catch (err) {
-    console.error("Erreur modification avis:", err)
+    logger.error('Erreur modification avis', err)
     alert("Impossible de modifier l'avis.")
   }
 }

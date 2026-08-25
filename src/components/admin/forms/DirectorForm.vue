@@ -23,6 +23,7 @@
 <script setup>
 import { ref, watch } from 'vue';
 import api from '/src/api/api.js';
+import { logger } from '../../../utils/logger'
 
 const props = defineProps({
   director: {
@@ -56,7 +57,7 @@ const saveDirector = async () => {
     emit('refresh');
     emit('close');
   } catch (error) {
-    console.error('Error saving director:', error);
+    logger.error('Error saving director', error);
   }
 };
 </script>

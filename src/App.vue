@@ -1,146 +1,102 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import Navbar from './components/common/Navbar.vue'
-import ErrorDisplay from './components/common/ErrorDisplay.vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import api from '/src/api/api.js'
-import { gsap } from 'gsap'
+import Navbar from './components/common/Navbar.vue'
+import AppFooter from './components/common/AppFooter.vue'
+import ErrorDisplay from './components/common/ErrorDisplay.vue'
+import CustomCursor from './components/common/CustomCursor.vue'
+import ScrollProgress from './components/common/ScrollProgress.vue'
+import CookieBanner from './components/common/CookieBanner.vue'
+import { readSession, clearSession } from './auth/session'
+import { useMotionPreference } from './composables/useMotion'
+import api from './api/api.js'
+
+const FALLBACK_AVATAR = '/placeholder-avatar.svg'
+
+const route = useRoute()
+const reduced = useMotionPreference()
 
 const loggedIn = ref(false)
-const photo = ref('/default-avatar.png')
+const photo = ref(FALLBACK_AVATAR)
 
-// Curseur personnalisé
+// Les écrans d'authentification s'affichent en plein cadre, sans navbar ni pied de page
+const showChrome = computed(() => !route.meta.hideChrome)
+
+const resolvePhoto = (value) =>
+    value ? `${import.meta.env.VITE_API_BASE_URL}${value}` : FALLBACK_AVATAR
+
 onMounted(async () => {
-  loggedIn.value = localStorage.getItem('loggedIn') === 'true'
+    const session = readSession()
+    loggedIn.value = session.valid
 
-  const cursorDot = document.querySelector('.cursor-dot')
-  const cursorRing = document.querySelector('.cursor-ring')
-
-  const handleMouseMove = (e) => {
-    gsap.to(cursorDot, {
-      x: e.clientX,
-      y: e.clientY,
-      duration: 0.1,
-      ease: 'power2.out'
-    })
-    gsap.to(cursorRing, {
-      x: e.clientX,
-      y: e.clientY,
-      duration: 0.4,
-      ease: 'power3.out'
-    })
-  }
-
-  const handleMouseOver = (e) => {
-    if (e.target.closest('a, button, .movie-card, .actor-card')) {
-      gsap.to(cursorRing, {
-        scale: 1.5,
-        borderColor: '#FFD700',
-        duration: 0.3
-      })
+    if (!session.valid) {
+        clearSession()
+        return
     }
-  }
 
-  const handleMouseOut = (e) => {
-    if (e.target.closest('a, button, .movie-card, .actor-card')) {
-      gsap.to(cursorRing, {
-        scale: 1,
-        borderColor: '#C1C1C7',
-        duration: 0.3
-      })
+    const cached = localStorage.getItem('userPhoto')
+    if (cached) {
+        photo.value = cached
+        return
     }
-  }
 
-  // Only add custom cursor on non-touch devices
-  if (window.matchMedia("(pointer: fine)").matches) {
-    window.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseover', handleMouseOver, true)
-    document.addEventListener('mouseout', handleMouseOut, true)
-  }
-
-  if (loggedIn.value) {
-    const cachedPhoto = localStorage.getItem('userPhoto')
-    if (cachedPhoto) {
-      photo.value = cachedPhoto
-    } else {
-      try {
-        const res = await api.get(import.meta.env.VITE_API_URL_USER)
-        const baseUrl = import.meta.env.VITE_API_BASE_URL
-        photo.value = res.data.photo
-            ? `${baseUrl}${res.data.photo}`
-            : '/default-avatar.png'
+    try {
+        const { data } = await api.get(import.meta.env.VITE_API_URL_USER)
+        photo.value = resolvePhoto(data.photo)
         localStorage.setItem('userPhoto', photo.value)
-      } catch {
-        photo.value = '/default-avatar.png'
-      }
+    } catch {
+        // L'intercepteur gère déjà 401/500 ; ici l'avatar par défaut suffit
+        photo.value = FALLBACK_AVATAR
     }
-  }
 })
 
 const handleLogin = (newPhoto) => {
-  loggedIn.value = true
-  photo.value = newPhoto || '/default-avatar.png'
+    loggedIn.value = true
+    photo.value = newPhoto || FALLBACK_AVATAR
 }
 
 const handleLogout = () => {
-  loggedIn.value = false
-  localStorage.removeItem('loggedIn')
-  localStorage.removeItem('userPhoto')
-  photo.value = '/default-avatar.png'
+    loggedIn.value = false
+    clearSession()
+    photo.value = FALLBACK_AVATAR
 }
-
-const route = useRoute()
-const showNavbar = computed(() => !route.meta.hideNavbar)
 </script>
 
 <template>
-  <div class="cursor-dot" />
-  <div class="cursor-ring" />
+    <a class="skip-link" href="#contenu">Aller au contenu principal</a>
 
-  <ErrorDisplay />
-  <header v-if="showNavbar">
-    <Navbar
-        :logged-in="loggedIn"
-        :photo="photo"
-        @logout="handleLogout"
-    />
-  </header>
-  <main>
-    <router-view @login-success="handleLogin" />
-  </main>
+    <CustomCursor />
+    <ScrollProgress />
+    <div v-if="!reduced" class="film-grain" aria-hidden="true" />
+
+    <ErrorDisplay />
+
+    <header v-if="showChrome">
+        <Navbar :logged-in="loggedIn" :photo="photo" @logout="handleLogout" />
+    </header>
+
+    <main id="contenu" class="relative">
+        <!--
+          Pas de <Transition> autour de la vue de route.
+
+          Vue fait avancer les classes de transition dans des
+          `requestAnimationFrame`, or un onglet en arrière-plan les gèle : avec
+          `mode="out-in"`, une navigation déclenchée à ce moment-là démonte
+          l'ancienne vue sans jamais monter la nouvelle, et l'utilisateur
+          retrouve une page vide. Le fondu inter-pages ne vaut pas ce risque —
+          d'autant que chaque vue anime déjà son propre contenu à l'entrée, en
+          CSS, ce qui dégrade sans casser.
+        -->
+        <router-view v-slot="{ Component, route: current }">
+            <component
+                :is="Component"
+                :key="current.path"
+                @login-success="handleLogin"
+            />
+        </router-view>
+    </main>
+
+    <AppFooter v-if="showChrome" />
+
+    <CookieBanner />
 </template>
-
-<style>
-.cursor-dot {
-  position: fixed;
-  top: -5px;
-  left: -5px;
-  width: 10px;
-  height: 10px;
-  background-color: #FFD700;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  mix-blend-mode: difference;
-}
-
-.cursor-ring {
-  position: fixed;
-  top: -20px;
-  left: -20px;
-  width: 40px;
-  height: 40px;
-  border: 2px solid #C1C1C7;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9998;
-  transition: border-color 0.3s, transform 0.3s;
-  mix-blend-mode: difference;
-}
-
-@media (max-width: 768px) {
-  .cursor-dot, .cursor-ring {
-    display: none;
-  }
-}
-</style>

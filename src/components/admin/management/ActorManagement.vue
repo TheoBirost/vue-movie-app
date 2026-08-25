@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from "vue"
 import ActorForm from "../forms/ActorForm.vue"
 import ConfirmDeleteActor from "../modals/ConfirmDeleteActor.vue"
 import api from '../../../api/api'
+import { logger } from '../../../utils/logger'
 
 const loading = ref(false)
 const showForm = ref(false)
@@ -32,7 +33,7 @@ const fetchActors = async () => {
     actors.value = data['hydra:member'] || data['member'] || []
     totalItems.value = data['hydra:totalItems'] || data['totalItems'] || actors.value.length
   } catch (err) {
-    console.error("Erreur lors du chargement des acteurs :", err);
+    logger.error('Erreur lors du chargement des acteurs', err);
   } finally {
     loading.value = false
   }
@@ -56,7 +57,7 @@ const deleteActor = async () => {
     actorToDelete.value = null
     fetchActors()
   } catch (err) {
-    console.error("Erreur suppression :", err)
+    logger.error('Erreur suppression', err)
   }
 }
 

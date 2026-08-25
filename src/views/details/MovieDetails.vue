@@ -6,6 +6,9 @@ import api from '/src/api/api.js'
 import ActorCard from '../../components/domain/ActorCard.vue'
 import ReviewList from '../../components/features/reviews/ReviewList.vue'
 import ReviewForm from '../../components/features/reviews/ReviewForm.vue'
+import AppImage from '../../components/common/AppImage.vue'
+import { resolveImage } from '../../utils/media'
+import { logger } from '../../utils/logger'
 
 const route = useRoute()
 const router = useRouter()
@@ -34,7 +37,7 @@ const loadActorData = async (actorIriOrObject) => {
     const res = await api.get(`/actors/${id}`)
     return res.data
   } catch (e) {
-    console.error("Erreur chargement acteur", id, e)
+    logger.error('Erreur chargement acteur', id, e)
     return null
   }
 }
@@ -54,7 +57,7 @@ const fetchCategories = async (categoryUrls) => {
 
     categories.value = await Promise.all(categoryPromises)
   } catch (error) {
-    console.error('Erreur lors du chargement des catégories:', error)
+    logger.error('Erreur lors du chargement des catégories', error)
     categories.value = []
   } finally {
     loadingCategories.value = false
@@ -67,7 +70,7 @@ const fetchUserDetails = async (userIri) => {
     const res = await api.get(userIri.replace('/api', ''));
     return res.data;
   } catch (e) {
-    console.error("Erreur chargement utilisateur", e);
+    logger.error('Erreur chargement utilisateur', e);
     return null;
   }
 };
@@ -93,11 +96,10 @@ const fetchReviews = async () => {
       return review;
     }));
 
-    console.log("Avis enrichis :", enrichedReviews)
     reviews.value = enrichedReviews
 
   } catch (error) {
-    console.error('Erreur lors du chargement des avis:', error)
+    logger.error('Erreur lors du chargement des avis', error)
     reviews.value = []
   } finally {
     loadingReviews.value = false
@@ -168,7 +170,7 @@ onMounted(async () => {
       })
     }
   } catch (err) {
-    console.error('Erreur lors du chargement du film :', err)
+    logger.error('Erreur lors du chargement du film', err)
   } finally {
     loading.value = false
   }
@@ -206,12 +208,13 @@ onMounted(async () => {
         <!-- Poster (Taille réduite et fixe) -->
         <div class="movie-poster w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
           <div class="relative overflow-hidden rounded-lg border border-[#2A2D36] shadow-2xl group max-w-[300px] mx-auto md:max-w-none">
-            <img
-                :src="movie.url || '/default-film.jpg'"
-                :alt="'Affiche du film ' + movie.name"
-                class="w-full h-auto object-cover aspect-[2/3]"
-                width="300"
-                height="450"
+            <AppImage
+                :src="resolveImage(movie)"
+                :alt="`Affiche du film ${movie.name}`"
+                fallback="/placeholder-poster.svg"
+                :priority="true"
+                ratio="2 / 3"
+                class="w-full"
             />
             <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-40" />
           </div>
