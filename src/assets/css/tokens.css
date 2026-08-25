@@ -1,51 +1,53 @@
 /* ---------------------------------------------------------------------------
-   Design tokens — identité "Cinéaste" (thème sombre unique).
-   Déclarés dans @theme : Tailwind v4 en génère les utilitaires (bg-ink,
-   text-gold, border-line…) ET les expose en variables CSS sur :root.
+   Jetons — direction « index éditorial ».
+
+   Le site n'a aucune image en base. L'identité repose donc entièrement sur la
+   typographie, le filet et le blanc tournant : une revue de cinéma imprimée
+   plutôt qu'une galerie d'affiches absentes.
+
+   Parti pris assumé d'un seul thème, clair. Un programme imprimé n'a pas de
+   mode sombre ; le dupliquer aurait dilué la direction sans rien apporter.
    --------------------------------------------------------------------------- */
 @theme {
-    /* Fonds */
-    --color-ink: #0d0d0f;
-    --color-surface: #16181E;
-    --color-surface-2: #1E2129;
-    --color-line: #2A2D36;
+    /* Papier */
+    --color-paper: #F2EFE9;      /* fond général, ivoire chaud */
+    --color-paper-raised: #FBFAF7; /* cartouches, encarts */
+    --color-paper-sunk: #E7E2D8;  /* zones en creux, survols */
 
-    /* Or cinématographique */
-    --color-gold: #FFD700;
-    --color-gold-light: #FFE55C;
-    --color-gold-dark: #CCB000;
+    /* Encre */
+    --color-ink: #14141A;         /* texte principal */
+    --color-ink-soft: #55555F;    /* texte secondaire */
+    --color-ink-faint: #8A8A94;   /* données, mentions */
 
-    /* Textes */
-    --color-chalk: #F5F5F7;
-    --color-ash: #C1C1C7;
-    --color-slate: #82828A;
+    /* Filets */
+    --color-rule: #D6D0C4;        /* filet fin, séparateurs */
+    --color-rule-strong: #14141A; /* filet d'accroche, gras */
+
+    /* Accent : bleu nuit de salle, employé avec parcimonie */
+    --color-night: #1F3A5F;
+    --color-night-soft: #2E5586;
 
     /* États */
-    --color-danger: #EF4444;
-    --color-success: #4ADE80;
+    --color-danger: #A3281E;
+    --color-success: #1F6B45;
 
-    /* Typographie */
-    --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
-    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    /* Familles : une par nature d'information */
+    --font-display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+    --font-body: "Spectral", Georgia, serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
 
-    /* Courbes d'animation partagées entre CSS et GSAP */
-    --ease-cinema: cubic-bezier(0.22, 1, 0.36, 1);
-    --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
-    --ease-in-expo: cubic-bezier(0.95, 0.05, 0.795, 0.035);
-
-    /* Durées : mises à 0.01ms plus bas si prefers-reduced-motion */
-    --duration-fast: 180ms;
-    --duration-base: 320ms;
-    --duration-slow: 700ms;
+    /* Courbes et durées */
+    --ease-page: cubic-bezier(0.22, 1, 0.36, 1);
+    --duration-fast: 160ms;
+    --duration-base: 280ms;
+    --duration-slow: 560ms;
 }
 
 :root {
-    --radius-card: 6px;
-    --shadow-gold: 0 18px 40px -24px rgb(255 215 0 / 0.45);
-    --shadow-lift: 0 24px 48px -28px rgb(0 0 0 / 0.85);
+    /* Gouttière de l'index : année | titre | données */
+    --index-lead: 5.5rem;
+    --nav-height: 5rem;
+    --measure: 68ch;
 
-    /* Hauteur de la navbar, utilisée pour le scroll-padding et les offsets */
-    --nav-height: 6rem;
-
-    color-scheme: dark;
+    color-scheme: light;
 }

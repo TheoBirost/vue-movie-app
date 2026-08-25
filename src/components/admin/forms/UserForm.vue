@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { gsap } from 'gsap'
 import api from '/src/api/api.js'
 import { logger } from '../../../utils/logger'
 
@@ -50,12 +49,6 @@ const initFromUser = (u) => {
 
 onMounted(() => {
   initFromUser(props.user)
-  gsap.from('.form-container', {
-    opacity: 0,
-    y: 50,
-    duration: 0.5,
-    ease: 'power3.out'
-  })
 })
 
 watch(() => props.user, (u) => initFromUser(u))
@@ -116,13 +109,13 @@ const saveUser = async () => {
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="emit('close')">
-    <div class="form-container bg-[#16181E] border border-[#2A2D36] rounded-lg w-full max-w-lg shadow-2xl">
-      <header class="p-6 flex items-center justify-between border-b border-[#2A2D36]">
-        <h2 class="garamond text-2xl font-bold text-white">
+  <div class="fixed inset-0 bg-[var(--color-ink)]/70 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="emit('close')">
+    <div class="form-container bg-[var(--color-paper-raised)] border border-[var(--color-rule)] rounded-lg w-full max-w-lg shadow-2xl">
+      <header class="p-6 flex items-center justify-between border-b border-[var(--color-rule)]">
+        <h2 class="text-2xl font-bold text-[var(--color-ink)]">
           {{ userId ? 'Modifier l\'utilisateur' : 'Ajouter un utilisateur' }}
         </h2>
-        <button @click="emit('close')" class="p-2 rounded-full text-[#82828A] hover:bg-white/10" aria-label="Fermer">
+        <button @click="emit('close')" class="p-2 rounded-full text-[var(--color-ink-faint)] hover:bg-white/10" aria-label="Fermer">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </header>
@@ -130,25 +123,25 @@ const saveUser = async () => {
       <main class="p-6 space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label for="user-firstname" class="block text-sm font-medium text-[#C1C1C7] mb-1">Prénom</label>
-            <input id="user-firstname" v-model="firstname" type="text" placeholder="Prénom" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
+            <label for="user-firstname" class="block text-sm font-medium text-[var(--color-ink-soft)] mb-1">Prénom</label>
+            <input id="user-firstname" v-model="firstname" type="text" placeholder="Prénom" class="w-full px-4 py-2 bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-md text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-night)]" />
           </div>
           <div>
-            <label for="user-lastname" class="block text-sm font-medium text-[#C1C1C7] mb-1">Nom</label>
-            <input id="user-lastname" v-model="lastname" type="text" placeholder="Nom" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
+            <label for="user-lastname" class="block text-sm font-medium text-[var(--color-ink-soft)] mb-1">Nom</label>
+            <input id="user-lastname" v-model="lastname" type="text" placeholder="Nom" class="w-full px-4 py-2 bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-md text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-night)]" />
           </div>
         </div>
         <div>
-          <label for="user-email" class="block text-sm font-medium text-[#C1C1C7] mb-1">Email</label>
-          <input id="user-email" v-model="email" type="email" placeholder="email@example.com" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
+          <label for="user-email" class="block text-sm font-medium text-[var(--color-ink-soft)] mb-1">Email</label>
+          <input id="user-email" v-model="email" type="email" placeholder="email@example.com" class="w-full px-4 py-2 bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-md text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-night)]" />
         </div>
         <div>
-          <label for="user-dob" class="block text-sm font-medium text-[#C1C1C7] mb-1">Date de naissance</label>
-          <input id="user-dob" v-model="dob" type="date" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
+          <label for="user-dob" class="block text-sm font-medium text-[var(--color-ink-soft)] mb-1">Date de naissance</label>
+          <input id="user-dob" v-model="dob" type="date" class="w-full px-4 py-2 bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-md text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-night)]" />
         </div>
         <div v-if="!userId">
-          <label for="user-password" class="block text-sm font-medium text-[#C1C1C7] mb-1">Mot de passe</label>
-          <input id="user-password" v-model="password" type="password" placeholder="Mot de passe" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
+          <label for="user-password" class="block text-sm font-medium text-[var(--color-ink-soft)] mb-1">Mot de passe</label>
+          <input id="user-password" v-model="password" type="password" placeholder="Mot de passe" class="w-full px-4 py-2 bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-md text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-night)]" />
         </div>
 
         <div v-if="errors" class="bg-red-900/20 border border-red-800/30 text-red-400 p-3 rounded-md text-sm">
@@ -156,11 +149,11 @@ const saveUser = async () => {
         </div>
       </main>
 
-      <footer class="p-6 flex justify-end gap-4 border-t border-[#2A2D36]">
-        <button @click="emit('close')" class="px-6 py-2.5 rounded-lg text-sm font-bold text-[#C1C1C7] border border-[#2A2D36] hover:bg-white/10 transition-colors">
+      <footer class="p-6 flex justify-end gap-4 border-t border-[var(--color-rule)]">
+        <button @click="emit('close')" class="px-6 py-2.5 rounded-lg text-sm font-bold text-[var(--color-ink-soft)] border border-[var(--color-rule)] hover:bg-white/10 transition-colors">
           Annuler
         </button>
-        <button @click="saveUser" :disabled="loading" class="px-6 py-2.5 rounded-lg text-sm font-bold text-black bg-[#FFD700] hover:bg-[#FFE55C] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+        <button @click="saveUser" :disabled="loading" class="px-6 py-2.5 rounded-lg text-sm font-bold text-black bg-[var(--color-ink)] hover:bg-[var(--color-night)] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
           {{ loading ? 'Sauvegarde...' : 'Sauvegarder' }}
         </button>
       </footer>

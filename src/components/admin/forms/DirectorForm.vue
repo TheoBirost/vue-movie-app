@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+  <div class="fixed inset-0 bg-[var(--color-ink)] bg-opacity-50 flex justify-center items-center">
     <div class="bg-gray-800 p-8 rounded-lg">
       <h2 class="text-xl font-bold mb-4">{{ director ? 'Edit' : 'Add' }} Director</h2>
       <form @submit.prevent="saveDirector">
@@ -13,7 +13,7 @@
         </div>
         <div class="flex justify-end">
           <button type="button" @click="$emit('close')" class="mr-2">Cancel</button>
-          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Save</button>
+          <button type="submit" class="bg-blue-500 text-[var(--color-ink)] px-4 py-2 rounded-lg">Save</button>
         </div>
       </form>
     </div>

@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { gsap } from 'gsap'
 import api from '/src/api/api.js'
 import { logger } from '../../../utils/logger'
 
@@ -25,12 +24,6 @@ const setupTwoFactor = async () => {
     step.value = 2
 
     await new Promise(resolve => setTimeout(resolve, 100))
-    gsap.from('.qr-container', {
-      opacity: 0,
-      scale: 0.8,
-      duration: 0.5,
-      ease: 'back.out(1.7)'
-    })
   } catch (err) {
     logger.error('Erreur setupTwoFactor', err)
     if (err.response) {
@@ -65,12 +58,6 @@ const verifyAndEnable = async () => {
     step.value = 3
 
     await new Promise(resolve => setTimeout(resolve, 100))
-    gsap.from('.backup-codes-container', {
-      opacity: 0,
-      y: 30,
-      duration: 0.6,
-      ease: 'power3.out'
-    })
   } catch (err) {
     error.value = err.response?.data?.error || 'Code invalide'
   } finally {
@@ -95,16 +82,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="emit('close')">
-    <div class="bg-[#16181E] border border-[#2A2D36] rounded-lg w-full max-w-lg shadow-2xl">
+  <div class="fixed inset-0 bg-[var(--color-ink)]/70 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="emit('close')">
+    <div class="bg-[var(--color-paper-raised)] border border-[var(--color-rule)] rounded-lg w-full max-w-lg shadow-2xl">
 
       <!-- Header -->
-      <header class="p-6 border-b border-[#2A2D36] flex items-center justify-between">
+      <header class="p-6 border-b border-[var(--color-rule)] flex items-center justify-between">
         <div>
-          <h2 class="garamond text-2xl font-bold text-white">Activer l'authentification à deux facteurs</h2>
-          <p class="text-sm text-[#82828A] mt-1">Étape {{ step }}/3</p>
+          <h2 class="text-2xl font-bold text-[var(--color-ink)]">Activer l'authentification à deux facteurs</h2>
+          <p class="text-sm text-[var(--color-ink-faint)] mt-1">Étape {{ step }}/3</p>
         </div>
-        <button @click="emit('close')" class="p-2 rounded-full text-[#82828A] hover:bg-white/10">
+        <button @click="emit('close')" class="p-2 rounded-full text-[var(--color-ink-faint)] hover:bg-white/10">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -121,18 +108,18 @@ onMounted(() => {
           </div>
 
           <div class="space-y-4">
-            <div class="bg-[#0d0d0f] border border-[#2A2D36] rounded-lg p-4">
-              <p class="text-sm text-[#C1C1C7] mb-2">
-                <strong class="text-white">1.</strong> Scannez ce QR code avec votre application d'authentification (Google Authenticator, Authy, etc.)
+            <div class="bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-lg p-4">
+              <p class="text-sm text-[var(--color-ink-soft)] mb-2">
+                <strong class="text-[var(--color-ink)]">1.</strong> Scannez ce QR code avec votre application d'authentification (Google Authenticator, Authy, etc.)
               </p>
-              <p class="text-sm text-[#C1C1C7]">
-                <strong class="text-white">2.</strong> Ou entrez manuellement cette clé :
+              <p class="text-sm text-[var(--color-ink-soft)]">
+                <strong class="text-[var(--color-ink)]">2.</strong> Ou entrez manuellement cette clé :
               </p>
-              <code class="block text-[#FFD700] space-y-0.5 bg-black/30 px-3 py-2 rounded mt-2 text-xs break-all font-mono">{{ secret }}</code>
+              <code class="block text-[var(--color-night)] space-y-0.5 bg-[var(--color-ink)]/70 px-3 py-2 rounded mt-2 text-xs break-all font-mono">{{ secret }}</code>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-[#C1C1C7] mb-2">
+              <label class="block text-sm font-medium text-[var(--color-ink-soft)] mb-2">
                 Entrez le code à 6 chiffres généré par votre application
               </label>
               <input
@@ -141,7 +128,7 @@ onMounted(() => {
                   maxlength="6"
                   pattern="[0-9]*"
                   placeholder="123456"
-                  class="w-full px-4 py-3 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-[#FFD700]"
+                  class="w-full px-4 py-3 bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-md text-[var(--color-ink)] text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-[var(--color-night)]"
               >
             </div>
 
@@ -152,7 +139,7 @@ onMounted(() => {
             <button
                 @click="verifyAndEnable"
                 :disabled="loading || verificationCode.length !== 6"
-                class="w-full px-6 py-3 bg-[#FFD700] hover:bg-[#FFE55C] text-black font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full px-6 py-3 bg-[var(--color-ink)] hover:bg-[var(--color-night)] text-black font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {{ loading ? 'Vérification...' : 'Vérifier et activer' }}
             </button>
@@ -168,7 +155,7 @@ onMounted(() => {
               </svg>
               <div>
                 <h3 class="text-yellow-400 font-semibold mb-1">Important : Sauvegardez ces codes !</h3>
-                <p class="text-sm text-[#C1C1C7]">
+                <p class="text-sm text-[var(--color-ink-soft)]">
                   Ces codes de secours vous permettront de vous connecter si vous perdez l'accès à votre application d'authentification.
                   Chaque code ne peut être utilisé qu'une seule fois.
                 </p>
@@ -176,13 +163,13 @@ onMounted(() => {
             </div>
           </div>
 
-          <div class="bg-[#0d0d0f] border border-[#2A2D36] rounded-lg p-4">
-            <h4 class="text-white font-semibold mb-3">Vos codes de secours</h4>
+          <div class="bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-lg p-4">
+            <h4 class="text-[var(--color-ink)] font-semibold mb-3">Vos codes de secours</h4>
             <div class="grid grid-cols-2 gap-2 font-mono text-sm">
               <div
                   v-for="(code, index) in backupCodes"
                   :key="index"
-                  class="bg-[#16181E] border border-[#2A2D36] rounded px-3 py-2 text-[#FFD700] text-center"
+                  class="bg-[var(--color-paper-raised)] border border-[var(--color-rule)] rounded px-3 py-2 text-[var(--color-night)] text-center"
               >
                 {{ code }}
               </div>
@@ -192,13 +179,13 @@ onMounted(() => {
           <div class="flex gap-3">
             <button
                 @click="copyBackupCodes"
-                class="flex-1 px-6 py-3 bg-[#1E2129] hover:bg-[#2A2D36] border border-[#2A2D36] text-white font-bold rounded-lg transition-all"
+                class="flex-1 px-6 py-3 bg-[var(--color-paper-sunk)] hover:bg-[var(--color-rule)] border border-[var(--color-rule)] text-[var(--color-ink)] font-bold rounded-lg transition-all"
             >
               📋 Copier les codes
             </button>
             <button
                 @click="finish"
-                class="flex-1 px-6 py-3 bg-[#FFD700] hover:bg-[#FFE55C] text-black font-bold rounded-lg transition-all"
+                class="flex-1 px-6 py-3 bg-[var(--color-ink)] hover:bg-[var(--color-night)] text-black font-bold rounded-lg transition-all"
             >
               Terminer
             </button>
@@ -208,11 +195,11 @@ onMounted(() => {
         <!-- Loading initial -->
         <div v-if="step === 1" class="flex flex-col items-center justify-center py-12">
           <div class="flex gap-2 mb-4">
-            <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce"></div>
-            <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-            <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+            <div class="w-3 h-3 bg-[var(--color-ink)] rounded-full animate-bounce"></div>
+            <div class="w-3 h-3 bg-[var(--color-ink)] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+            <div class="w-3 h-3 bg-[var(--color-ink)] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
           </div>
-          <p class="text-[#C1C1C7]">Configuration en cours...</p>
+          <p class="text-[var(--color-ink-soft)]">Configuration en cours...</p>
         </div>
       </main>
     </div>

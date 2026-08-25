@@ -90,7 +90,7 @@ onMounted(async () => {
 <template>
   <div class="universal-card p-6">
     <div class="flex justify-between items-center mb-6">
-      <h2 class="garamond text-3xl font-bold text-white">Gestion des Avis</h2>
+      <h2 class="text-3xl font-bold text-[var(--color-ink)]">Gestion des Avis</h2>
       <div class="text-sm text-text-gray">
         Total: <span class="text-gold font-bold">{{ totalItems }}</span> avis
       </div>
@@ -118,7 +118,7 @@ onMounted(async () => {
         </thead>
         <tbody>
           <tr v-for="review in reviews" :key="review.id" class="border-b border-border hover:bg-white/5 transition-colors">
-            <td class="p-4 text-white font-medium">
+            <td class="p-4 text-[var(--color-ink)] font-medium">
                 <router-link v-if="review.movie && review.movie.id" :to="`/movies/${review.movie.id}`" class="hover:text-gold transition-colors">
                     {{ review.movie.name }}
                 </router-link>
@@ -145,7 +145,7 @@ onMounted(async () => {
         <button
           @click="changePage(page - 1)"
           :disabled="page === 1"
-          class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded text-white hover:border-gold disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+          class="px-4 py-2 bg-[var(--color-paper-raised)] border border-[var(--color-rule)] rounded text-[var(--color-ink)] hover:border-gold disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
         >
           Précédent
         </button>
@@ -153,7 +153,7 @@ onMounted(async () => {
         <button
           @click="changePage(page + 1)"
           :disabled="page === totalPages"
-          class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded text-white hover:border-gold disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+          class="px-4 py-2 bg-[var(--color-paper-raised)] border border-[var(--color-rule)] rounded text-[var(--color-ink)] hover:border-gold disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
         >
           Suivant
         </button>

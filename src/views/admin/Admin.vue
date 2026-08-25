@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-bg-main text-text-white">
+  <div class="min-h-screen bg-bg-main text-text-[var(--color-ink)]">
     <div class="container mx-auto px-6 py-20">
-      <h1 class="garamond text-5xl font-bold text-white mb-8">Admin Panel</h1>
+      <h1 class="text-5xl font-bold text-[var(--color-ink)] mb-8">Admin Panel</h1>
       <div class="flex border-b border-border">
         <button
           v-for="tab in tabs"
@@ -11,7 +11,7 @@
             'px-6 py-3 text-sm font-medium tracking-wider uppercase transition-colors',
             {
               'border-b-2 border-gold text-gold': currentTab === tab,
-              'text-text-gray hover:text-white': currentTab !== tab
+              'text-text-gray hover:text-[var(--color-ink)]': currentTab !== tab
             }
           ]"
           :aria-selected="currentTab === tab"

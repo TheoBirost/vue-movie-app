@@ -2,9 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
-import { gsap } from 'gsap'
 import api from '/src/api/api.js'
-import ParticleField from '../../components/common/ParticleField.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -66,18 +64,12 @@ const login = async (e) => {
     if (response.data['2fa_required']) {
       twoFactorToken.value = response.data.token
       twoFactorRequired.value = true
-      gsap.to('.auth-card', {
-        height: 'auto',
-        duration: 0.5,
-        ease: 'power3.inOut'
-      })
     } else {
       // Sinon, on est connecté directement
       await handleLoginSuccess(response.data.token)
     }
   } catch (err) {
     errorMessage.value = "Email ou mot de passe incorrect."
-    gsap.fromTo('.error-message', { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' })
   } finally {
     loading.value = false
   }
@@ -101,54 +93,45 @@ const verifyTwoFactor = async (e) => {
     }
   } catch (err) {
     errorMessage.value = err.response?.data?.error || "Code invalide ou expiré."
-    gsap.fromTo('.error-message', { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' })
   } finally {
     loading.value = false
   }
 }
 
 onMounted(() => {
-  gsap.from('.auth-card', {
-    opacity: 0,
-    scale: 0.9,
-    duration: 0.8,
-    ease: 'power3.out'
-  })
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#0d0d0f] flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-    <ParticleField position="fixed" :count="260" :size="1.5" :speed="0.22" />
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.05),transparent_60%)]" aria-hidden="true"></div>
+  <div class="mx-auto flex min-h-[70vh] max-w-[34rem] flex-col justify-center px-5 py-16 md:px-10">
 
-    <div class="auth-card w-full max-w-md space-y-8 z-10">
+    <div class="w-full">
       <div class="text-center">
-        <h1 class="garamond text-6xl font-bold text-[#FFD700]">Cinéaste</h1>
-        <h2 class="mt-2 text-2xl font-bold text-white">
+        <h1 class="text-6xl font-bold text-[var(--color-night)]">Cinéaste</h1>
+        <h2 class="mt-2 text-2xl font-bold text-[var(--color-ink)]">
           {{ twoFactorRequired ? 'Vérification requise' : 'Connectez-vous' }}
         </h2>
-        <p v-if="!twoFactorRequired" class="mt-2 text-sm text-[#C1C1C7]">
+        <p v-if="!twoFactorRequired" class="mt-2 text-sm text-[var(--color-ink-soft)]">
           Pas encore de compte ?
-          <router-link to="/inscription" class="font-medium text-[#FFD700] hover:text-[#FFE55C]">
+          <router-link to="/inscription" class="font-medium text-[var(--color-night)] hover:text-[var(--color-night-soft)]">
             Inscrivez-vous
           </router-link>
         </p>
       </div>
 
       <!-- Formulaire de Login -->
-      <form v-if="!twoFactorRequired" class="mt-8 space-y-6 bg-[#16181E] p-8 rounded-lg shadow-2xl border border-[#2A2D36]" @submit="login">
+      <form v-if="!twoFactorRequired" class="mt-8 space-y-6 bg-[var(--color-paper-raised)] p-8 rounded-lg shadow-2xl border border-[var(--color-rule)]" @submit="login">
         <div class="space-y-4">
           <div>
-            <label for="email-address" class="text-[#C1C1C7] text-sm tracking-wider uppercase">Email</label>
+            <label for="email-address" class="text-[var(--color-ink-soft)] text-sm tracking-wider uppercase">Email</label>
             <input id="email-address" v-model="email" name="email" type="email" autocomplete="email" required
-                   class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[#2A2D36] bg-[#0d0d0f] placeholder-gray-500 text-white focus:outline-none focus:ring-[#FFD700] focus:border-[#FFD700] sm:text-sm transition-all"
+                   class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[var(--color-rule)] bg-[var(--color-paper)] placeholder-gray-500 text-[var(--color-ink)] focus:outline-none focus:ring-[var(--color-night)] focus:border-[var(--color-ink)] sm:text-sm transition-all"
                    placeholder="votre@email.com">
           </div>
           <div>
-            <label for="password" class="text-[#C1C1C7] text-sm tracking-wider uppercase">Mot de passe</label>
+            <label for="password" class="text-[var(--color-ink-soft)] text-sm tracking-wider uppercase">Mot de passe</label>
             <input id="password" v-model="password" name="password" type="password" autocomplete="current-password" required
-                   class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[#2A2D36] bg-[#0d0d0f] placeholder-gray-500 text-white focus:outline-none focus:ring-[#FFD700] focus:border-[#FFD700] sm:text-sm transition-all"
+                   class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[var(--color-rule)] bg-[var(--color-paper)] placeholder-gray-500 text-[var(--color-ink)] focus:outline-none focus:ring-[var(--color-night)] focus:border-[var(--color-ink)] sm:text-sm transition-all"
                    placeholder="********">
           </div>
         </div>
@@ -159,7 +142,7 @@ onMounted(() => {
 
         <div>
           <button type="submit" :disabled="loading"
-                  class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-black bg-[#FFD700] hover:bg-[#FFE55C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-black bg-[var(--color-ink)] hover:bg-[var(--color-night)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-night)] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
             <span v-if="loading" class="absolute left-0 inset-y-0 flex items-center pl-3">
               <svg class="h-5 w-5 text-black animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -172,13 +155,13 @@ onMounted(() => {
       </form>
 
       <!-- Formulaire 2FA -->
-      <form v-else class="mt-8 space-y-6 bg-[#16181E] p-8 rounded-lg shadow-2xl border border-[#2A2D36]" @submit="verifyTwoFactor">
-        <p class="text-center text-[#C1C1C7]">Ouvrez votre application d'authentification et entrez le code pour vous connecter.</p>
+      <form v-else class="mt-8 space-y-6 bg-[var(--color-paper-raised)] p-8 rounded-lg shadow-2xl border border-[var(--color-rule)]" @submit="verifyTwoFactor">
+        <p class="text-center text-[var(--color-ink-soft)]">Ouvrez votre application d'authentification et entrez le code pour vous connecter.</p>
         <div class="space-y-4">
           <div>
-            <label for="auth-code" class="text-[#C1C1C7] text-sm tracking-wider uppercase">Code de vérification</label>
+            <label for="auth-code" class="text-[var(--color-ink-soft)] text-sm tracking-wider uppercase">Code de vérification</label>
             <input id="auth-code" v-model="authCode" name="code" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" required
-                   class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[#2A2D36] bg-[#0d0d0f] placeholder-gray-500 text-white focus:outline-none focus:ring-[#FFD700] focus:border-[#FFD700] sm:text-sm transition-all text-center text-2xl tracking-[0.2em] font-mono">
+                   class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[var(--color-rule)] bg-[var(--color-paper)] placeholder-gray-500 text-[var(--color-ink)] focus:outline-none focus:ring-[var(--color-night)] focus:border-[var(--color-ink)] sm:text-sm transition-all text-center text-2xl tracking-[0.2em] font-mono">
           </div>
         </div>
 
@@ -188,7 +171,7 @@ onMounted(() => {
 
         <div>
           <button type="submit" :disabled="loading"
-                  class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-black bg-[#FFD700] hover:bg-[#FFE55C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-black bg-[var(--color-ink)] hover:bg-[var(--color-night)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-night)] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
             <span v-if="loading" class="absolute left-0 inset-y-0 flex items-center pl-3">
               <svg class="h-5 w-5 text-black animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

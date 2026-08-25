@@ -7,21 +7,21 @@ defineProps({
 </script>
 
 <template>
-    <div class="min-h-screen bg-[#0d0d0f]">
-        <div class="mx-auto max-w-3xl px-6 py-24 md:py-32">
+    <div>
+        <div class="mx-auto max-w-[52rem] px-5 py-20 md:px-10 md:py-28">
             <p class="eyebrow mb-3">{{ eyebrow }}</p>
-            <h1 class="garamond mb-4 text-5xl font-bold text-white md:text-6xl">
+            <h1 class="mb-4">
                 {{ title }}
             </h1>
-            <p class="text-sm text-[#82828A]">Dernière mise à jour : {{ updatedAt }}</p>
+            <p class="text-sm text-[var(--color-ink-faint)]">Dernière mise à jour : {{ updatedAt }}</p>
 
-            <div class="section-rule my-12" />
+            <hr class="rule-strong my-12" />
 
             <div class="legal-prose space-y-10">
                 <slot />
             </div>
 
-            <div class="section-rule my-12" />
+            <hr class="rule-strong my-12" />
 
             <router-link to="/" class="btn btn-secondary">
                 Retour à l'accueil
@@ -34,7 +34,7 @@ defineProps({
 .legal-prose :deep(h2) {
     font-family: var(--font-display);
     font-size: 1.75rem;
-    color: var(--color-chalk);
+    color: var(--color-ink);
     margin-bottom: 0.75rem;
 }
 
@@ -42,13 +42,13 @@ defineProps({
     font-family: var(--font-sans);
     font-size: 0.95rem;
     font-weight: 600;
-    color: var(--color-gold);
+    color: var(--color-night);
     margin-bottom: 0.4rem;
 }
 
 .legal-prose :deep(p),
 .legal-prose :deep(li) {
-    color: var(--color-ash);
+    color: var(--color-ink-soft);
     line-height: 1.75;
 }
 
@@ -60,7 +60,7 @@ defineProps({
 }
 
 .legal-prose :deep(a) {
-    color: var(--color-gold);
+    color: var(--color-night);
     text-decoration: underline;
     text-underline-offset: 4px;
 }
@@ -71,7 +71,7 @@ defineProps({
     border-radius: 4px;
     background: rgb(255 215 0 / 0.12);
     border: 1px dashed rgb(255 215 0 / 0.45);
-    color: var(--color-gold-light);
+    color: var(--color-night-soft);
     font-size: 0.85em;
     font-weight: 600;
 }
@@ -84,15 +84,15 @@ defineProps({
 
 .legal-prose :deep(th),
 .legal-prose :deep(td) {
-    border: 1px solid var(--color-line);
+    border: 1px solid var(--color-rule);
     padding: 0.65rem 0.85rem;
     text-align: left;
-    color: var(--color-ash);
+    color: var(--color-ink-soft);
 }
 
 .legal-prose :deep(th) {
-    color: var(--color-chalk);
-    background: var(--color-surface);
+    color: var(--color-ink);
+    background: var(--color-paper-raised);
     font-weight: 600;
 }
 </style>

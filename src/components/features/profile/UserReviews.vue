@@ -117,35 +117,35 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="bg-[#16181E] border border-[#2A2D36] rounded-lg p-8 space-y-6">
-    <div class="flex justify-between items-center border-b border-[#2A2D36] pb-4 mb-4">
-      <h2 class="text-white font-bold text-2xl garamond">Mes Avis</h2>
-      <span class="text-sm text-[#82828A]">Total: <span class="text-[#FFD700] font-bold">{{ totalItems }}</span></span>
+  <div class="bg-[var(--color-paper-raised)] border border-[var(--color-rule)] rounded-lg p-8 space-y-6">
+    <div class="flex justify-between items-center border-b border-[var(--color-rule)] pb-4 mb-4">
+      <h2 class="text-[var(--color-ink)] font-bold text-2xl ">Mes Avis</h2>
+      <span class="text-sm text-[var(--color-ink-faint)]">Total: <span class="text-[var(--color-night)] font-bold">{{ totalItems }}</span></span>
     </div>
 
-    <div v-if="loading" class="text-center py-8 text-[#82828A]">
+    <div v-if="loading" class="text-center py-8 text-[var(--color-ink-faint)]">
       Chargement de vos avis...
     </div>
 
     <div v-else-if="reviews.length > 0" class="space-y-6">
-      <div v-for="review in reviews" :key="review.id" class="bg-[#0d0d0f] p-4 rounded-lg border border-[#2A2D36]">
+      <div v-for="review in reviews" :key="review.id" class="bg-[var(--color-paper)] p-4 rounded-lg border border-[var(--color-rule)]">
 
         <!-- Mode Lecture -->
         <div v-if="editingReview !== review.id">
           <div class="flex justify-between items-start mb-2">
-            <h3 class="text-white font-bold text-lg">
-              <router-link v-if="review.movie?.id" :to="`/movies/${review.movie.id}`" class="hover:text-[#FFD700] transition-colors">
+            <h3 class="text-[var(--color-ink)] font-bold text-lg">
+              <router-link v-if="review.movie?.id" :to="`/movies/${review.movie.id}`" class="hover:text-[var(--color-night)] transition-colors">
                 {{ review.movie?.name || 'Film inconnu' }}
               </router-link>
               <span v-else>Film inconnu</span>
             </h3>
-            <div class="flex text-[#FFD700] text-sm">
+            <div class="flex text-[var(--color-night)] text-sm">
               <span v-for="n in 5" :key="n">{{ n <= review.rating ? '★' : '☆' }}</span>
             </div>
           </div>
-          <p class="text-[#C1C1C7] text-sm mb-4">{{ review.comment }}</p>
+          <p class="text-[var(--color-ink-soft)] text-sm mb-4">{{ review.comment }}</p>
           <div class="flex gap-3 justify-end">
-            <button @click="startEdit(review)" class="text-xs font-bold text-[#FFD700] hover:text-white uppercase tracking-wider transition-colors">Modifier</button>
+            <button @click="startEdit(review)" class="text-xs font-bold text-[var(--color-night)] hover:text-[var(--color-ink)] uppercase tracking-wider transition-colors">Modifier</button>
             <button @click="deleteReview(review.id)" class="text-xs font-bold text-red-500 hover:text-red-400 uppercase tracking-wider transition-colors">Supprimer</button>
           </div>
         </div>
@@ -153,7 +153,7 @@ onMounted(() => {
         <!-- Mode Édition -->
         <div v-else class="space-y-4">
           <div class="flex justify-between items-center">
-            <h3 class="text-white font-bold">{{ review.movie?.name }}</h3>
+            <h3 class="text-[var(--color-ink)] font-bold">{{ review.movie?.name }}</h3>
             <div class="flex gap-1">
               <button
                 v-for="n in 5"
@@ -161,18 +161,18 @@ onMounted(() => {
                 type="button"
                 @click="editRating = n"
                 class="text-xl focus:outline-none transition-transform hover:scale-110"
-                :class="editRating >= n ? 'text-[#FFD700]' : 'text-[#2A2D36]'"
+                :class="editRating >= n ? 'text-[var(--color-night)]' : 'text-[var(--color-rule)]'"
               >★</button>
             </div>
           </div>
           <textarea
             v-model="editComment"
-            class="w-full p-3 rounded bg-[#16181E] border border-[#2A2D36] text-white focus:border-[#FFD700] outline-none text-sm"
+            class="w-full p-3 rounded bg-[var(--color-paper-raised)] border border-[var(--color-rule)] text-[var(--color-ink)] focus:border-[var(--color-ink)] outline-none text-sm"
             rows="3"
           ></textarea>
           <div class="flex gap-3 justify-end">
-            <button @click="cancelEdit" class="px-4 py-2 text-xs font-bold text-[#C1C1C7] border border-[#2A2D36] rounded hover:bg-white/5 transition-colors">Annuler</button>
-            <button @click="saveEdit(review.id)" class="px-4 py-2 text-xs font-bold text-black bg-[#FFD700] rounded hover:bg-[#FFE55C] transition-colors">Enregistrer</button>
+            <button @click="cancelEdit" class="px-4 py-2 text-xs font-bold text-[var(--color-ink-soft)] border border-[var(--color-rule)] rounded hover:bg-white/5 transition-colors">Annuler</button>
+            <button @click="saveEdit(review.id)" class="px-4 py-2 text-xs font-bold text-black bg-[var(--color-ink)] rounded hover:bg-[var(--color-night)] transition-colors">Enregistrer</button>
           </div>
         </div>
 
@@ -183,22 +183,22 @@ onMounted(() => {
         <button
           @click="changePage(page - 1)"
           :disabled="page === 1"
-          class="px-3 py-1.5 bg-[#16181E] border border-[#2A2D36] rounded text-white hover:border-[#FFD700] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs"
+          class="px-3 py-1.5 bg-[var(--color-paper-raised)] border border-[var(--color-rule)] rounded text-[var(--color-ink)] hover:border-[var(--color-ink)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs"
         >
           Précédent
         </button>
-        <span class="text-[#82828A] text-xs">Page {{ page }} / {{ totalPages }}</span>
+        <span class="text-[var(--color-ink-faint)] text-xs">Page {{ page }} / {{ totalPages }}</span>
         <button
           @click="changePage(page + 1)"
           :disabled="page === totalPages"
-          class="px-3 py-1.5 bg-[#16181E] border border-[#2A2D36] rounded text-white hover:border-[#FFD700] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs"
+          class="px-3 py-1.5 bg-[var(--color-paper-raised)] border border-[var(--color-rule)] rounded text-[var(--color-ink)] hover:border-[var(--color-ink)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs"
         >
           Suivant
         </button>
       </div>
     </div>
 
-    <div v-else class="text-center py-8 text-[#82828A]">
+    <div v-else class="text-center py-8 text-[var(--color-ink-faint)]">
       Vous n'avez pas encore posté d'avis.
     </div>
   </div>

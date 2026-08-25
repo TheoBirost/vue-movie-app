@@ -1,13 +1,9 @@
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { gsap } from 'gsap'
 import api from '/src/api/api.js'
-import ActorCard from '../../components/domain/ActorCard.vue'
 import ReviewList from '../../components/features/reviews/ReviewList.vue'
 import ReviewForm from '../../components/features/reviews/ReviewForm.vue'
-import AppImage from '../../components/common/AppImage.vue'
-import { resolveImage } from '../../utils/media'
 import { logger } from '../../utils/logger'
 
 const route = useRoute()
@@ -18,6 +14,16 @@ const reviews = ref([])
 const loading = ref(true)
 const loadingCategories = ref(true)
 const loadingReviews = ref(true)
+
+/** Date de sortie en toutes lettres, ou tiret cadratin si absente. */
+const releaseLabel = computed(() => {
+  const raw = movie.value?.releaseDate
+  if (!raw) return '—'
+  const d = new Date(raw)
+  return isNaN(d)
+    ? '—'
+    : d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
+})
 
 const categoryShortNames = {
   'Documentaire': 'Docu',
@@ -115,14 +121,6 @@ onMounted(async () => {
     })
     const movieData = res.data
 
-    if (movieData.releaseDate) {
-      const date = new Date(movieData.releaseDate)
-      const day = String(date.getDate()).padStart(2, '0')
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const year = date.getFullYear()
-      movieData.releaseDate = `${day}-${month}-${year}`
-    }
-
     if (movieData.actors && movieData.actors.length > 0) {
       const actorsPromises = movieData.actors.map(loadActorData)
       const loadedActors = await Promise.all(actorsPromises)
@@ -138,37 +136,6 @@ onMounted(async () => {
     movie.value = movieData
     await fetchReviews()
 
-    await nextTick()
-
-    if (document.querySelector('.movie-poster')) {
-      gsap.from('.movie-poster', {
-        opacity: 0,
-        x: -50,
-        duration: 0.8,
-        ease: 'power3.out'
-      })
-    }
-
-    if (document.querySelector('.movie-info')) {
-      gsap.from('.movie-info', {
-        opacity: 0,
-        x: 50,
-        duration: 0.8,
-        delay: 0.2,
-        ease: 'power3.out'
-      })
-    }
-
-    if (document.querySelectorAll('.actor-grid-item').length > 0) {
-      gsap.from('.actor-grid-item', {
-        opacity: 0,
-        y: 30,
-        duration: 0.5,
-        stagger: 0.05,
-        delay: 0.4,
-        ease: 'power3.out'
-      })
-    }
   } catch (err) {
     logger.error('Erreur lors du chargement du film', err)
   } finally {
@@ -178,150 +145,159 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#0d0d0f]">
-    <!-- Loading -->
-    <div v-if="loading" class="flex items-center justify-center min-h-[80vh]" aria-label="Chargement en cours">
-      <div class="flex gap-2">
-        <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce"></div>
-        <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-        <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-      </div>
-    </div>
-
-    <!-- Contenu -->
-    <div v-else-if="movie" class="max-w-7xl mx-auto px-6 py-12 space-y-12">
-      <!-- Bouton retour -->
-      <button
-          @click="router.back()"
-          class="flex items-center gap-3 text-[#C1C1C7] hover:text-[#FFD700] transition-colors group"
-          aria-label="Retour"
-      >
-        <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 18-6-6 6-6"/>
-        </svg>
-        <span class="text-sm tracking-[0.15em] uppercase font-medium">Retour</span>
-      </button>
-
-      <!-- En-tête du film -->
-      <div class="flex flex-col md:flex-row gap-8 md:gap-12 items-start">
-
-        <!-- Poster (Taille réduite et fixe) -->
-        <div class="movie-poster w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
-          <div class="relative overflow-hidden rounded-lg border border-[#2A2D36] shadow-2xl group max-w-[300px] mx-auto md:max-w-none">
-            <AppImage
-                :src="resolveImage(movie)"
-                :alt="`Affiche du film ${movie.name}`"
-                kind="poster"
-                :fallback-seed="movie.id"
-                :fallback-label="movie.name"
-                :priority="true"
-                ratio="2 / 3"
-                class="w-full"
-            />
-            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-40" />
-          </div>
+    <div class="mx-auto max-w-[82rem] px-5 md:px-10">
+        <div v-if="loading" class="pt-20">
+            <div class="skeleton h-6 w-40"></div>
+            <div class="skeleton mt-6 h-24 w-full max-w-3xl"></div>
+            <div class="skeleton mt-10 h-64 w-full"></div>
         </div>
 
-        <!-- Informations -->
-        <div class="movie-info flex-1 space-y-6">
-          <div>
-            <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">FILM</div>
-            <h1 class="garamond text-4xl md:text-6xl font-bold text-white leading-tight mb-4">
-              {{ movie.name }}
-            </h1>
-            <div class="h-1 w-24 bg-gradient-to-r from-[#FFD700] to-transparent mb-6" />
-          </div>
+        <template v-else-if="movie">
+            <button type="button" class="nav-back mt-10" @click="router.back()">← Retour</button>
 
-          <!-- Stats -->
-          <div class="flex flex-wrap gap-3">
-            <div class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded-lg">
-              <span class="text-[#82828A] text-[10px] uppercase tracking-wider block mb-1">Sortie</span>
-              <p class="text-white font-semibold text-sm">{{ movie.releaseDate }}</p>
-            </div>
-            <div class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded-lg">
-              <span class="text-[#82828A] text-[10px] uppercase tracking-wider block mb-1">Durée</span>
-              <p class="text-white font-semibold text-sm">{{ movie.duration }} min</p>
-            </div>
-            <div class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded-lg">
-              <span class="text-[#82828A] text-[10px] uppercase tracking-wider block mb-1">Budget</span>
-              <p class="text-white font-semibold text-sm">{{ movie.budget?.toLocaleString() }} $</p>
-            </div>
-          </div>
+            <header class="mt-8 border-b-2 border-[var(--color-rule-strong)] pb-10">
+                <p class="eyebrow mb-5">Fiche film</p>
+                <h1>{{ movie.name }}</h1>
+            </header>
 
-          <!-- Synopsis -->
-          <div class="space-y-2">
-            <h3 class="text-[#FFD700] text-xs tracking-[0.2em] uppercase font-bold">Synopsis</h3>
-            <p class="text-[#C1C1C7] leading-relaxed text-base">
-              {{ movie.description }}
+            <div class="grid gap-14 pt-10 lg:grid-cols-[1fr_20rem] lg:gap-20">
+                <!-- Colonne principale -->
+                <div>
+                    <p
+                        v-if="movie.description"
+                        class="text-lg leading-relaxed text-[var(--color-ink-soft)]"
+                    >
+                        {{ movie.description }}
+                    </p>
+                    <p v-else class="text-[var(--color-ink-faint)]">
+                        Aucun synopsis n'est renseigné pour ce film.
+                    </p>
+
+                    <!-- Distribution -->
+                    <section v-if="movie.actors?.length" class="mt-14">
+                        <div class="flex items-baseline gap-5">
+                            <h2 class="display-l shrink-0">Distribution</h2>
+                            <hr class="rule flex-1" />
+                            <span class="data shrink-0">{{ movie.actors.length }}</span>
+                        </div>
+
+                        <ul class="mt-4 grid gap-x-10 gap-y-0.5 sm:grid-cols-2">
+                            <li v-for="actor in movie.actors" :key="actor.id">
+                                <router-link :to="`/actors/${actor.id}`" class="name-link">
+                                    <span class="name-link__last">{{ actor.lastname }}</span>
+                                    <span class="name-link__first">{{ actor.firstname }}</span>
+                                </router-link>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <!-- Avis -->
+                    <section class="mt-16">
+                        <div class="flex items-baseline gap-5">
+                            <h2 class="display-l shrink-0">Avis</h2>
+                            <hr class="rule flex-1" />
+                            <span class="data shrink-0">{{ reviews.length }}</span>
+                        </div>
+
+                        <div class="mt-6">
+                            <ReviewForm :movie-id="route.params.id" @submitted="fetchReviews" />
+                            <ReviewList
+                                :reviews="reviews"
+                                :loading="loadingReviews"
+                                class="mt-8"
+                                @refresh="fetchReviews"
+                            />
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Colonne technique -->
+                <aside class="lg:sticky lg:top-24 lg:self-start">
+                    <div class="slab">
+                        <p class="data mb-5">Fiche technique</p>
+
+                        <dl class="spec">
+                            <dt>Sortie</dt>
+                            <dd>{{ releaseLabel }}</dd>
+
+                            <dt>Durée</dt>
+                            <dd>{{ movie.duration ? `${movie.duration} min` : '—' }}</dd>
+
+                            <dt>Rôles</dt>
+                            <dd>{{ movie.actors?.length ?? movie.actorCount ?? '—' }}</dd>
+
+                            <dt v-if="movie.director">Réalisation</dt>
+                            <dd v-if="movie.director">
+                                {{ movie.director.firstname }} {{ movie.director.lastname }}
+                            </dd>
+
+                            <dt v-if="movie.entries || movie.nbEntries">Entrées</dt>
+                            <dd v-if="movie.entries || movie.nbEntries">
+                                {{ (movie.entries || movie.nbEntries).toLocaleString('fr-FR') }}
+                            </dd>
+                        </dl>
+
+                        <div v-if="categories.length" class="mt-6 border-t border-[var(--color-rule)] pt-5">
+                            <p class="data mb-3">Genres</p>
+                            <div class="flex flex-wrap gap-2">
+                                <router-link
+                                    v-for="c in categories"
+                                    :key="c.id"
+                                    :to="`/movies?category=${c.id}`"
+                                    class="chip"
+                                >
+                                    {{ getShortCategoryName(c.name) }}
+                                </router-link>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </template>
+
+        <div v-else class="py-24 text-center">
+            <h1 class="display-l">Film introuvable</h1>
+            <p class="mx-auto mt-4 text-[var(--color-ink-soft)]">
+                Cette fiche n'existe pas, ou elle demande d'être connecté.
             </p>
-          </div>
-
-          <!-- Genres/Catégories -->
-          <div class="space-y-2">
-            <h3 class="text-[#FFD700] text-xs tracking-[0.2em] uppercase font-bold">Genres</h3>
-            <div class="flex flex-wrap gap-2">
-              <template v-if="loadingCategories">
-                <span class="px-3 py-1.5 text-xs bg-[#16181E] border border-[#2A2D36] rounded text-[#82828A] animate-pulse">
-                  ...
-                </span>
-              </template>
-              <template v-else-if="categories.length > 0">
-                <span
-                    v-for="category in categories"
-                    :key="category.id"
-                    class="px-3 py-1.5 text-xs bg-[#16181E] border border-[#2A2D36] rounded text-white hover:border-[#FFD700] hover:text-[#FFD700] transition-colors text-sm"
-                >
-                  {{ getShortCategoryName(category.name) }}
-                </span>
-              </template>
-            </div>
-          </div>
+            <router-link to="/movies" class="btn btn-quiet mt-8">Retour à l'index</router-link>
         </div>
-      </div>
-
-      <!-- Distribution -->
-      <div v-if="movie.actors && movie.actors.length > 0" class="space-y-6 pt-8 border-t border-[#2A2D36]">
-        <div>
-          <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">DISTRIBUTION</div>
-          <h2 class="garamond text-3xl md:text-4xl font-bold text-white">Acteurs</h2>
-        </div>
-
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          <div
-              v-for="actor in movie.actors"
-              :key="actor.id"
-              @click="router.push(`/actors/${actor.id}`)"
-              class="actor-grid-item cursor-pointer"
-          >
-            <ActorCard :actor="actor" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Reviews -->
-      <div class="space-y-6 pt-8 border-t border-[#2A2D36]">
-        <ReviewList :reviews="reviews" v-if="!loadingReviews" />
-        <div v-else class="text-center">Loading reviews...</div>
-        <ReviewForm :movie-id="movie.id" @review-submitted="fetchReviews" />
-      </div>
     </div>
-
-    <!-- État vide -->
-    <div v-else class="flex flex-col items-center justify-center min-h-[80vh] text-center px-6">
-      <div class="inline-block p-8 bg-[#16181E] rounded-full mb-8">
-        <svg class="w-16 h-16 text-[#FFD700]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
-        </svg>
-      </div>
-      <h2 class="garamond text-3xl font-bold text-white mb-3">Film introuvable</h2>
-      <p class="text-[#C1C1C7] mb-8">Ce film n'existe pas ou a été supprimé</p>
-      <button
-          @click="router.push('/movies')"
-          class="px-8 py-4 bg-[#FFD700] hover:bg-[#FFE55C] text-black font-bold rounded-lg transition-all hover:scale-105 text-xs tracking-[0.2em]"
-          aria-label="Retour aux films"
-      >
-        RETOUR AUX FILMS
-      </button>
-    </div>
-  </div>
 </template>
+
+<style scoped>
+.nav-back {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+    background: none;
+    border: 0;
+    cursor: pointer;
+    transition: color var(--duration-fast) linear;
+}
+.nav-back:hover { color: var(--color-ink); }
+
+.name-link {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--duration-fast) linear;
+}
+.name-link:hover { border-bottom-color: var(--color-ink); }
+.name-link__last {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 1;
+}
+.name-link__first {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    color: var(--color-ink-soft);
+}
+</style>

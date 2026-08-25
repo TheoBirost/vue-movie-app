@@ -16,7 +16,6 @@ export default defineConfig({
         // de l'app n'invalide plus le cache navigateur de Vue/GSAP/Axios.
         manualChunks: {
           'vendor-vue': ['vue', 'vue-router', 'pinia'],
-          'vendor-motion': ['gsap'],
           'vendor-http': ['axios', 'jwt-decode', 'mitt'],
         },
       },

@@ -1,39 +1,42 @@
 <script setup>
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDataStore } from '../../stores/useDataStore'
-import { useMotionPreference } from '../../composables/useMotion'
 import { applySeo } from '../../composables/useSeo'
+import { revealDelay } from '../../motion/reveal'
 import api from '../../api/api.js'
-import MovieCard from '../../components/domain/MovieCard.vue'
-import PageHeader from '../../components/common/PageHeader.vue'
-import SearchField from '../../components/common/SearchField.vue'
-import PaginationNav from '../../components/common/PaginationNav.vue'
-import CardSkeletonGrid from '../../components/common/CardSkeletonGrid.vue'
-import EmptyState from '../../components/common/EmptyState.vue'
+import IndexRow from '../../components/common/IndexRow.vue'
 
-const PER_PAGE = 12
+const PER_PAGE = 25
 const SEARCH_DEBOUNCE_MS = 400
 
 const router = useRouter()
 const route = useRoute()
 const dataStore = useDataStore()
-const reduced = useMotionPreference()
 
 const search = ref(typeof route.query.search === 'string' ? route.query.search : '')
 const page = ref(Number(route.query.page) || 1)
+const sort = ref(typeof route.query.sort === 'string' ? route.query.sort : 'name')
 const loading = ref(true)
 const movies = ref([])
 const totalItems = ref(0)
-const categoryName = ref('')
-const grid = ref(null)
+
+const SORTS = [
+    { key: 'name', label: 'Titre', param: { 'order[name]': 'asc' } },
+    { key: 'recent', label: 'Plus récents', param: { 'order[releaseDate]': 'desc' } },
+    { key: 'old', label: 'Plus anciens', param: { 'order[releaseDate]': 'asc' } },
+    { key: 'long', label: 'Durée', param: { 'order[duration]': 'desc' } },
+]
 
 const totalPages = computed(() => Math.max(1, Math.ceil(totalItems.value / PER_PAGE)))
+const activeGenre = computed(() =>
+    dataStore.categories.find((c) => String(c.id) === String(route.query.category))
+)
 
 /**
- * Une requête par frappe saturait le limiteur de l'API (5 requêtes/minute pour
- * un visiteur anonyme) : taper « Matrix » suffisait à déclencher un 429.
- * On attend donc une pause de saisie, et on annule la requête précédente.
+ * Une requête par frappe saturait le limiteur de l'API (5 requêtes par minute
+ * pour un visiteur anonyme). On attend une pause de saisie et on annule la
+ * requête précédente.
  */
 let debounceId = null
 let controller = null
@@ -48,20 +51,15 @@ const fetchMovies = async () => {
             page: page.value,
             itemsPerPage: PER_PAGE,
             'groups[]': ['movie:read', 'movie:categories'],
+            ...(SORTS.find((s) => s.key === sort.value)?.param ?? {}),
         }
-
         if (route.query.category) params['categories.id'] = route.query.category
         if (search.value.trim()) params.name = search.value.trim()
 
         const { data } = await api.get('/movies', { params, signal: controller.signal })
-
         movies.value = data['hydra:member'] ?? data.member ?? []
         totalItems.value = data['hydra:totalItems'] ?? data.totalItems ?? movies.value.length
-
-        await nextTick()
-        revealCards()
     } catch (error) {
-        // Une requête annulée n'est pas une erreur : la suivante est déjà partie
         if (error.name === 'CanceledError' || error.code === 'ERR_CANCELED') return
         movies.value = []
         totalItems.value = 0
@@ -70,48 +68,61 @@ const fetchMovies = async () => {
     }
 }
 
-const fetchCategoryName = async () => {
-    if (!route.query.category) {
-        categoryName.value = ''
-        return
-    }
-    // Le nom vient du store quand il est déjà chargé, sinon une requête ciblée
-    const cached = dataStore.categories.find((c) => String(c.id) === String(route.query.category))
-    if (cached) {
-        categoryName.value = cached.name
-        return
-    }
-    try {
-        const { data } = await api.get(`/categories/${route.query.category}`)
-        categoryName.value = data.name ?? ''
-    } catch {
-        categoryName.value = ''
-    }
+const yearOf = (date) => {
+    const d = new Date(date)
+    return date && !isNaN(d) ? d.getFullYear() : '——'
 }
 
-/** Entrée en cascade des cartes, sans jamais les rendre invisibles au départ. */
-const revealCards = () => {
-    if (reduced.value || !grid.value) return
-    grid.value.querySelectorAll('[data-card]').forEach((card, index) => {
-        card.style.animation = `fade-up 520ms var(--ease-cinema) ${Math.min(index, 8) * 55}ms both`
-    })
+const genresOf = (movie) => {
+    if (!movie.categories?.length) return ''
+    return movie.categories
+        .map((iri) => dataStore.categories.find((c) => `/api/categories/${c.id}` === iri))
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((c) => c.name)
+        .join(' · ')
 }
 
-const heading = computed(() =>
-    categoryName.value ? `Films — ${categoryName.value}` : 'Films'
-)
+const trailOf = (movie) => {
+    const trail = []
+    if (movie.duration) trail.push(`${movie.duration} min`)
+    if (movie.actorCount) trail.push(`${movie.actorCount} rôles`)
+    return trail
+}
 
-/** Garde l'URL en phase avec l'état : la recherche devient partageable. */
-const syncUrl = () => {
-    const query = { ...route.query }
-
+/** L'état de la vue vit dans l'URL : la recherche devient partageable. */
+const syncUrl = (extra = {}) => {
+    const query = { ...route.query, ...extra }
     if (search.value.trim()) query.search = search.value.trim()
     else delete query.search
-
     if (page.value > 1) query.page = String(page.value)
     else delete query.page
-
+    if (sort.value !== 'name') query.sort = sort.value
+    else delete query.sort
     router.replace({ query })
+}
+
+const setGenre = (id) => {
+    page.value = 1
+    const query = { ...route.query }
+    if (id && String(id) !== String(route.query.category)) query.category = String(id)
+    else delete query.category
+    delete query.page
+    router.replace({ query })
+}
+
+const setSort = (key) => {
+    sort.value = key
+    page.value = 1
+    syncUrl()
+    fetchMovies()
+}
+
+const goToPage = (next) => {
+    page.value = Math.min(totalPages.value, Math.max(1, next))
+    syncUrl()
+    fetchMovies()
+    window.scrollTo({ top: 0, behavior: 'auto' })
 }
 
 watch(search, () => {
@@ -123,20 +134,12 @@ watch(search, () => {
     }, SEARCH_DEBOUNCE_MS)
 })
 
-watch(page, () => {
-    syncUrl()
-    fetchMovies()
-    window.scrollTo({ top: 0, behavior: reduced.value ? 'auto' : 'smooth' })
-})
-
 watch(
     () => route.query.category,
-    async () => {
+    () => {
         page.value = 1
-        await fetchCategoryName()
         applySeo({
-            title: heading.value,
-            description: `Films du catalogue${categoryName.value ? ` — genre ${categoryName.value}` : ''}.`,
+            title: activeGenre.value ? `Films — ${activeGenre.value.name}` : 'Films',
             path: route.path,
         })
         fetchMovies()
@@ -144,16 +147,7 @@ watch(
 )
 
 onMounted(async () => {
-    // Les catégories alimentent les puces des cartes
     dataStore.fetchCategories().catch(() => {})
-    await fetchCategoryName()
-    if (categoryName.value) {
-        applySeo({
-            title: heading.value,
-            description: `Films du catalogue — genre ${categoryName.value}.`,
-            path: route.path,
-        })
-    }
     await fetchMovies()
 })
 
@@ -164,65 +158,132 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-[#0d0d0f]">
-        <div class="mx-auto max-w-7xl space-y-12 px-6 py-20 md:py-28">
-            <PageHeader
-                eyebrow="Collection"
-                :title="heading"
-                :subtitle="
-                    totalItems
-                        ? `${totalItems} film${totalItems > 1 ? 's' : ''} au catalogue`
-                        : ''
-                "
-            />
+    <div class="mx-auto max-w-[82rem] px-5 md:px-10">
+        <header class="pt-14 md:pt-20">
+            <p class="eyebrow mb-5">Catalogue</p>
+            <h1>{{ activeGenre ? activeGenre.name : 'Films' }}</h1>
+        </header>
 
-            <SearchField
+        <!-- Recherche : un seul champ, à la taille d'un titre -->
+        <div class="mt-10">
+            <label for="movie-search" class="sr-only">Rechercher un film</label>
+            <input
                 id="movie-search"
                 v-model="search"
-                label="Rechercher un film"
-                placeholder="Rechercher un film…"
-                :result-count="loading ? null : totalItems"
+                type="search"
+                class="field"
+                placeholder="Rechercher un titre…"
+                autocomplete="off"
             />
+        </div>
 
-            <CardSkeletonGrid
-                v-if="loading"
-                :count="8"
-                media-class="h-64"
-                label="Chargement des films"
-            />
-
-            <div
-                v-else-if="movies.length"
-                ref="grid"
-                class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4"
-            >
-                <div
-                    v-for="movie in movies"
-                    :key="movie.id"
-                    data-card
-                    @click="router.push(`/movies/${movie.id}`)"
+        <!-- Filtres et tri -->
+        <div class="mt-8 flex flex-col gap-5 border-b border-[var(--color-rule)] pb-6 lg:flex-row lg:items-start lg:justify-between">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="data mr-2">Genre</span>
+                <button
+                    type="button"
+                    class="chip"
+                    :class="{ 'is-active': !route.query.category }"
+                    @click="setGenre(null)"
                 >
-                    <MovieCard :movie="movie" />
-                </div>
+                    Tous
+                </button>
+                <button
+                    v-for="c in dataStore.categories"
+                    :key="c.id"
+                    type="button"
+                    class="chip"
+                    :class="{ 'is-active': String(route.query.category) === String(c.id) }"
+                    @click="setGenre(c.id)"
+                >
+                    {{ c.name }}
+                </button>
             </div>
 
-            <EmptyState v-else message="Aucun film ne correspond à cette recherche.">
-                <template #action>
-                    <button
-                        v-if="search || categoryName"
-                        type="button"
-                        class="btn btn-secondary"
-                        @click="
-                            search = '';
-                            router.push('/movies')
-                        "
-                    >
-                        Voir tous les films
-                    </button>
-                </template>
-            </EmptyState>
-
-            <PaginationNav v-model="page" :total-pages="totalPages" />
+            <div class="flex flex-wrap items-center gap-2 lg:shrink-0">
+                <span class="data mr-2">Trier</span>
+                <button
+                    v-for="s in SORTS"
+                    :key="s.key"
+                    type="button"
+                    class="chip"
+                    :class="{ 'is-active': sort === s.key }"
+                    @click="setSort(s.key)"
+                >
+                    {{ s.label }}
+                </button>
+            </div>
         </div>
+
+        <p class="data mt-5" role="status" aria-live="polite">
+            {{ loading ? 'Recherche…' : `${totalItems} film${totalItems > 1 ? 's' : ''}` }}
+        </p>
+
+        <!-- Index -->
+        <div class="mt-4">
+            <hr class="rule-strong" />
+
+            <div v-if="loading" class="space-y-px pt-px">
+                <div v-for="n in 10" :key="n" class="skeleton h-[5.5rem]"></div>
+            </div>
+
+            <div v-else-if="movies.length">
+                <IndexRow
+                    v-for="(movie, i) in movies"
+                    :key="movie.id"
+                    v-reveal="revealDelay(i, 0.02)"
+                    :lead="yearOf(movie.releaseDate)"
+                    :title="movie.name"
+                    :meta="genresOf(movie)"
+                    :trail="trailOf(movie)"
+                    @click="router.push(`/movies/${movie.id}`)"
+                    @keydown.enter="router.push(`/movies/${movie.id}`)"
+                />
+            </div>
+
+            <div v-else class="py-20 text-center">
+                <p class="mx-auto text-lg text-[var(--color-ink-soft)]">
+                    Aucun film ne correspond à cette recherche.
+                </p>
+                <button
+                    v-if="search || route.query.category"
+                    type="button"
+                    class="btn btn-quiet mt-6"
+                    @click="search = ''; setGenre(null)"
+                >
+                    Réinitialiser
+                </button>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <nav
+            v-if="totalPages > 1 && !loading"
+            class="mt-12 flex items-center justify-between gap-6"
+            aria-label="Pagination"
+        >
+            <button
+                type="button"
+                class="btn btn-quiet"
+                :disabled="page === 1"
+                @click="goToPage(page - 1)"
+            >
+                ← Précédent
+            </button>
+
+            <p class="data" role="status" aria-live="polite">
+                Page {{ page }} / {{ totalPages }}
+            </p>
+
+            <button
+                type="button"
+                class="btn btn-quiet"
+                :disabled="page === totalPages"
+                @click="goToPage(page + 1)"
+            >
+                Suivant →
+            </button>
+        </nav>
     </div>
 </template>

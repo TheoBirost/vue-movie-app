@@ -81,7 +81,7 @@ onMounted(async () => {
 <template>
   <div class="universal-card p-6">
     <div class="flex justify-between items-center mb-6">
-      <h2 class="garamond text-3xl font-bold text-white">Gestion des Acteurs</h2>
+      <h2 class="text-3xl font-bold text-[var(--color-ink)]">Gestion des Acteurs</h2>
       <div class="flex items-center gap-4">
         <span class="text-sm text-text-gray">Total: <span class="text-gold font-bold">{{ totalItems }}</span></span>
         <button
@@ -112,9 +112,9 @@ onMounted(async () => {
         </thead>
         <tbody>
           <tr v-for="actor in actors" :key="actor.id" class="border-b border-border hover:bg-white/5 transition-colors">
-            <td class="p-4 text-white font-medium">{{ actor.firstname }} {{ actor.lastname }}</td>
+            <td class="p-4 text-[var(--color-ink)] font-medium">{{ actor.firstname }} {{ actor.lastname }}</td>
             <td class="p-4 text-right">
-              <button @click="editActor(actor)" class="text-gold hover:text-white text-xs font-bold uppercase tracking-wider transition-colors border border-gold/30 hover:bg-gold/10 px-3 py-1.5 rounded mr-2">
+              <button @click="editActor(actor)" class="text-gold hover:text-[var(--color-ink)] text-xs font-bold uppercase tracking-wider transition-colors border border-gold/30 hover:bg-gold/10 px-3 py-1.5 rounded mr-2">
                 Modifier
               </button>
               <button @click="confirmDelete(actor)" class="text-red-400 hover:text-red-300 text-xs font-bold uppercase tracking-wider transition-colors border border-red-900/50 hover:bg-red-900/20 px-3 py-1.5 rounded">
@@ -130,7 +130,7 @@ onMounted(async () => {
         <button
           @click="changePage(page - 1)"
           :disabled="page === 1"
-          class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded text-white hover:border-gold disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+          class="px-4 py-2 bg-[var(--color-paper-raised)] border border-[var(--color-rule)] rounded text-[var(--color-ink)] hover:border-gold disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
         >
           Précédent
         </button>
@@ -138,7 +138,7 @@ onMounted(async () => {
         <button
           @click="changePage(page + 1)"
           :disabled="page === totalPages"
-          class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded text-white hover:border-gold disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+          class="px-4 py-2 bg-[var(--color-paper-raised)] border border-[var(--color-rule)] rounded text-[var(--color-ink)] hover:border-gold disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
         >
           Suivant
         </button>
