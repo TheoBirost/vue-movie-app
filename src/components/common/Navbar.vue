@@ -72,9 +72,9 @@ onUnmounted(() => {
             <router-link
                 to="/"
                 class="wordmark"
-                aria-label="Cinéaste, retour à l'accueil"
+                aria-label="Générique, retour à l'accueil"
             >
-                Cinéaste
+                Générique
             </router-link>
 
             <!-- Navigation bureau -->

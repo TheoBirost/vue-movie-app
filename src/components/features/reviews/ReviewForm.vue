@@ -4,7 +4,7 @@
 
     <div v-if="!isLoggedIn" class="text-center py-8">
       <p class="text-[var(--color-ink-soft)] mb-4">Vous devez être connecté pour laisser un avis.</p>
-      <router-link to="/connexion" class="inline-block px-6 py-3 bg-[var(--color-ink)] text-black font-bold rounded-lg hover:bg-[var(--color-night)] transition-colors text-sm tracking-wider uppercase">
+      <router-link to="/connexion" class="btn btn-primary inline-block">
         Se connecter
       </router-link>
     </div>
@@ -28,7 +28,7 @@
             ★
           </button>
         </div>
-        <p v-if="errors.rating" class="text-red-400 text-xs mt-2">{{ errors.rating }}</p>
+        <p v-if="errors.rating" class="text-[var(--color-danger)] text-xs mt-2">{{ errors.rating }}</p>
       </div>
 
       <!-- Comment -->
@@ -41,11 +41,11 @@
           rows="4"
           placeholder="Partagez votre avis sur ce film..."
         ></textarea>
-        <p v-if="errors.comment" class="text-red-400 text-xs mt-2">{{ errors.comment }}</p>
+        <p v-if="errors.comment" class="text-[var(--color-danger)] text-xs mt-2">{{ errors.comment }}</p>
       </div>
 
       <!-- Global Error -->
-      <div v-if="submitError" class="p-3 bg-red-900/20 border border-red-800/30 rounded text-red-400 text-sm text-center">
+      <div v-if="submitError" class="p-3 bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 rounded text-[var(--color-danger)] text-sm text-center">
         {{ submitError }}
       </div>
 
@@ -53,9 +53,9 @@
       <button
         type="submit"
         :disabled="isSubmitting"
-        class="px-8 py-3 bg-[var(--color-ink)] text-black font-bold rounded-lg hover:bg-[var(--color-night)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm tracking-wider uppercase w-full md:w-auto"
+        class="btn btn-primary w-full"
       >
-        <span v-if="isSubmitting" class="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></span>
+        <span v-if="isSubmitting" class="w-4 h-4 border-2 border-[var(--color-paper)]/30 border-t-[var(--color-paper)] rounded-full animate-spin"></span>
         {{ isSubmitting ? 'Envoi...' : 'Publier l\'avis' }}
       </button>
     </form>

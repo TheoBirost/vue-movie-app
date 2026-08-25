@@ -1,8 +1,8 @@
-const SITE_NAME = 'Cinéaste'
+const SITE_NAME = 'Générique'
 const SITE_URL = 'https://cineaste.theo-birost.fr'
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.jpg`
 const DEFAULT_DESCRIPTION =
-    "Explorez une collection de films, d'acteurs et de réalisateurs : fiches détaillées, genres et avis de la communauté."
+    "Un index de films, d'interprètes et de réalisateurs : titres, années, durées et distributions."
 
 /** Crée la balise si elle manque, sinon met à jour celle déjà présente. */
 const setMeta = (attr, key, content) => {
@@ -44,7 +44,7 @@ export function applySeo(seo = {}) {
         noindex = false,
     } = seo
 
-    const fullTitle = title ? `${title} — ${SITE_NAME}` : `${SITE_NAME} — Films, acteurs et réalisateurs`
+    const fullTitle = title ? `${title} — ${SITE_NAME}` : `${SITE_NAME} — l'index du cinéma`
     const url = `${SITE_URL}${path}`
 
     document.title = fullTitle

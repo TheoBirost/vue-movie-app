@@ -91,7 +91,7 @@ onMounted(() => {
           <h2 class="text-2xl font-bold text-[var(--color-ink)]">Activer l'authentification à deux facteurs</h2>
           <p class="text-sm text-[var(--color-ink-faint)] mt-1">Étape {{ step }}/3</p>
         </div>
-        <button @click="emit('close')" class="p-2 rounded-full text-[var(--color-ink-faint)] hover:bg-white/10">
+        <button @click="emit('close')" class="p-2 rounded-full text-[var(--color-ink-faint)] hover:bg-[var(--color-paper-sunk)]">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -132,14 +132,14 @@ onMounted(() => {
               >
             </div>
 
-            <div v-if="error" class="bg-red-900/20 border border-red-800/30 text-red-400 p-3 rounded-md text-sm">
+            <div v-if="error" class="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 text-[var(--color-danger)] p-3 rounded-md text-sm">
               {{ error }}
             </div>
 
             <button
                 @click="verifyAndEnable"
                 :disabled="loading || verificationCode.length !== 6"
-                class="w-full px-6 py-3 bg-[var(--color-ink)] hover:bg-[var(--color-night)] text-black font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                class="btn btn-primary w-full"
             >
               {{ loading ? 'Vérification...' : 'Vérifier et activer' }}
             </button>
@@ -148,13 +148,13 @@ onMounted(() => {
 
         <!-- Étape 3: Codes de secours -->
         <div v-if="step === 3" class="backup-codes-container space-y-6">
-          <div class="bg-yellow-900/20 border border-yellow-800/30 rounded-lg p-4">
+          <div class="bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/30 rounded-lg p-4">
             <div class="flex items-start gap-3">
-              <svg class="w-6 h-6 text-yellow-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-6 h-6 text-[var(--color-warning)] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
               </svg>
               <div>
-                <h3 class="text-yellow-400 font-semibold mb-1">Important : Sauvegardez ces codes !</h3>
+                <h3 class="text-[var(--color-warning)] font-semibold mb-1">Important : Sauvegardez ces codes !</h3>
                 <p class="text-sm text-[var(--color-ink-soft)]">
                   Ces codes de secours vous permettront de vous connecter si vous perdez l'accès à votre application d'authentification.
                   Chaque code ne peut être utilisé qu'une seule fois.
@@ -185,7 +185,7 @@ onMounted(() => {
             </button>
             <button
                 @click="finish"
-                class="flex-1 px-6 py-3 bg-[var(--color-ink)] hover:bg-[var(--color-night)] text-black font-bold rounded-lg transition-all"
+                class="btn btn-primary flex-1"
             >
               Terminer
             </button>

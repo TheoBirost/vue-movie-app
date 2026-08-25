@@ -27,7 +27,7 @@ const routes = [
         meta: {
             title: null, // titre racine du site
             description:
-                "Explorez une collection de films, d'acteurs et de réalisateurs : fiches détaillées, genres et avis de la communauté.",
+                "Un index de films, d'interprètes et de réalisateurs : titres, années, durées et distributions.",
         },
     },
     {
@@ -37,7 +37,7 @@ const routes = [
         meta: {
             hideChrome: true,
             title: 'Connexion',
-            description: 'Connectez-vous à votre compte Cinéaste pour retrouver vos avis et votre profil.',
+            description: 'Connectez-vous à votre compte Générique pour retrouver vos avis et votre profil.',
             noindex: true,
         },
     },
@@ -48,7 +48,7 @@ const routes = [
         meta: {
             hideChrome: true,
             title: 'Inscription',
-            description: 'Créez un compte Cinéaste pour publier des avis et suivre vos films.',
+            description: 'Créez un compte Générique pour publier des avis et suivre vos films.',
             noindex: true,
         },
     },
@@ -124,7 +124,7 @@ const routes = [
         component: LegalNotice,
         meta: {
             title: 'Mentions légales',
-            description: 'Éditeur, hébergeur et conditions d’utilisation du site Cinéaste.',
+            description: 'Éditeur, hébergeur et conditions d’utilisation du site Générique.',
         },
     },
     {

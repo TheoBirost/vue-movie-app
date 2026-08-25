@@ -107,7 +107,7 @@ onMounted(() => {
 
     <div class="w-full">
       <div class="text-center">
-        <h1 class="text-6xl font-bold text-[var(--color-night)]">Cinéaste</h1>
+        <h1 class="text-6xl font-bold text-[var(--color-night)]">Générique</h1>
         <h2 class="mt-2 text-2xl font-bold text-[var(--color-ink)]">
           {{ twoFactorRequired ? 'Vérification requise' : 'Connectez-vous' }}
         </h2>
@@ -136,15 +136,15 @@ onMounted(() => {
           </div>
         </div>
 
-        <div v-if="errorMessage" class="error-message text-red-400 text-sm text-center bg-red-900/20 p-3 rounded-md border border-red-800/30">
+        <div v-if="errorMessage" class="error-message text-[var(--color-danger)] text-sm text-center bg-[var(--color-danger)]/10 p-3 rounded-md border border-[var(--color-danger)]/30">
           {{ errorMessage }}
         </div>
 
         <div>
           <button type="submit" :disabled="loading"
-                  class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-black bg-[var(--color-ink)] hover:bg-[var(--color-night)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-night)] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  class="btn btn-primary w-full">
             <span v-if="loading" class="absolute left-0 inset-y-0 flex items-center pl-3">
-              <svg class="h-5 w-5 text-black animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg class="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
@@ -165,15 +165,15 @@ onMounted(() => {
           </div>
         </div>
 
-        <div v-if="errorMessage" class="error-message text-red-400 text-sm text-center bg-red-900/20 p-3 rounded-md border border-red-800/30">
+        <div v-if="errorMessage" class="error-message text-[var(--color-danger)] text-sm text-center bg-[var(--color-danger)]/10 p-3 rounded-md border border-[var(--color-danger)]/30">
           {{ errorMessage }}
         </div>
 
         <div>
           <button type="submit" :disabled="loading"
-                  class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-black bg-[var(--color-ink)] hover:bg-[var(--color-night)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-night)] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  class="btn btn-primary w-full">
             <span v-if="loading" class="absolute left-0 inset-y-0 flex items-center pl-3">
-              <svg class="h-5 w-5 text-black animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg class="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>

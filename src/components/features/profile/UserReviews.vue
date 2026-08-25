@@ -146,7 +146,7 @@ onMounted(() => {
           <p class="text-[var(--color-ink-soft)] text-sm mb-4">{{ review.comment }}</p>
           <div class="flex gap-3 justify-end">
             <button @click="startEdit(review)" class="text-xs font-bold text-[var(--color-night)] hover:text-[var(--color-ink)] uppercase tracking-wider transition-colors">Modifier</button>
-            <button @click="deleteReview(review.id)" class="text-xs font-bold text-red-500 hover:text-red-400 uppercase tracking-wider transition-colors">Supprimer</button>
+            <button @click="deleteReview(review.id)" class="text-xs font-bold text-[var(--color-danger)] hover:text-[var(--color-danger)] uppercase tracking-wider transition-colors">Supprimer</button>
           </div>
         </div>
 
@@ -171,8 +171,8 @@ onMounted(() => {
             rows="3"
           ></textarea>
           <div class="flex gap-3 justify-end">
-            <button @click="cancelEdit" class="px-4 py-2 text-xs font-bold text-[var(--color-ink-soft)] border border-[var(--color-rule)] rounded hover:bg-white/5 transition-colors">Annuler</button>
-            <button @click="saveEdit(review.id)" class="px-4 py-2 text-xs font-bold text-black bg-[var(--color-ink)] rounded hover:bg-[var(--color-night)] transition-colors">Enregistrer</button>
+            <button @click="cancelEdit" class="px-4 py-2 text-xs font-bold text-[var(--color-ink-soft)] border border-[var(--color-rule)] rounded hover:bg-[var(--color-paper-sunk)] transition-colors">Annuler</button>
+            <button @click="saveEdit(review.id)" class="btn btn-primary">Enregistrer</button>
           </div>
         </div>
 
