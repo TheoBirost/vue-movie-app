@@ -121,7 +121,23 @@
        est promue par l'animation elle-même et retombe quand celle-ci est coupée.  */
     .film-grain {
         position: fixed;
-        inset: 0;
+        /*
+         * Le calque déborde de la fenêtre d'une marge FIXE de 120 px.
+         *
+         * L'animation `grain` le décale pour faire vibrer le bruit. Avec des
+         * décalages en pourcentage — comme c'était le cas — le déplacement est
+         * relatif à l'élément : agrandir le calque agrandissait le décalage
+         * d'autant, et une bande entière restait sans grain (jusqu'à 490 px sur
+         * un écran de 1400), avec une arête franche qui sautait toutes les
+         * 0,8 s au rythme des `steps(10)`.
+         *
+         * En pixels absolus des deux côtés, la marge couvre toujours le
+         * déplacement : 120 px de débord pour 100 px de décalage maximal.
+         */
+        top: -120px;
+        left: -120px;
+        width: calc(100% + 240px);
+        height: calc(100% + 240px);
         pointer-events: none;
         z-index: 9997;
         opacity: 0.035;
