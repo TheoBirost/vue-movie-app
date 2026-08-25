@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { gsap } from 'gsap'
 import api from '/src/api/api.js'
+import { logger } from '../../../utils/logger'
 
 const emit = defineEmits(['close', 'enabled'])
 
@@ -14,14 +15,11 @@ const loading = ref(false)
 const error = ref('')
 
 const setupTwoFactor = async () => {
-  console.log("Début setupTwoFactor")
   loading.value = true
   error.value = ''
 
   try {
-    console.log("Envoi requête POST /2fa/setup")
     const response = await api.post('/2fa/setup')
-    console.log("Réponse reçue:", response)
     qrCode.value = response.data.qr_code
     secret.value = response.data.secret
     step.value = 2
@@ -34,12 +32,12 @@ const setupTwoFactor = async () => {
       ease: 'back.out(1.7)'
     })
   } catch (err) {
-    console.error("Erreur setupTwoFactor:", err)
+    logger.error('Erreur setupTwoFactor', err)
     if (err.response) {
-        console.error("Détails erreur réponse:", err.response.data)
+        logger.error('Détails erreur réponse', err.response.data)
         error.value = err.response.data.error || 'Erreur lors de la configuration'
         if (err.response.data.exception_message) {
-            console.error("Exception serveur:", err.response.data.exception_message)
+            logger.error('Exception serveur', err.response.data.exception_message)
         }
     } else {
         error.value = 'Erreur réseau ou inconnue'

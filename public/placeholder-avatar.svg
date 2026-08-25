@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Avatar par défaut">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD700" stop-opacity=".9"/>
+      <stop offset="1" stop-color="#CCB000" stop-opacity=".45"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="#16181E"/>
+  <g fill="none" stroke="url(#gold)" stroke-width="7" stroke-linecap="round">
+    <circle cx="100" cy="80" r="30"/>
+    <path d="M46 165c6-32 26-48 54-48s48 16 54 48"/>
+  </g>
+</svg>

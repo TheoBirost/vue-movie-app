@@ -1,0 +1,213 @@
+/* ---------------------------------------------------------------------------
+   Composants CSS partagés.
+   --------------------------------------------------------------------------- */
+
+@layer components {
+    /* --- Carte universelle (films, acteurs, réalisateurs) ---------------------- */
+    .universal-card {
+        position: relative;
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius-card);
+        overflow: hidden;
+        isolation: isolate;
+        transition:
+            border-color var(--duration-base) var(--ease-cinema),
+            transform var(--duration-base) var(--ease-cinema),
+            box-shadow var(--duration-base) var(--ease-cinema);
+    }
+
+    .universal-card:hover,
+    .universal-card:focus-within {
+        border-color: rgb(255 215 0 / 0.35);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lift), var(--shadow-gold);
+    }
+
+    /* Liseré doré qui balaie la carte au survol */
+    .universal-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        background: linear-gradient(
+            105deg,
+            transparent 40%,
+            rgb(255 215 0 / 0.10) 50%,
+            transparent 60%
+        );
+        background-size: 250% 100%;
+        background-position: 180% 0;
+        opacity: 0;
+        transition:
+            opacity var(--duration-fast) linear,
+            background-position var(--duration-slow) var(--ease-cinema);
+    }
+
+    .universal-card:hover::after,
+    .universal-card:focus-within::after {
+        opacity: 1;
+        background-position: -80% 0;
+    }
+
+    /* --- Boutons --------------------------------------------------------------- */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        padding: 0.9rem 2rem;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition:
+            background-color var(--duration-base) var(--ease-cinema),
+            color var(--duration-base) var(--ease-cinema),
+            border-color var(--duration-base) var(--ease-cinema),
+            transform var(--duration-fast) var(--ease-cinema);
+    }
+    .btn:active {
+        transform: scale(0.97);
+    }
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-primary {
+        background-color: var(--color-gold);
+        color: #000;
+    }
+    .btn-primary:hover:not(:disabled) {
+        background-color: var(--color-gold-light);
+    }
+
+    .btn-secondary {
+        background-color: transparent;
+        color: var(--color-gold);
+        border-color: var(--color-gold);
+    }
+    .btn-secondary:hover:not(:disabled) {
+        background-color: var(--color-gold);
+        color: #000;
+    }
+
+    .btn-ghost {
+        background-color: var(--color-surface);
+        color: var(--color-ash);
+        border-color: var(--color-line);
+    }
+    .btn-ghost:hover:not(:disabled) {
+        color: var(--color-chalk);
+        border-color: var(--color-gold);
+    }
+
+    .btn-danger {
+        background-color: transparent;
+        color: var(--color-danger);
+        border-color: color-mix(in srgb, var(--color-danger) 45%, transparent);
+    }
+    .btn-danger:hover:not(:disabled) {
+        background-color: var(--color-danger);
+        color: #fff;
+    }
+
+    /* --- Champs de formulaire -------------------------------------------------- */
+    .field {
+        width: 100%;
+        padding: 0.9rem 1.25rem;
+        background-color: var(--color-surface);
+        color: var(--color-chalk);
+        border: 1px solid var(--color-line);
+        border-radius: 0.5rem;
+        transition:
+            border-color var(--duration-base) var(--ease-cinema),
+            box-shadow var(--duration-base) var(--ease-cinema);
+    }
+    .field::placeholder {
+        color: var(--color-slate);
+    }
+    .field:focus {
+        outline: none;
+        border-color: var(--color-gold);
+        box-shadow: 0 0 0 3px rgb(255 215 0 / 0.12);
+    }
+
+    /* --- Filet de section doré -------------------------------------------------- */
+    .section-rule {
+        height: 1px;
+        background: linear-gradient(
+            to right,
+            transparent,
+            var(--color-gold),
+            transparent
+        );
+        opacity: 0.3;
+    }
+
+    /* --- Squelettes de chargement ---------------------------------------------- */
+    .skeleton {
+        position: relative;
+        overflow: hidden;
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius-card);
+    }
+    .skeleton::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgb(255 255 255 / 0.045),
+            transparent
+        );
+        animation: shimmer 1.6s var(--ease-cinema) infinite;
+    }
+
+    /* --- Barre de progression de lecture --------------------------------------- */
+    .scroll-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 2px;
+        z-index: 60;
+        width: 100%;
+        transform-origin: 0 50%;
+        transform: scaleX(0);
+        background: linear-gradient(
+            to right,
+            var(--color-gold-dark),
+            var(--color-gold),
+            var(--color-gold-light)
+        );
+        pointer-events: none;
+    }
+
+    /* --- Barre d'action collante (mobile) --------------------------------------- */
+    .sticky-cta {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 45;
+        display: flex;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+        background: color-mix(in srgb, var(--color-ink) 88%, transparent);
+        backdrop-filter: blur(12px);
+        border-top: 1px solid var(--color-line);
+    }
+    @media (min-width: 768px) {
+        .sticky-cta { display: none; }
+    }
+
+}

@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from "vue"
 import DirectorForm from "../forms/DirectorForm.vue"
 import ConfirmDeleteDirector from "../modals/ConfirmDeleteDirector.vue"
 import api from '../../../api/api'
+import { logger } from '../../../utils/logger'
 
 const loading = ref(false)
 const showForm = ref(false)
@@ -32,7 +33,7 @@ const fetchDirectors = async () => {
     directors.value = data['hydra:member'] || data['member'] || []
     totalItems.value = data['hydra:totalItems'] || data['totalItems'] || directors.value.length
   } catch (err) {
-    console.error("Erreur lors du chargement des réalisateurs :", err);
+    logger.error('Erreur lors du chargement des réalisateurs', err);
   } finally {
     loading.value = false
   }
@@ -56,7 +57,7 @@ const deleteDirector = async () => {
     directorToDelete.value = null
     fetchDirectors()
   } catch (err) {
-    console.error("Erreur suppression :", err)
+    logger.error('Erreur suppression', err)
   }
 }
 

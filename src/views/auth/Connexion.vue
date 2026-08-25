@@ -1,12 +1,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import { gsap } from 'gsap'
 import api from '/src/api/api.js'
-import ThreeBackground from '../../components/common/ThreeBackground.vue'
+import ParticleField from '../../components/common/ParticleField.vue'
 
 const router = useRouter()
+const route = useRoute()
 const emit = defineEmits(['login-success'])
 
 const email = ref('')
@@ -26,7 +27,7 @@ const handleLoginSuccess = async (token) => {
   const user = userRes.data
 
   const baseUrl = import.meta.env.VITE_API_BASE_URL
-  const photo = user.photo ? `${baseUrl}${user.photo}` : '/default-avatar.png'
+  const photo = user.photo ? `${baseUrl}${user.photo}` : '/placeholder-avatar.svg'
 
   localStorage.setItem('userPhoto', photo)
   if (user.roles && user.roles.length > 0) {
@@ -37,7 +38,14 @@ const handleLoginSuccess = async (token) => {
   }
 
   emit('login-success', photo)
-  await router.push('/')
+
+  // Le garde de route ajoute ?redirect=… quand une page protégée a été
+  // demandée avant connexion : on y retourne au lieu de renvoyer à l'accueil.
+  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
+  // Un chemin interne uniquement : une valeur commençant par // ou http://
+  // permettrait de rediriger la victime vers un site tiers après connexion.
+  const safeRedirect = redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/'
+  await router.push(safeRedirect)
 }
 
 const login = async (e) => {
@@ -111,7 +119,7 @@ onMounted(() => {
 
 <template>
   <div class="min-h-screen bg-[#0d0d0f] flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-    <ThreeBackground />
+    <ParticleField position="fixed" :count="260" :size="1.5" :speed="0.22" />
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.05),transparent_60%)]" aria-hidden="true"></div>
 
     <div class="auth-card w-full max-w-md space-y-8 z-10">

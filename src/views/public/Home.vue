@@ -1,304 +1,287 @@
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
-import * as THREE from 'three'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { computed, nextTick, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useDataStore } from '../../stores/useDataStore'
+import { useMotionPreference } from '../../composables/useMotion'
+import { applyJsonLd, SITE_URL } from '../../composables/useSeo'
 import MovieCard from '../../components/domain/MovieCard.vue'
 import ActorCard from '../../components/domain/ActorCard.vue'
-import { useRouter } from 'vue-router'
+import ParticleField from '../../components/common/ParticleField.vue'
+import CardSkeletonGrid from '../../components/common/CardSkeletonGrid.vue'
 
-gsap.registerPlugin(ScrollTrigger)
-
+const router = useRouter()
 const dataStore = useDataStore()
+const reduced = useMotionPreference()
+
+const loading = ref(true)
+const root = ref(null)
+
 const movies = computed(() => dataStore.movies.slice(0, 4))
 const actors = computed(() => dataStore.actors.slice(0, 4))
-const router = useRouter()
-const loading = ref(false)
-const canvasRef = ref(null)
 
 const goToMovie = (id) => router.push(`/movies/${id}`)
 const goToActor = (id) => router.push(`/actors/${id}`)
 
-// Three.js Scene
-let scene, camera, renderer, particles
-let animationId = null
+/**
+ * Révélation au scroll en IntersectionObserver.
+ *
+ * Le contenu est visible par défaut dans le HTML ; l'observateur ne fait
+ * qu'ajouter une animation d'entrée. Une animation ratée ou interrompue ne
+ * peut donc pas laisser une section bloquée à `opacity: 0` — c'était le risque
+ * de l'approche `gsap.from(..., { opacity: 0 })` précédente.
+ */
+let observer = null
 
-const initThreeJS = () => {
-  if (!canvasRef.value) return
+const observeReveals = () => {
+    if (reduced.value || typeof IntersectionObserver === 'undefined') return
+    observer?.disconnect()
 
-  scene = new THREE.Scene()
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-  renderer = new THREE.WebGLRenderer({
-    canvas: canvasRef.value,
-    alpha: true,
-    antialias: true
-  })
+    const targets = root.value?.querySelectorAll('[data-reveal]') ?? []
+    if (!targets.length) return
 
-  renderer.setSize(window.innerWidth, window.innerHeight)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-  camera.position.z = 5
+    observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return
+                const delay = Number(entry.target.dataset.reveal) * 90
+                entry.target.style.animation = `fade-up 620ms var(--ease-cinema) ${delay}ms both`
+                observer.unobserve(entry.target)
+            })
+        },
+        { rootMargin: '0px 0px -6% 0px', threshold: 0.06 }
+    )
 
-  // Particules dorées
-  const particlesGeometry = new THREE.BufferGeometry()
-  const particlesCount = 5000 // Plus de particules
-  const positions = new Float32Array(particlesCount * 3)
-  const scales = new Float32Array(particlesCount) // Pour des tailles différentes
-
-  for(let i = 0; i < particlesCount; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 100 // Étendue plus large
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 100
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 100
-    scales[i] = Math.random() * 0.8 + 0.2 // Tailles aléatoires
-  }
-
-  particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-  particlesGeometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1))
-
-  const particlesMaterial = new THREE.PointsMaterial({
-    size: 0.1, // Taille de base
-    color: 0xFFD700,
-    transparent: true,
-    opacity: 0.7,
-    blending: THREE.AdditiveBlending,
-    sizeAttenuation: true // Les particules plus éloignées sont plus petites
-  })
-
-  particles = new THREE.Points(particlesGeometry, particlesMaterial)
-  scene.add(particles)
-
-  const animate = () => {
-    animationId = requestAnimationFrame(animate)
-
-    // Animation des particules
-    particles.rotation.y += 0.0008
-    particles.rotation.x += 0.0004
-    particles.position.z += 0.05 // Déplacement léger vers l'avant
-    if (particles.position.z > 10) particles.position.z = -10 // Réinitialiser la position
-
-    renderer.render(scene, camera)
-  }
-
-  animate()
-}
-
-const handleResize = () => {
-  if (camera && renderer) {
-    camera.aspect = window.innerWidth / window.innerHeight
-    camera.updateProjectionMatrix()
-    renderer.setSize(window.innerWidth, window.innerHeight)
-  }
-}
-
-const initScrollTriggers = () => {
-  // Animations au scroll
-  gsap.utils.toArray('.section-title').forEach(title => {
-    gsap.from(title, {
-      scrollTrigger: {
-        trigger: title,
-        start: 'top 85%',
-        toggleActions: 'play none none none'
-      },
-      opacity: 0,
-      y: 50,
-      duration: 0.8,
-      ease: 'power3.out'
-    })
-  })
-
-  gsap.utils.toArray('.movie-card-wrapper, .actor-card-wrapper').forEach((card, index) => {
-    gsap.from(card, {
-      scrollTrigger: {
-        trigger: card,
-        start: 'top 90%',
-        toggleActions: 'play none none none'
-      },
-      opacity: 0,
-      y: 30,
-      delay: (index % 4) * 0.1,
-      duration: 0.6,
-      ease: 'power3.out'
-    })
-  })
+    targets.forEach((el) => observer.observe(el))
 }
 
 onMounted(async () => {
-  loading.value = true
+    applyJsonLd({
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'Cinéaste',
+        url: SITE_URL,
+        inLanguage: 'fr-FR',
+        potentialAction: {
+            '@type': 'SearchAction',
+            target: `${SITE_URL}/movies?search={search_term_string}`,
+            'query-input': 'required name=search_term_string',
+        },
+    })
 
-  initThreeJS()
-  window.addEventListener('resize', handleResize)
-
-  // Animations GSAP
-  gsap.from('.hero-badge', {
-    opacity: 0,
-    scale: 0.5,
-    duration: 0.8,
-    delay: 0.5,
-    ease: 'back.out(2)'
-  })
-
-  gsap.from('.hero-title', {
-    opacity: 0,
-    y: 100,
-    duration: 1.2,
-    delay: 0.7,
-    ease: 'power4.out'
-  })
-
-  gsap.from('.hero-subtitle', {
-    opacity: 0,
-    y: 50,
-    duration: 1,
-    delay: 0.9,
-    ease: 'power3.out'
-  })
-
-  try {
-    await Promise.all([
-        dataStore.fetchMovies(),
-        dataStore.fetchActors()
-    ]);
-
-    // Attendre que Vue mette à jour le DOM
-    await nextTick()
-
-    // Initialiser les animations de scroll
-    initScrollTriggers()
-
-  } catch (err) {
-    // L'intercepteur global gérera l'affichage de l'erreur 429
-    console.error("Erreur lors du chargement des données :", err);
-  } finally {
-    loading.value = false
-  }
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-  if (animationId) cancelAnimationFrame(animationId)
-  if (renderer) renderer.dispose()
-  ScrollTrigger.getAll().forEach(st => st.kill())
+    try {
+        // Les catégories alimentent les puces des cartes de films
+        await Promise.all([
+            dataStore.fetchMovies(),
+            dataStore.fetchActors(),
+            dataStore.fetchCategories(),
+        ])
+    } catch {
+        // L'intercepteur API affiche déjà l'erreur ; on retire juste le squelette
+    } finally {
+        loading.value = false
+        await nextTick()
+        observeReveals()
+    }
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#0d0d0f] relative overflow-hidden">
-    <!-- Hero avec Three.js -->
-    <section class="relative h-screen flex items-center justify-center overflow-hidden" aria-label="Introduction">
-      <canvas ref="canvasRef" class="absolute inset-0 w-full h-full" aria-hidden="true" />
+    <div ref="root" class="relative min-h-screen overflow-hidden bg-[#0d0d0f]">
+        <!-- Héros -->
+        <section
+            class="relative flex min-h-[100svh] items-center justify-center overflow-hidden"
+            aria-labelledby="hero-title"
+        >
+            <ParticleField :count="340" :size="1.8" :speed="0.3" />
 
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.03),transparent_70%)]" aria-hidden="true" />
-      <div class="absolute inset-0 bg-gradient-to-b from-[#0d0d0f]/60 via-transparent to-[#0d0d0f]" aria-hidden="true" />
+            <div
+                class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.05),transparent_65%)]"
+                aria-hidden="true"
+            />
+            <div
+                class="absolute inset-0 bg-gradient-to-b from-[#0d0d0f]/70 via-transparent to-[#0d0d0f]"
+                aria-hidden="true"
+            />
 
-      <div class="relative z-10 text-center px-6 max-w-5xl mx-auto">
-        <div class="hero-badge inline-block px-6 py-2 border border-[#FFD700]/30 rounded-full mb-8 text-[10px] tracking-[0.25em] text-[#FFD700]">
-          PREMIUM FILM COLLECTION
-        </div>
+            <div class="relative z-10 mx-auto max-w-5xl px-6 text-center">
+                <p
+                    class="hero-badge mb-8 inline-block rounded-full border border-[#FFD700]/30 px-6 py-2 text-[10px] tracking-[0.25em] text-[#FFD700]"
+                >
+                    PREMIUM FILM COLLECTION
+                </p>
 
-        <h1 class="hero-title garamond text-7xl md:text-9xl font-bold leading-none mb-6 text-[#FFD700]">
-          CINÉASTE
-        </h1>
+                <h1
+                    id="hero-title"
+                    class="hero-title garamond mb-6 text-7xl font-bold leading-none text-[#FFD700] md:text-9xl"
+                >
+                    CINÉASTE
+                </h1>
 
-        <p class="hero-subtitle text-lg md:text-xl text-white/70 max-w-3xl mx-auto mb-12 leading-relaxed">
-          Explorez une collection exclusive de films et d'acteurs légendaires
-        </p>
+                <p
+                    class="hero-subtitle mx-auto mb-12 max-w-3xl text-lg leading-relaxed text-white/70 md:text-xl"
+                >
+                    Explorez une collection exclusive de films et d'acteurs légendaires
+                </p>
 
-        <div class="flex gap-4 justify-center flex-wrap">
-          <router-link
-              to="/movies"
-              class="px-10 py-4 bg-[#FFD700] hover:bg-[#FFE55C] text-black text-xs tracking-[0.2em] font-bold rounded-lg transition-all hover:scale-105"
-              aria-label="Explorer les films"
-          >
-            EXPLORER LES FILMS
-          </router-link>
-          <router-link
-              to="/actors"
-              class="px-10 py-4 border border-[#FFD700] hover:bg-[#FFD700] hover:text-black text-[#FFD700] text-xs tracking-[0.2em] font-bold rounded-lg transition-all"
-              aria-label="Découvrir les acteurs"
-          >
-            DÉCOUVRIR LES ACTEURS
-          </router-link>
-        </div>
-      </div>
-    </section>
-
-    <!-- Contenu principal -->
-    <div class="max-w-7xl mx-auto px-6 py-24 space-y-24">
-      <div v-if="loading" class="flex justify-center py-20" aria-label="Chargement en cours">
-        <div class="flex gap-2">
-          <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce"></div>
-          <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-          <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-        </div>
-      </div>
-
-      <template v-else>
-        <!-- Films -->
-        <section class="space-y-8" aria-labelledby="latest-movies-title">
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">SÉLECTION</div>
-              <h2 id="latest-movies-title" class="section-title garamond text-5xl md:text-6xl font-bold text-white">
-                Derniers Films
-              </h2>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <router-link to="/movies" class="hero-cta btn btn-primary">
+                        Explorer les films
+                    </router-link>
+                    <router-link to="/actors" class="hero-cta btn btn-secondary">
+                        Découvrir les acteurs
+                    </router-link>
+                </div>
             </div>
-            <router-link
-                to="/movies"
-                class="text-sm text-[#FFD700] hover:text-[#FFE55C] transition-colors tracking-[0.15em]"
-                aria-label="Voir tous les films"
+
+            <!-- Indicateur de défilement -->
+            <div
+                v-if="!reduced"
+                class="absolute bottom-8 left-1/2 z-10 -translate-x-1/2"
+                aria-hidden="true"
             >
-              VOIR TOUT →
-            </router-link>
-          </div>
-
-          <div class="h-px bg-gradient-to-r from-transparent via-[#FFD700] to-transparent opacity-30" aria-hidden="true" />
-
-          <div v-if="movies.length === 0" class="text-center text-white/60 py-12">
-            Aucun film trouvé.
-          </div>
-          <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div v-for="movie in movies" :key="movie.id" class="movie-card-wrapper">
-              <MovieCard
-                  :movie="movie"
-                  @click="goToMovie(movie.id)"
-              />
+                <span class="scroll-hint block h-10 w-[1px] bg-gradient-to-b from-[#FFD700] to-transparent" />
             </div>
-          </div>
         </section>
 
-        <!-- Acteurs -->
-        <section class="space-y-8" aria-labelledby="legendary-actors-title">
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">TALENTS</div>
-              <h2 id="legendary-actors-title" class="section-title garamond text-5xl md:text-6xl font-bold text-white">
-                Acteurs Légendaires
-              </h2>
-            </div>
-            <router-link
-                to="/actors"
-                class="text-sm text-[#FFD700] hover:text-[#FFE55C] transition-colors tracking-[0.15em]"
-                aria-label="Voir tous les acteurs"
-            >
-              VOIR TOUT →
-            </router-link>
-          </div>
+        <!-- Contenu — pb supplémentaire sous la barre d'action mobile -->
+        <div class="mx-auto max-w-7xl space-y-24 px-6 pb-40 pt-24 md:pb-24">
+            <!-- Films -->
+            <section aria-labelledby="latest-movies" class="space-y-8">
+                <div data-reveal="0" class="flex items-end justify-between gap-6">
+                    <div>
+                        <p class="eyebrow mb-2">Sélection</p>
+                        <h2
+                            id="latest-movies"
+                            class="garamond text-5xl font-bold text-white md:text-6xl"
+                        >
+                            Derniers films
+                        </h2>
+                    </div>
+                    <router-link
+                        to="/movies"
+                        class="flex-shrink-0 text-sm tracking-[0.15em] text-[#FFD700] transition-colors hover:text-[#FFE55C]"
+                    >
+                        VOIR TOUT →
+                    </router-link>
+                </div>
 
-          <div class="h-px bg-gradient-to-r from-transparent via-[#FFD700] to-transparent opacity-30" aria-hidden="true" />
+                <div data-reveal="1" class="section-rule" />
 
-          <div v-if="actors.length === 0" class="text-center text-white/60 py-12">
-            Aucun acteur trouvé.
-          </div>
-          <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div v-for="actor in actors" :key="actor.id" class="actor-card-wrapper">
-              <ActorCard
-                  :actor="actor"
-                  @click="goToActor(actor.id)"
-              />
+                <CardSkeletonGrid
+                    v-if="loading"
+                    :count="4"
+                    media-class="h-64"
+                    label="Chargement des films"
+                />
+                <p v-else-if="!movies.length" class="py-12 text-center text-white/60">
+                    Aucun film trouvé.
+                </p>
+                <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <div
+                        v-for="(movie, index) in movies"
+                        :key="movie.id"
+                        :data-reveal="index"
+                        @click="goToMovie(movie.id)"
+                    >
+                        <MovieCard :movie="movie" />
+                    </div>
+                </div>
+            </section>
+
+            <!-- Acteurs -->
+            <section aria-labelledby="legendary-actors" class="space-y-8">
+                <div data-reveal="0" class="flex items-end justify-between gap-6">
+                    <div>
+                        <p class="eyebrow mb-2">Talents</p>
+                        <h2
+                            id="legendary-actors"
+                            class="garamond text-5xl font-bold text-white md:text-6xl"
+                        >
+                            Acteurs légendaires
+                        </h2>
+                    </div>
+                    <router-link
+                        to="/actors"
+                        class="flex-shrink-0 text-sm tracking-[0.15em] text-[#FFD700] transition-colors hover:text-[#FFE55C]"
+                    >
+                        VOIR TOUT →
+                    </router-link>
+                </div>
+
+                <div data-reveal="1" class="section-rule" />
+
+                <CardSkeletonGrid
+                    v-if="loading"
+                    :count="4"
+                    media-class="h-72"
+                    label="Chargement des acteurs"
+                />
+                <p v-else-if="!actors.length" class="py-12 text-center text-white/60">
+                    Aucun acteur trouvé.
+                </p>
+                <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <div
+                        v-for="(actor, index) in actors"
+                        :key="actor.id"
+                        :data-reveal="index"
+                        @click="goToActor(actor.id)"
+                    >
+                        <ActorCard :actor="actor" />
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!--
+          Action principale toujours atteignable au pouce sur mobile.
+
+          Téléportée vers <body>, tout en restant écrite ici : la vue est
+          enveloppée par la transition de page, qui applique un `transform` le
+          temps du fondu. Un enfant `position: fixed` se positionnerait alors
+          par rapport à la vue et non par rapport à l'écran — la barre
+          sauterait à chaque navigation. Le <Teleport> reste à l'intérieur de
+          la racine pour que la vue conserve un élément racine unique, ce
+          qu'exige le <Transition> de App.vue.
+        -->
+        <Teleport to="body">
+            <div class="sticky-cta">
+                <router-link to="/movies" class="btn btn-primary flex-1">
+                    Explorer
+                </router-link>
+                <router-link to="/actors" class="btn btn-secondary flex-1">
+                    Acteurs
+                </router-link>
             </div>
-          </div>
-        </section>
-      </template>
+        </Teleport>
     </div>
-  </div>
 </template>
+
+<style scoped>
+/*
+ * Intro du héros en CSS : une timeline GSAP pour quatre fondus enchaînés ne
+ * justifiait pas de charger 28 ko gzip sur la page d'accueil. `both` conserve
+ * l'état final ; la règle `prefers-reduced-motion` globale neutralise le tout.
+ */
+.hero-badge,
+.hero-title,
+.hero-subtitle,
+.hero-cta {
+    animation: fade-up 800ms var(--ease-cinema) both;
+}
+.hero-badge    { animation-delay: 150ms; }
+.hero-title    { animation-delay: 300ms; }
+.hero-subtitle { animation-delay: 480ms; }
+.hero-cta:nth-of-type(1) { animation-delay: 620ms; }
+.hero-cta:nth-of-type(2) { animation-delay: 720ms; }
+
+.scroll-hint {
+    animation: scroll-hint 2.2s var(--ease-cinema) infinite;
+    transform-origin: top;
+}
+
+@keyframes scroll-hint {
+    0%, 100% { transform: scaleY(0.35); opacity: 0.35; }
+    50%      { transform: scaleY(1); opacity: 1; }
+}
+
+</style>

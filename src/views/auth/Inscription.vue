@@ -3,7 +3,7 @@ import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { gsap } from 'gsap'
-import ThreeBackground from '../../components/common/ThreeBackground.vue'
+import ParticleField from '../../components/common/ParticleField.vue'
 
 const router = useRouter()
 
@@ -51,11 +51,22 @@ const removePhoto = () => {
   if (fileInput) fileInput.value = ''
 }
 
-const uploadPhoto = async (file) => {
+/**
+ * Envoie l'avatar une fois le compte créé et le jeton obtenu.
+ *
+ * L'ordre compte : l'envoi se faisait auparavant AVANT l'inscription, sur un
+ * endpoint ouvert à tout Internet. Le déplacer après l'authentification permet
+ * d'exiger un compte côté API, et un avatar qui échoue ne fait plus perdre
+ * l'inscription elle-même.
+ */
+const uploadPhoto = async (file, token) => {
   const formData = new FormData()
   formData.append('file', file)
   const response = await apiPublic.post('/media_objects', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      Authorization: `Bearer ${token}`,
+    },
   })
   return response.data['@id'] || `/api/media_objects/${response.data.id}`
 }
@@ -67,23 +78,46 @@ const register = async (e) => {
   isLoading.value = true
 
   try {
-    let photoIri = null
-    if (photoFile.value) photoIri = await uploadPhoto(photoFile.value)
+    const { data: created } = await apiPublic.post(
+      import.meta.env.VITE_API_URL_REGISTER,
+      {
+        firstname: firstname.value,
+        lastname: lastname.value,
+        email: email.value,
+        plainPassword: password.value,
+        dob: dob.value,
+      },
+      { headers: { 'Content-Type': 'application/ld+json' } }
+    )
 
-    const userData = {
-      firstname: firstname.value,
-      lastname: lastname.value,
-      email: email.value,
-      plainPassword: password.value,
-      dob: dob.value,
+    if (photoFile.value) {
+      try {
+        const { data: auth } = await apiPublic.post(
+          import.meta.env.VITE_API_URL_AUTH,
+          { email: email.value, password: password.value }
+        )
+        const photoIri = await uploadPhoto(photoFile.value, auth.token)
+        await apiPublic.patch(
+          `/users/${created.id}`,
+          { photo: photoIri },
+          {
+            headers: {
+              'Content-Type': 'application/merge-patch+json',
+              Authorization: `Bearer ${auth.token}`,
+            },
+          }
+        )
+      } catch {
+        // Le compte existe : on n'annule pas l'inscription pour un avatar.
+        // Il pourra être ajouté depuis le profil.
+        successMessage.value =
+          'Compte créé. La photo n’a pas pu être envoyée, vous pourrez l’ajouter depuis votre profil.'
+      }
     }
-    if (photoIri) userData.photo = photoIri
 
-    await apiPublic.post(import.meta.env.VITE_API_URL_REGISTER, userData, {
-      headers: { 'Content-Type': 'application/ld+json' }
-    })
-
-    successMessage.value = 'Compte créé avec succès ! Redirection...'
+    if (!successMessage.value) {
+      successMessage.value = 'Compte créé avec succès ! Redirection...'
+    }
     setTimeout(() => router.push('/connexion'), 2000)
   } catch (error) {
     errorMessage.value =
@@ -114,7 +148,7 @@ onMounted(() => {
 
 <template>
   <div class="min-h-screen bg-[#0d0d0f] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 relative overflow-hidden">
-    <ThreeBackground />
+    <ParticleField position="fixed" :count="260" :size="1.5" :speed="0.22" />
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.05),transparent_60%)]" aria-hidden="true"></div>
 
     <div class="auth-card w-full max-w-lg space-y-8 z-10">
@@ -134,7 +168,7 @@ onMounted(() => {
       <form class="mt-8 space-y-6 bg-[#16181E] p-8 rounded-lg shadow-2xl border border-[#2A2D36]" @submit="register">
         <div class="flex flex-col items-center space-y-4">
           <div class="relative">
-            <img :src="photoPreview || '/default-avatar.png'" alt="Aperçu de l'avatar" class="w-24 h-24 rounded-full object-cover border-4 border-[#2A2D36]">
+            <img :src="photoPreview || '/placeholder-avatar.svg'" alt="Aperçu de l'avatar" class="w-24 h-24 rounded-full object-cover border-4 border-[#2A2D36]">
             <button v-if="photoPreview" @click="removePhoto" type="button" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-all" aria-label="Supprimer la photo">&times;</button>
           </div>
           <label for="photo-upload" class="cursor-pointer px-4 py-2 border border-[#FFD700] text-[#FFD700] rounded-lg text-sm hover:bg-[#FFD700] hover:text-black transition-colors">

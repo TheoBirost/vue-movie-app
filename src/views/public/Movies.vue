@@ -1,213 +1,228 @@
 <script setup>
-import { ref, onMounted, watch, nextTick, computed } from "vue"
-import { useRouter, useRoute } from "vue-router"
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useDataStore } from '../../stores/useDataStore'
-import MovieCard from "../../components/domain/MovieCard.vue"
-import api from '/src/api/api.js'
+import { useMotionPreference } from '../../composables/useMotion'
+import { applySeo } from '../../composables/useSeo'
+import api from '../../api/api.js'
+import MovieCard from '../../components/domain/MovieCard.vue'
+import PageHeader from '../../components/common/PageHeader.vue'
+import SearchField from '../../components/common/SearchField.vue'
+import PaginationNav from '../../components/common/PaginationNav.vue'
+import CardSkeletonGrid from '../../components/common/CardSkeletonGrid.vue'
+import EmptyState from '../../components/common/EmptyState.vue'
 
-gsap.registerPlugin(ScrollTrigger)
+const PER_PAGE = 12
+const SEARCH_DEBOUNCE_MS = 400
 
 const router = useRouter()
 const route = useRoute()
 const dataStore = useDataStore()
+const reduced = useMotionPreference()
 
-const search = ref("")
-const page = ref(1)
-const loading = ref(false)
+const search = ref(typeof route.query.search === 'string' ? route.query.search : '')
+const page = ref(Number(route.query.page) || 1)
+const loading = ref(true)
 const movies = ref([])
 const totalItems = ref(0)
-const categoryName = ref("")
+const categoryName = ref('')
+const grid = ref(null)
 
-const limit = 12
+const totalPages = computed(() => Math.max(1, Math.ceil(totalItems.value / PER_PAGE)))
 
-const totalPages = computed(() => {
-  return Math.max(1, Math.ceil(totalItems.value / limit));
-});
+/**
+ * Une requête par frappe saturait le limiteur de l'API (5 requêtes/minute pour
+ * un visiteur anonyme) : taper « Matrix » suffisait à déclencher un 429.
+ * On attend donc une pause de saisie, et on annule la requête précédente.
+ */
+let debounceId = null
+let controller = null
 
 const fetchMovies = async () => {
-  loading.value = true
-  try {
-    const params = {
-      page: page.value,
-      itemsPerPage: limit,
-      'groups[]': ['movie:read', 'movie:categories']
+    controller?.abort()
+    controller = new AbortController()
+    loading.value = true
+
+    try {
+        const params = {
+            page: page.value,
+            itemsPerPage: PER_PAGE,
+            'groups[]': ['movie:read', 'movie:categories'],
+        }
+
+        if (route.query.category) params['categories.id'] = route.query.category
+        if (search.value.trim()) params.name = search.value.trim()
+
+        const { data } = await api.get('/movies', { params, signal: controller.signal })
+
+        movies.value = data['hydra:member'] ?? data.member ?? []
+        totalItems.value = data['hydra:totalItems'] ?? data.totalItems ?? movies.value.length
+
+        await nextTick()
+        revealCards()
+    } catch (error) {
+        // Une requête annulée n'est pas une erreur : la suivante est déjà partie
+        if (error.name === 'CanceledError' || error.code === 'ERR_CANCELED') return
+        movies.value = []
+        totalItems.value = 0
+    } finally {
+        if (!controller?.signal.aborted) loading.value = false
     }
-
-    // Si une catégorie est sélectionnée dans l'URL
-    if (route.query.category) {
-      params['categories.id'] = route.query.category
-
-      // Récupérer le nom de la catégorie pour le titre
-      try {
-        const catRes = await api.get(`/categories/${route.query.category}`)
-        categoryName.value = catRes.data.name
-      } catch (e) {
-        console.error("Erreur récupération catégorie", e)
-      }
-    } else {
-      categoryName.value = ""
-    }
-
-    // Si une recherche textuelle est active (prioritaire sur le store pour la recherche globale)
-    if (search.value) {
-      params['name'] = search.value
-    }
-
-    const response = await api.get('/movies', { params })
-    const data = response.data
-    movies.value = data['hydra:member'] || data['member'] || []
-    totalItems.value = data['hydra:totalItems'] || data['totalItems'] || movies.value.length
-
-    await nextTick()
-    animateCards()
-  } catch (err) {
-    console.error("Erreur lors du chargement des données :", err);
-  } finally {
-    loading.value = false
-  }
 }
 
-const animateCards = () => {
-  if (document.querySelectorAll('.movie-card-wrapper').length > 0) {
-    gsap.from('.movie-card-wrapper', {
-      opacity: 0,
-      y: 50,
-      duration: 0.6,
-      stagger: 0.1,
-      ease: 'power3.out'
+const fetchCategoryName = async () => {
+    if (!route.query.category) {
+        categoryName.value = ''
+        return
+    }
+    // Le nom vient du store quand il est déjà chargé, sinon une requête ciblée
+    const cached = dataStore.categories.find((c) => String(c.id) === String(route.query.category))
+    if (cached) {
+        categoryName.value = cached.name
+        return
+    }
+    try {
+        const { data } = await api.get(`/categories/${route.query.category}`)
+        categoryName.value = data.name ?? ''
+    } catch {
+        categoryName.value = ''
+    }
+}
+
+/** Entrée en cascade des cartes, sans jamais les rendre invisibles au départ. */
+const revealCards = () => {
+    if (reduced.value || !grid.value) return
+    grid.value.querySelectorAll('[data-card]').forEach((card, index) => {
+        card.style.animation = `fade-up 520ms var(--ease-cinema) ${Math.min(index, 8) * 55}ms both`
     })
-  }
 }
 
-const goToMovie = (id) => router.push(`/movies/${id}`)
+const heading = computed(() =>
+    categoryName.value ? `Films — ${categoryName.value}` : 'Films'
+)
 
-// Watchers
+/** Garde l'URL en phase avec l'état : la recherche devient partageable. */
+const syncUrl = () => {
+    const query = { ...route.query }
+
+    if (search.value.trim()) query.search = search.value.trim()
+    else delete query.search
+
+    if (page.value > 1) query.page = String(page.value)
+    else delete query.page
+
+    router.replace({ query })
+}
+
 watch(search, () => {
-  page.value = 1;
-  fetchMovies();
-});
+    page.value = 1
+    clearTimeout(debounceId)
+    debounceId = setTimeout(() => {
+        syncUrl()
+        fetchMovies()
+    }, SEARCH_DEBOUNCE_MS)
+})
 
 watch(page, () => {
-  fetchMovies();
-});
+    syncUrl()
+    fetchMovies()
+    window.scrollTo({ top: 0, behavior: reduced.value ? 'auto' : 'smooth' })
+})
 
-watch(() => route.query.category, () => {
-  page.value = 1;
-  fetchMovies();
-});
+watch(
+    () => route.query.category,
+    async () => {
+        page.value = 1
+        await fetchCategoryName()
+        applySeo({
+            title: heading.value,
+            description: `Films du catalogue${categoryName.value ? ` — genre ${categoryName.value}` : ''}.`,
+            path: route.path,
+        })
+        fetchMovies()
+    }
+)
 
 onMounted(async () => {
-  await fetchMovies()
+    // Les catégories alimentent les puces des cartes
+    dataStore.fetchCategories().catch(() => {})
+    await fetchCategoryName()
+    if (categoryName.value) {
+        applySeo({
+            title: heading.value,
+            description: `Films du catalogue — genre ${categoryName.value}.`,
+            path: route.path,
+        })
+    }
+    await fetchMovies()
+})
 
-  // Animations initiales
-  gsap.from('.page-title', {
-    opacity: 0,
-    y: -50,
-    duration: 0.8,
-    ease: 'power3.out'
-  })
-
-  gsap.from('.search-bar', {
-    opacity: 0,
-    y: 30,
-    duration: 0.8,
-    delay: 0.2,
-    ease: 'power3.out'
-  })
+onUnmounted(() => {
+    clearTimeout(debounceId)
+    controller?.abort()
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#0d0d0f]">
-    <div class="max-w-7xl mx-auto px-6 py-20 space-y-12">
+    <div class="min-h-screen bg-[#0d0d0f]">
+        <div class="mx-auto max-w-7xl space-y-12 px-6 py-20 md:py-28">
+            <PageHeader
+                eyebrow="Collection"
+                :title="heading"
+                :subtitle="
+                    totalItems
+                        ? `${totalItems} film${totalItems > 1 ? 's' : ''} au catalogue`
+                        : ''
+                "
+            />
 
+            <SearchField
+                id="movie-search"
+                v-model="search"
+                label="Rechercher un film"
+                placeholder="Rechercher un film…"
+                :result-count="loading ? null : totalItems"
+            />
 
-      <div class="flex justify-between items-end">
-        <div class="page-title">
-          <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">COLLECTION</div>
-          <h1 class="garamond text-6xl md:text-7xl font-bold text-white mb-3">
-            {{ categoryName ? `Films - ${categoryName}` : 'Films' }}
-          </h1>
-          <div class="h-1 w-24 bg-gradient-to-r from-[#FFD700] to-transparent" />
+            <CardSkeletonGrid
+                v-if="loading"
+                :count="8"
+                media-class="h-64"
+                label="Chargement des films"
+            />
+
+            <div
+                v-else-if="movies.length"
+                ref="grid"
+                class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4"
+            >
+                <div
+                    v-for="movie in movies"
+                    :key="movie.id"
+                    data-card
+                    @click="router.push(`/movies/${movie.id}`)"
+                >
+                    <MovieCard :movie="movie" />
+                </div>
+            </div>
+
+            <EmptyState v-else message="Aucun film ne correspond à cette recherche.">
+                <template #action>
+                    <button
+                        v-if="search || categoryName"
+                        type="button"
+                        class="btn btn-secondary"
+                        @click="
+                            search = '';
+                            router.push('/movies')
+                        "
+                    >
+                        Voir tous les films
+                    </button>
+                </template>
+            </EmptyState>
+
+            <PaginationNav v-model="page" :total-pages="totalPages" />
         </div>
-      </div>
-
-      <div class="search-bar">
-        <div class="relative">
-          <label for="movie-search" class="sr-only">Rechercher un film</label>
-          <input
-              id="movie-search"
-              v-model="search"
-              placeholder="Rechercher un film..."
-              class="w-full px-6 py-4 bg-[#16181E] text-white border border-[#2A2D36] rounded-lg focus:outline-none focus:border-[#FFD700] transition-all text-lg"
-          />
-          <svg class="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-[#FFD700]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-          </svg>
-        </div>
-      </div>
-
-      <!-- Loading -->
-      <div v-if="loading" class="flex items-center justify-center min-h-[40vh]" aria-label="Chargement en cours">
-        <div class="flex gap-2">
-          <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce"></div>
-          <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-          <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-        </div>
-      </div>
-
-      <!-- Grille de films -->
-      <div v-else-if="movies.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div v-for="movie in movies" :key="movie.id" class="movie-card-wrapper group"
-             @mouseenter="gsap.to($event.currentTarget, { scale: 1.03, duration: 0.3, ease: 'power2.out' })"
-             @mouseleave="gsap.to($event.currentTarget, { scale: 1,  duration: 0.3, ease: 'power2.out' })">
-          <div @click="goToMovie(movie.id)">
-            <MovieCard :movie="movie" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty state -->
-      <div v-else class="text-center py-20">
-        <div class="inline-block p-6 bg-[#16181E] rounded-full mb-6">
-          <svg class="w-12 h-12 text-[#FFD700]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
-          </svg>
-        </div>
-        <p class="text-[#C1C1C7] text-lg">Aucun film trouvé</p>
-        <button v-if="categoryName" @click="router.push('/movies')" class="mt-4 text-[#FFD700] hover:underline">Voir tous les films</button>
-      </div>
-
-      <!-- Pagination -->
-      <div v-if="totalPages > 1" class="flex justify-center items-center gap-6 pt-8">
-        <button
-            :disabled="page === 1"
-            @click="page--"
-            class="w-12 h-12 rounded-lg bg-[#16181E] border border-[#2A2D36] hover:border-[#FFD700] disabled:opacity-30 disabled:cursor-not-allowed transition-all text-white flex items-center justify-center"
-            aria-label="Page précédente"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-          </svg>
-        </button>
-
-        <span class="text-[#C1C1C7] tracking-[0.2em] text-sm">
-          PAGE <span class="text-[#FFD700] font-bold">{{ page }}</span> / {{ totalPages }}
-        </span>
-
-        <button
-            :disabled="page === totalPages"
-            @click="page++"
-            class="w-12 h-12 rounded-lg bg-[#16181E] border border-[#2A2D36] hover:border-[#FFD700] disabled:opacity-30 disabled:cursor-not-allowed transition-all text-white flex items-center justify-center"
-            aria-label="Page suivante"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-          </svg>
-        </button>
-      </div>
     </div>
-  </div>
 </template>

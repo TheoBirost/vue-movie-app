@@ -1,0 +1,51 @@
+/* ---------------------------------------------------------------------------
+   Design tokens — identité "Cinéaste" (thème sombre unique).
+   Déclarés dans @theme : Tailwind v4 en génère les utilitaires (bg-ink,
+   text-gold, border-line…) ET les expose en variables CSS sur :root.
+   --------------------------------------------------------------------------- */
+@theme {
+    /* Fonds */
+    --color-ink: #0d0d0f;
+    --color-surface: #16181E;
+    --color-surface-2: #1E2129;
+    --color-line: #2A2D36;
+
+    /* Or cinématographique */
+    --color-gold: #FFD700;
+    --color-gold-light: #FFE55C;
+    --color-gold-dark: #CCB000;
+
+    /* Textes */
+    --color-chalk: #F5F5F7;
+    --color-ash: #C1C1C7;
+    --color-slate: #82828A;
+
+    /* États */
+    --color-danger: #EF4444;
+    --color-success: #4ADE80;
+
+    /* Typographie */
+    --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+    /* Courbes d'animation partagées entre CSS et GSAP */
+    --ease-cinema: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+    --ease-in-expo: cubic-bezier(0.95, 0.05, 0.795, 0.035);
+
+    /* Durées : mises à 0.01ms plus bas si prefers-reduced-motion */
+    --duration-fast: 180ms;
+    --duration-base: 320ms;
+    --duration-slow: 700ms;
+}
+
+:root {
+    --radius-card: 6px;
+    --shadow-gold: 0 18px 40px -24px rgb(255 215 0 / 0.45);
+    --shadow-lift: 0 24px 48px -28px rgb(0 0 0 / 0.85);
+
+    /* Hauteur de la navbar, utilisée pour le scroll-padding et les offsets */
+    --nav-height: 6rem;
+
+    color-scheme: dark;
+}

@@ -1,5 +1,18 @@
 import { defineStore } from 'pinia';
 import api from '../api/api';
+import { logger } from '../utils/logger';
+
+/**
+ * Taille de page demandée pour les collections chargées « en entier »
+ * (acteurs, réalisateurs, catégories : filtrés et paginés côté client).
+ *
+ * Cette valeur est plafonnée côté serveur par
+ * `api_platform.defaults.pagination_maximum_items_per_page`. Le code demandait
+ * auparavant 1000 : le serveur en renvoyait 24 sans le signaler, et les vues
+ * paginaient sur ces 24 éléments en croyant tenir tout le catalogue. Les deux
+ * valeurs doivent rester cohérentes.
+ */
+const PAGE_SIZE_ALL = 200;
 
 export const useDataStore = defineStore('data', {
   state: () => ({
@@ -21,13 +34,13 @@ export const useDataStore = defineStore('data', {
       try {
         const response = await api.get('/movies', {
           params: {
-            itemsPerPage: 1000,
+            itemsPerPage: PAGE_SIZE_ALL,
             'groups[]': ['movie:read', 'movie:categories']
           }
         });
         this.movies = response.data['hydra:member'] || response.data.member || [];
       } catch (error) {
-        console.error("Error fetching movies:", error);
+        logger.error('store:movies', error);
         throw error;
       } finally {
         this.isFetchingMovies = false;
@@ -39,13 +52,13 @@ export const useDataStore = defineStore('data', {
       try {
         const response = await api.get('/actors', {
           params: {
-            itemsPerPage: 1000,
+            itemsPerPage: PAGE_SIZE_ALL,
             'groups[]': 'actor:read'
           }
         });
         this.actors = response.data['hydra:member'] || response.data.member || [];
       } catch (error) {
-        console.error("Error fetching actors:", error);
+        logger.error('store:actors', error);
         throw error;
       } finally {
         this.isFetchingActors = false;
@@ -56,11 +69,11 @@ export const useDataStore = defineStore('data', {
       this.isFetchingDirectors = true;
       try {
         const response = await api.get('/directors', {
-          params: { itemsPerPage: 1000 }
+          params: { itemsPerPage: PAGE_SIZE_ALL }
         });
         this.directors = response.data['hydra:member'] || response.data.member || [];
       } catch (error) {
-        console.error("Error fetching directors:", error);
+        logger.error('store:directors', error);
         throw error;
       } finally {
         this.isFetchingDirectors = false;
@@ -71,11 +84,11 @@ export const useDataStore = defineStore('data', {
       this.isFetchingCategories = true;
       try {
         const response = await api.get('/categories', {
-          params: { itemsPerPage: 1000 }
+          params: { itemsPerPage: PAGE_SIZE_ALL }
         });
         this.categories = response.data['hydra:member'] || response.data.member || [];
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        logger.error('store:categories', error);
         throw error;
       } finally {
         this.isFetchingCategories = false;
@@ -88,7 +101,7 @@ export const useDataStore = defineStore('data', {
         const response = await api.get(import.meta.env.VITE_API_URL_USER);
         this.user = response.data;
       } catch (error) {
-        console.error("Error fetching user:", error);
+        logger.error('store:user', error);
         this.user = null;
         throw error;
       } finally {

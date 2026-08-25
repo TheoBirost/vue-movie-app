@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { applySeo } from './composables/useSeo'
+import { readSession, clearSession } from './auth/session'
 
 const Connexion = () => import('./views/auth/Connexion.vue')
 const Inscription = () => import('./views/auth/Inscription.vue')
@@ -12,53 +14,184 @@ const Directors = () => import('./views/public/Directors.vue')
 const DirectorDetails = () => import('./views/details/DirectorDetails.vue')
 const Profile = () => import('./views/public/Profile.vue')
 const AdminPanel = () => import('./views/admin/Admin.vue')
+const LegalNotice = () => import('./views/legal/LegalNotice.vue')
+const PrivacyPolicy = () => import('./views/legal/PrivacyPolicy.vue')
 const ServerError = () => import('./views/errors/ServerError.vue')
 const NotFound = () => import('./views/errors/NotFound.vue')
 
-const getUserRole = () => localStorage.getItem('role') || 'user'
-
 const routes = [
-    { path: '/', component: Home, meta: { title: 'Accueil - Vue Movie App' } },
-    { path: '/connexion', component: Connexion, meta: { hideNavbar: true, title: 'Connexion - Vue Movie App' } },
-    { path: '/inscription', component: Inscription, meta: { hideNavbar: true, title: 'Inscription - Vue Movie App' } },
-    { path: '/movies', component: Movies, meta: { title: 'Films - Vue Movie App' } },
-    { path: '/movies/:id', component: MovieDetails, meta: { title: 'Détails du film - Vue Movie App' } },
-    { path: '/actors', component: Actors, meta: { title: 'Acteurs - Vue Movie App' } },
-    { path: '/actors/:id', component: ActorDetails, meta: { title: 'Détails de l\'acteur - Vue Movie App' } },
-    { path: '/categories', component: Categories, meta: { title: 'Catégories - Vue Movie App' } },
-    { path: '/directors', component: Directors, meta: { title: 'Réalisateurs - Vue Movie App' } },
-    { path: '/directors/:id', component: DirectorDetails, meta: { title: 'Détails du réalisateur - Vue Movie App' } },
-    { path: '/profile', component: Profile, meta: { requiresAuth: true, title: 'Mon Profil - Vue Movie App' } },
-    { path: '/admin', component: AdminPanel, meta: { requiresAuth: true, requiresAdmin: true, title: 'Administration - Vue Movie App' } },
-    { path: '/500', component: ServerError, meta: { title: 'Erreur Serveur - Vue Movie App' } },
-    { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound, meta: { title: 'Page Non Trouvée - Vue Movie App' } },
+    {
+        path: '/',
+        name: 'home',
+        component: Home,
+        meta: {
+            title: null, // titre racine du site
+            description:
+                "Explorez une collection de films, d'acteurs et de réalisateurs : fiches détaillées, genres et avis de la communauté.",
+        },
+    },
+    {
+        path: '/connexion',
+        name: 'login',
+        component: Connexion,
+        meta: {
+            hideChrome: true,
+            title: 'Connexion',
+            description: 'Connectez-vous à votre compte Cinéaste pour retrouver vos avis et votre profil.',
+            noindex: true,
+        },
+    },
+    {
+        path: '/inscription',
+        name: 'register',
+        component: Inscription,
+        meta: {
+            hideChrome: true,
+            title: 'Inscription',
+            description: 'Créez un compte Cinéaste pour publier des avis et suivre vos films.',
+            noindex: true,
+        },
+    },
+    {
+        path: '/movies',
+        name: 'movies',
+        component: Movies,
+        meta: {
+            title: 'Films',
+            description: 'Parcourez le catalogue de films : recherche par titre, filtrage par genre et fiches détaillées.',
+        },
+    },
+    {
+        path: '/movies/:id',
+        name: 'movie-details',
+        component: MovieDetails,
+        meta: { title: 'Film', description: 'Fiche détaillée du film : synopsis, casting, genres et avis.' },
+    },
+    {
+        path: '/actors',
+        name: 'actors',
+        component: Actors,
+        meta: {
+            title: 'Acteurs',
+            description: 'Découvrez les acteurs du catalogue et leur filmographie.',
+        },
+    },
+    {
+        path: '/actors/:id',
+        name: 'actor-details',
+        component: ActorDetails,
+        meta: { title: 'Acteur', description: "Biographie et filmographie de l'acteur." },
+    },
+    {
+        path: '/categories',
+        name: 'categories',
+        component: Categories,
+        meta: {
+            title: 'Catégories',
+            description: 'Tous les genres du catalogue : drame, science-fiction, documentaire, biographie…',
+        },
+    },
+    {
+        path: '/directors',
+        name: 'directors',
+        component: Directors,
+        meta: {
+            title: 'Réalisateurs',
+            description: 'Découvrez les réalisateurs du catalogue et les films qu’ils ont signés.',
+        },
+    },
+    {
+        path: '/directors/:id',
+        name: 'director-details',
+        component: DirectorDetails,
+        meta: { title: 'Réalisateur', description: 'Biographie et filmographie du réalisateur.' },
+    },
+    {
+        path: '/profile',
+        name: 'profile',
+        component: Profile,
+        meta: { requiresAuth: true, title: 'Mon profil', noindex: true },
+    },
+    {
+        path: '/admin',
+        name: 'admin',
+        component: AdminPanel,
+        meta: { requiresAuth: true, requiresAdmin: true, title: 'Administration', noindex: true },
+    },
+    {
+        path: '/mentions-legales',
+        name: 'legal-notice',
+        component: LegalNotice,
+        meta: {
+            title: 'Mentions légales',
+            description: 'Éditeur, hébergeur et conditions d’utilisation du site Cinéaste.',
+        },
+    },
+    {
+        path: '/confidentialite',
+        name: 'privacy',
+        component: PrivacyPolicy,
+        meta: {
+            title: 'Politique de confidentialité',
+            description: 'Données collectées, finalités, durées de conservation et exercice de vos droits (RGPD).',
+        },
+    },
+    {
+        path: '/500',
+        name: 'server-error',
+        component: ServerError,
+        meta: { title: 'Erreur serveur', noindex: true },
+    },
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'not-found',
+        component: NotFound,
+        meta: { title: 'Page introuvable', noindex: true },
+    },
 ]
 
 const router = createRouter({
     history: createWebHistory(),
     routes,
     scrollBehavior(to, from, savedPosition) {
-        if (savedPosition) {
-            return savedPosition
-        } else {
-            return { top: 0 }
-        }
-    }
+        if (savedPosition) return savedPosition
+        if (to.hash) return { el: to.hash, behavior: 'smooth' }
+        // `behavior: 'auto'` neutralise le `scroll-behavior: smooth` global :
+        // un changement de page doit repartir en haut instantanément, pas
+        // dérouler toute la page précédente sous les yeux du visiteur.
+        return { top: 0, behavior: 'auto' }
+    },
 })
 
-router.beforeEach((to, from, next) => {
-    const loggedIn = localStorage.getItem('loggedIn') === 'true'
-    const role = getUserRole()
+router.beforeEach((to) => {
+    const session = readSession()
 
-    document.title = to.meta.title || 'Vue Movie App'
+    // Un jeton expiré équivaut à une déconnexion : on nettoie avant d'arbitrer
+    if (!session.valid) clearSession()
 
-    if (to.meta.requiresAuth && !loggedIn) {
-        next('/connexion')
-    } else if (to.meta.requiresAdmin && role !== 'admin') {
-        next('/')
-    } else {
-        next()
+    if (to.meta.requiresAuth && !session.valid) {
+        return { name: 'login', query: { redirect: to.fullPath } }
     }
+
+    if (to.meta.requiresAdmin && !session.isAdmin) {
+        return { name: 'home' }
+    }
+
+    // Un utilisateur déjà connecté n'a rien à faire sur connexion/inscription
+    if (session.valid && (to.name === 'login' || to.name === 'register')) {
+        return { name: 'home' }
+    }
+
+    return true
+})
+
+router.afterEach((to) => {
+    applySeo({
+        title: to.meta.title,
+        description: to.meta.description,
+        path: to.path,
+        noindex: Boolean(to.meta.noindex),
+    })
 })
 
 export default router

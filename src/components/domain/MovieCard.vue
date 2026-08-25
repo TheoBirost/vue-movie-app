@@ -1,79 +1,82 @@
 <script setup>
-import { computed } from 'vue';
-import { useDataStore } from '../../stores/useDataStore';
+import { computed } from 'vue'
+import AppImage from '../common/AppImage.vue'
+import { useDataStore } from '../../stores/useDataStore'
+import { resolveImage } from '../../utils/media'
 
 const props = defineProps({
-  movie: { type: Object, required: true }
-});
+    movie: { type: Object, required: true },
+})
 
-const dataStore = useDataStore();
+const dataStore = useDataStore()
 
 const categories = computed(() => {
-  if (!props.movie.categories || props.movie.categories.length === 0) {
-    return [];
-  }
-  return props.movie.categories.map(categoryUrl => {
-    return dataStore.categories.find(c => `/api/categories/${c.id}` === categoryUrl);
-  }).filter(Boolean); // Filter out any undefined results
-});
+    if (!props.movie.categories?.length) return []
+    return props.movie.categories
+        .map((iri) => dataStore.categories.find((c) => `/api/categories/${c.id}` === iri))
+        .filter(Boolean)
+})
 
-const categoryShortNames = {
-  'Documentaire': 'Docu',
-  'Science-Fiction': 'SF',
-  'Biographie':'Bio'
-};
+const SHORT_NAMES = {
+    Documentaire: 'Docu',
+    'Science-Fiction': 'SF',
+    Biographie: 'Bio',
+}
 
-const getYear = (dateString) => {
-  if (!dateString) return '—';
-  const date = new Date(dateString);
-  if (isNaN(date)) return '—';
-  return date.getFullYear();
-};
+const year = computed(() => {
+    const date = new Date(props.movie.releaseDate)
+    return props.movie.releaseDate && !isNaN(date) ? date.getFullYear() : '—'
+})
 
-const getShortCategoryName = (categoryName) => {
-  return categoryShortNames[categoryName] || categoryName;
-};
+const shortName = (name) => SHORT_NAMES[name] || name
 </script>
 
 <template>
-  <div class="universal-card group cursor-pointer bg-black rounded-lg hover:rounded-lg" role="article" :aria-label="'Film : ' + movie.name">
-    <div class="relative w-full h-64 overflow-hidden rounded-lg hover:rounded-lg ">
-      <img
-          :src="movie.url ? movie.url : '/default-film.jpg'"
-          :alt="'Affiche du film ' + movie.name"
-          class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          loading="lazy"
-          width="300"
-          height="450"
-      />
-      <div class="absolute inset-0 "></div>
-      <div class="absolute top-3 right-3 px-3 py-1  text-xs font-semibold text-[#FFD700] tracking-wider">
-        {{ getYear(movie.releaseDate) }}
-      </div>
-    </div>
+    <article class="universal-card group h-full cursor-pointer">
+        <div class="relative">
+            <AppImage
+                :src="resolveImage(movie)"
+                :alt="`Affiche du film ${movie.name}`"
+                fallback="/placeholder-poster.svg"
+                img-class="h-64 transition-transform duration-700 group-hover:scale-[1.06]"
+                class="h-64 w-full"
+            />
 
-    <div class="p-5">
-      <h3 class="text-white font-semibold text-lg leading-tight line-clamp-2 group-hover:text-[#FFD700] transition-colors duration-300">
-        {{ movie.name }}
-      </h3>
+            <!-- Dégradé de pied d'affiche : garde le badge lisible sur les images claires -->
+            <div
+                class="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#16181E] via-[#16181E]/60 to-transparent"
+                aria-hidden="true"
+            />
 
-      <div class="flex flex-wrap gap-2 mt-3">
-        <template v-if="categories.length > 0">
-          <span
-              v-for="category in categories.slice(0, 3)"
-              :key="category.id"
-              class="px-2 py-1 text-xs bg-black/20 border border-white/10 rounded text-gray-300"
-          >
-            {{ getShortCategoryName(category.name) }}
-          </span>
-          <span
-              v-if="categories.length > 3"
-              class="px-2 py-1 text-xs bg-black/20 border border-white/10 rounded text-gray-400"
-          >
-            +{{ categories.length - 3 }}
-          </span>
-        </template>
-      </div>
-    </div>
-  </div>
+            <span
+                class="absolute right-3 top-3 rounded bg-black/65 px-2.5 py-1 text-xs font-semibold tracking-wider text-[#FFD700] backdrop-blur-sm"
+            >
+                {{ year }}
+            </span>
+        </div>
+
+        <div class="p-5">
+            <h3
+                class="garamond line-clamp-2 text-xl font-bold leading-tight text-white transition-colors duration-300 group-hover:text-[#FFD700]"
+            >
+                {{ movie.name }}
+            </h3>
+
+            <div v-if="categories.length" class="mt-3 flex flex-wrap gap-2">
+                <span
+                    v-for="category in categories.slice(0, 3)"
+                    :key="category.id"
+                    class="rounded border border-white/10 bg-white/5 px-2 py-1 text-xs text-[#C1C1C7]"
+                >
+                    {{ shortName(category.name) }}
+                </span>
+                <span
+                    v-if="categories.length > 3"
+                    class="rounded border border-white/10 bg-white/5 px-2 py-1 text-xs text-[#82828A]"
+                >
+                    +{{ categories.length - 3 }}
+                </span>
+            </div>
+        </div>
+    </article>
 </template>

@@ -1,194 +1,177 @@
 <script setup>
-import { ref, onMounted, watch, nextTick, computed } from "vue"
-import { useRouter } from "vue-router"
-import { gsap } from 'gsap'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useDataStore } from '../../stores/useDataStore'
+import { useMotionPreference } from '../../composables/useMotion'
+import { normalize } from '../../utils/text'
+import PageHeader from '../../components/common/PageHeader.vue'
+import SearchField from '../../components/common/SearchField.vue'
+import PaginationNav from '../../components/common/PaginationNav.vue'
+import EmptyState from '../../components/common/EmptyState.vue'
+
+const PER_PAGE = 12
 
 const router = useRouter()
 const dataStore = useDataStore()
-const search = ref("")
+const reduced = useMotionPreference()
+
+const search = ref('')
 const page = ref(1)
 const loading = ref(true)
-const errorMessage = ref("")
+const errorMessage = ref('')
+const grid = ref(null)
 
-const limit = 12
+const filtered = computed(() => {
+    const needle = normalize(search.value.trim())
+    if (!needle) return dataStore.categories
+    return dataStore.categories.filter((category) =>
+        normalize(category.name).includes(needle)
+    )
+})
 
-const filteredCategories = computed(() => {
-  if (!search.value) {
-    return dataStore.categories;
-  }
-  return dataStore.categories.filter(category =>
-    category.name.toLowerCase().includes(search.value.toLowerCase())
-  );
-});
+const totalPages = computed(() => Math.max(1, Math.ceil(filtered.value.length / PER_PAGE)))
 
-const totalPages = computed(() => {
-  return Math.max(1, Math.ceil(filteredCategories.value.length / limit));
-});
+const paginated = computed(() =>
+    filtered.value.slice((page.value - 1) * PER_PAGE, page.value * PER_PAGE)
+)
 
-const paginatedCategories = computed(() => {
-  const start = (page.value - 1) * limit;
-  const end = start + limit;
-  return filteredCategories.value.slice(start, end);
-});
-
-const fetchCategories = async (force = false) => {
-  loading.value = true
-  errorMessage.value = ""
-  try {
-    await dataStore.fetchCategories(force)
-    await nextTick()
-    animateCards()
-  } catch (err) {
-    if (err.response) {
-      errorMessage.value = `Erreur ${err.response.status}`
-    } else if (err.request) {
-      errorMessage.value = "Impossible de joindre le serveur"
-    } else {
-      errorMessage.value = err.message
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
-const animateCards = () => {
-  if (document.querySelectorAll('.category-card-wrapper').length > 0) {
-    gsap.from('.category-card-wrapper', {
-      opacity: 0,
-      y: 50,
-      duration: 0.6,
-      stagger: 0.1,
-      ease: 'power3.out'
+const revealCards = () => {
+    if (reduced.value || !grid.value) return
+    grid.value.querySelectorAll('[data-card]').forEach((card, index) => {
+        card.style.animation = `fade-up 480ms var(--ease-cinema) ${Math.min(index, 8) * 45}ms both`
     })
-  }
 }
 
-const goToCategory = (id) => {
-  router.push(`/movies?category=${id}`)
-}
+const openCategory = (id) => router.push(`/movies?category=${id}`)
 
 watch(search, () => {
-  page.value = 1;
-});
+    page.value = 1
+})
 
-watch(page, () => {
-  nextTick().then(() => {
-    animateCards();
-  });
-});
+watch([page, filtered], async () => {
+    await nextTick()
+    revealCards()
+})
 
 onMounted(async () => {
-  await fetchCategories()
-
-  gsap.from('.page-title', {
-    opacity: 0,
-    y: -50,
-    duration: 0.8,
-    ease: 'power3.out'
-  })
-
-  gsap.from('.search-bar', {
-    opacity: 0,
-    y: 30,
-    duration: 0.8,
-    delay: 0.2,
-    ease: 'power3.out'
-  })
+    try {
+        await dataStore.fetchCategories()
+    } catch (error) {
+        errorMessage.value = error.response
+            ? `Le serveur a répondu ${error.response.status}.`
+            : "Impossible de joindre le serveur pour l'instant."
+    } finally {
+        loading.value = false
+        await nextTick()
+        revealCards()
+    }
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#0d0d0f]">
-    <div class="max-w-7xl mx-auto px-6 py-20 space-y-12">
+    <div class="min-h-screen bg-[#0d0d0f]">
+        <div class="mx-auto max-w-7xl space-y-12 px-6 py-20 md:py-28">
+            <PageHeader
+                eyebrow="Genres"
+                title="Catégories"
+                subtitle="Choisissez un genre pour filtrer le catalogue de films."
+            />
 
-      <!-- Header -->
-      <div class="flex justify-between items-end">
-        <div class="page-title">
-          <div class="text-[#FFD700] text-[10px] tracking-[0.3em] mb-2">GENRES</div>
-          <h1 class="garamond text-6xl md:text-7xl font-bold text-white mb-3">Catégories</h1>
-          <div class="h-1 w-24 bg-gradient-to-r from-[#FFD700] to-transparent" />
+            <SearchField
+                id="category-search"
+                v-model="search"
+                label="Rechercher une catégorie"
+                placeholder="Rechercher une catégorie…"
+                :result-count="loading ? null : filtered.length"
+            />
+
+            <!-- Squelettes calqués sur la vraie tuile : pas de saut de mise en page -->
+            <div
+                v-if="loading"
+                class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
+                role="status"
+                aria-label="Chargement des catégories"
+            >
+                <div v-for="n in 8" :key="n" class="skeleton h-28 rounded-[6px]" />
+            </div>
+
+            <div
+                v-else-if="paginated.length"
+                ref="grid"
+                class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
+            >
+                <button
+                    v-for="category in paginated"
+                    :key="category.id"
+                    data-card
+                    type="button"
+                    class="category-tile group text-left"
+                    @click="openCategory(category.id)"
+                >
+                    <h2
+                        class="garamond text-2xl font-bold text-white transition-colors group-hover:text-[#FFD700]"
+                    >
+                        {{ category.name }}
+                    </h2>
+                    <p class="mt-1 text-sm text-[#82828A]">
+                        {{ category.moviesCount || 0 }} film{{
+                            (category.moviesCount || 0) > 1 ? 's' : ''
+                        }}
+                    </p>
+                    <span
+                        class="mt-4 inline-flex items-center gap-2 text-xs tracking-[0.15em] text-[#FFD700] opacity-0 transition-opacity group-hover:opacity-100"
+                        aria-hidden="true"
+                    >
+                        VOIR LES FILMS →
+                    </span>
+                </button>
+            </div>
+
+            <EmptyState
+                v-else
+                :message="errorMessage || 'Aucune catégorie ne correspond à cette recherche.'"
+            >
+                <template #action>
+                    <button
+                        v-if="search"
+                        type="button"
+                        class="btn btn-secondary"
+                        @click="search = ''"
+                    >
+                        Réinitialiser la recherche
+                    </button>
+                </template>
+            </EmptyState>
+
+            <PaginationNav v-model="page" :total-pages="totalPages" />
         </div>
-      </div>
-
-      <!-- Barre de recherche -->
-      <div class="search-bar">
-        <div class="relative">
-          <label for="category-search" class="sr-only">Rechercher une catégorie</label>
-          <input
-              id="category-search"
-              v-model="search"
-              placeholder="Rechercher une catégorie..."
-              class="w-full px-6 py-4 bg-[#16181E] text-white border border-[#2A2D36] rounded-lg focus:outline-none focus:border-[#FFD700] transition-all text-lg"
-          />
-          <svg class="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-[#FFD700]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-          </svg>
-        </div>
-      </div>
-
-      <!-- Loading -->
-      <div v-if="loading" class="flex items-center justify-center min-h-[40vh]" aria-label="Chargement en cours">
-        <div class="flex gap-2">
-          <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce"></div>
-          <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-          <div class="w-3 h-3 bg-[#FFD700] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-        </div>
-      </div>
-
-      <!-- Grille de catégories -->
-      <div v-else-if="paginatedCategories.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div
-          v-for="category in paginatedCategories"
-          :key="category.id"
-          @click="goToCategory(category.id)"
-          class="category-card-wrapper bg-[#16181E] border border-[#2A2D36] rounded-lg p-6 space-y-4 transition-all hover:border-[#FFD700] cursor-pointer group"
-        >
-          <div>
-            <h3 class="text-xl font-bold text-white group-hover:text-[#FFD700] transition-colors">{{ category.name }}</h3>
-            <p class="text-sm text-[#82828A]">{{ category.moviesCount || 0 }} films</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty state -->
-      <div v-else class="text-center py-20">
-        <div class="inline-block p-6 bg-[#16181E] rounded-full mb-6">
-          <svg class="w-12 h-12 text-[#FFD700]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
-          </svg>
-        </div>
-        <p class="text-[#C1C1C7] text-lg">{{ errorMessage || "Aucune catégorie trouvée" }}</p>
-      </div>
-
-      <!-- Pagination -->
-      <div v-if="totalPages > 1" class="flex justify-center items-center gap-6 pt-8">
-        <button
-            :disabled="page === 1"
-            @click="page--"
-            class="w-12 h-12 rounded-lg bg-[#16181E] border border-[#2A2D36] hover:border-[#FFD700] disabled:opacity-30 disabled:cursor-not-allowed transition-all text-white flex items-center justify-center"
-            aria-label="Page précédente"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-          </svg>
-        </button>
-
-        <span class="text-[#C1C1C7] tracking-[0.2em] text-sm">
-          PAGE <span class="text-[#FFD700] font-bold">{{ page }}</span> / {{ totalPages }}
-        </span>
-
-        <button
-            :disabled="page === totalPages"
-            @click="page++"
-            class="w-12 h-12 rounded-lg bg-[#16181E] border border-[#2A2D36] hover:border-[#FFD700] disabled:opacity-30 disabled:cursor-not-allowed transition-all text-white flex items-center justify-center"
-            aria-label="Page suivante"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-          </svg>
-        </button>
-      </div>
     </div>
-  </div>
 </template>
+
+<style scoped>
+.category-tile {
+    display: block;
+    padding: 1.5rem;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--color-line);
+    background-color: var(--color-surface);
+    transition:
+        border-color var(--duration-base) var(--ease-cinema),
+        transform var(--duration-base) var(--ease-cinema),
+        box-shadow var(--duration-base) var(--ease-cinema);
+}
+
+.category-tile:hover,
+.category-tile:focus-visible {
+    border-color: rgb(255 215 0 / 0.4);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lift);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .category-tile:hover,
+    .category-tile:focus-visible {
+        transform: none;
+    }
+}
+</style>

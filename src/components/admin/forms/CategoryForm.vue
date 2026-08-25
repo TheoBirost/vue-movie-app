@@ -2,6 +2,7 @@
 import { ref, watch, onMounted } from "vue"
 import { gsap } from 'gsap'
 import api from "/src/api/api.js"
+import { logger } from '../../../utils/logger'
 
 const props = defineProps({
   category: Object
@@ -54,7 +55,7 @@ const submit = async () => {
     emit("refresh")
     emit("close")
   } catch (err) {
-    console.error("Erreur sauvegarde :", err.response?.data || err)
+    logger.error('Erreur sauvegarde', err.response?.data || err)
     error.value = err.response?.data?.detail || "Une erreur est survenue."
   } finally {
     loading.value = false

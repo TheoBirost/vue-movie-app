@@ -1,0 +1,132 @@
+/* ---------------------------------------------------------------------------
+   Base : reset applicatif, typographie, décor global.
+   --------------------------------------------------------------------------- */
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        /* Évite qu'une ancre passe sous la navbar fixe */
+        scroll-padding-top: var(--nav-height);
+        background-color: var(--color-ink);
+    }
+
+    body {
+        background-color: var(--color-ink);
+        color: var(--color-chalk);
+        font-family: var(--font-sans);
+        letter-spacing: 0.01em;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
+        /* Le fond reste noir même en overscroll (iOS / trackpad) */
+        overscroll-behavior-y: none;
+    }
+
+    /* Titres : serif cinéma. `.garamond` reste l'alias utilisé dans les vues. */
+    h1, h2, h3, h4, h5, h6, .garamond {
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: -0.005em;
+        line-height: 1.08;
+        text-wrap: balance;
+    }
+
+    /* Variante bâton condensée, pour les sur-titres et labels */
+    .display-condensed {
+        font-family: "Bebas Neue", "Oswald", var(--font-sans);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    /* Sur-titre doré récurrent ("SÉLECTION", "COLLECTION", "GENRES"…) */
+    .eyebrow {
+        color: var(--color-gold);
+        font-size: 0.625rem;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    p, span, a, li, label, input, textarea, select, button {
+        font-family: var(--font-sans);
+    }
+
+    /* Un paragraphe long reste lisible */
+    p {
+        text-wrap: pretty;
+    }
+
+    img, video, canvas {
+        max-width: 100%;
+    }
+
+    /* --- Accessibilité : focus toujours visible, jamais au clic souris --------- */
+    :focus-visible {
+        outline: 2px solid var(--color-gold);
+        outline-offset: 3px;
+        border-radius: 4px;
+    }
+    :focus:not(:focus-visible) {
+        outline: none;
+    }
+
+    /* Lien d'évitement clavier */
+    .skip-link {
+        position: fixed;
+        top: 0.75rem;
+        left: 0.75rem;
+        z-index: 100;
+        padding: 0.75rem 1.25rem;
+        border-radius: 0.5rem;
+        background: var(--color-gold);
+        color: #000;
+        font-weight: 700;
+        font-size: 0.875rem;
+        transform: translateY(-160%);
+        transition: transform var(--duration-base) var(--ease-cinema);
+    }
+    .skip-link:focus-visible {
+        transform: translateY(0);
+    }
+
+    /* --- Sélection de texte --------------------------------------------------- */
+    ::selection {
+        background-color: var(--color-gold);
+        color: var(--color-ink);
+    }
+
+    /* --- Barre de défilement --------------------------------------------------- */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+        background: var(--color-ink);
+    }
+    ::-webkit-scrollbar-thumb {
+        background-color: var(--color-line);
+        border-radius: 20px;
+        border: 3px solid var(--color-ink);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: var(--color-gold);
+    }
+    * {
+        scrollbar-color: var(--color-line) var(--color-ink);
+    }
+
+    /* --- Grain argentique ------------------------------------------------------
+       Overlay fixe non interactif. `will-change` volontairement absent : la couche
+       est promue par l'animation elle-même et retombe quand celle-ci est coupée.  */
+    .film-grain {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 9997;
+        opacity: 0.035;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        animation: grain 8s steps(10) infinite;
+    }
+
+}

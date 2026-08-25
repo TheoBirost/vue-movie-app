@@ -8,6 +8,7 @@ import ConfirmDeleteUser from "../../components/admin/modals/ConfirmDeleteUser.v
 import UserForm from '../../components/admin/forms/UserForm.vue'
 import TwoFactorSetup from '../../components/features/auth/TwoFactorSetup.vue'
 import UserReviews from '../../components/features/profile/UserReviews.vue'
+import { logger } from '../../utils/logger'
 
 // User Profile State
 const dataStore = useDataStore()
@@ -19,7 +20,7 @@ const email = computed(() => user.value?.email || "")
 const dob = computed(() => user.value?.dob?.date ? user.value.dob.date.split(' ')[0] : "")
 const userRole = computed(() => user.value?.roles ? user.value.roles[0] : "ROLE_USER")
 const formattedRole = computed(() => formatRole(userRole.value))
-const photo = computed(() => user.value?.photo ? `${import.meta.env.VITE_API_BASE_URL}${user.value.photo}` : "/default-avatar.png")
+const photo = computed(() => user.value?.photo ? `${import.meta.env.VITE_API_BASE_URL}${user.value.photo}` : "/placeholder-avatar.svg")
 
 const errorMessage = ref("")
 const loading = ref(true)
@@ -68,7 +69,7 @@ const deleteUser = async () => {
     localStorage.removeItem('userPhoto')
     router.push('/inscription')
   } catch (err) {
-    console.error("Erreur suppression :", err)
+    logger.error('Erreur suppression', err)
     errorMessage.value = "Erreur lors de la suppression"
   }
 }
@@ -101,7 +102,7 @@ async function fetchUser() {
       localStorage.setItem("userPhoto", photo.value)
     }
   } catch (err) {
-    console.error("Erreur récupération profil:", err)
+    logger.error('Erreur récupération profil', err)
     errorMessage.value = err.response?.data?.message || err.message || "Impossible de récupérer les informations"
   } finally {
     loading.value = false
@@ -151,7 +152,7 @@ const uploadPhoto = async () => {
     if (fileInput.value) fileInput.value.value = ''
     alert('Photo mise à jour avec succès !')
   } catch (error) {
-    console.error('Erreur lors de l\'envoi de la photo :', error)
+    logger.error('Profile:uploadPhoto', error)
     alert("Erreur lors de l'envoi de la photo.")
   } finally {
     uploadingPhoto.value = false
@@ -170,7 +171,7 @@ async function fetchApiKeyStatus() {
     if (err.response && err.response.status === 404) {
       apiKeyInfo.value = null
     } else {
-      console.error("Erreur récupération statut clé API:", err)
+      logger.error('Erreur récupération statut clé API', err)
       apiKeyError.value = "Impossible de récupérer le statut de la clé API."
     }
   } finally {
@@ -184,7 +185,7 @@ async function generateApiKey() {
     newlyGeneratedApiKey.value = res.data.apiKey
     await fetchApiKeyStatus()
   } catch (err) {
-    console.error("Erreur génération clé API:", err)
+    logger.error('Erreur génération clé API', err)
     apiKeyError.value = "Une erreur est survenue lors de la génération de la clé."
   }
 }
@@ -197,7 +198,7 @@ async function toggleApiKeyStatus() {
     apiKeyInfo.value.enabled = newStatus // Optimistic update
     await api.patch('/me/api-key', { enabled: newStatus })
   } catch (err) {
-    console.error("Erreur changement statut clé API:", err)
+    logger.error('Erreur changement statut clé API', err)
     apiKeyError.value = "Impossible de modifier le statut de la clé."
     if (apiKeyInfo.value) apiKeyInfo.value.enabled = originalStatus // Revert on failure
   }
@@ -212,7 +213,7 @@ async function revokeApiKey() {
     apiKeyInfo.value = null
     newlyGeneratedApiKey.value = ""
   } catch (err) {
-    console.error("Erreur révocation clé API:", err)
+    logger.error('Erreur révocation clé API', err)
     apiKeyError.value = "Impossible de révoquer la clé API."
   }
 }
@@ -221,7 +222,7 @@ function copyToClipboard(text) {
   navigator.clipboard.writeText(text).then(() => {
     alert("Copié dans le presse-papiers !")
   }).catch(err => {
-    console.error('Could not copy text: ', err);
+    logger.error('Could not copy text', err);
     alert("Impossible de copier. Veuillez copier manuellement.");
   });
 }
@@ -244,7 +245,7 @@ async function fetchTwoFactorStatus() {
     const res = await api.get('/2fa/status')
     twoFactorStatus.value = res.data
   } catch (err) {
-    console.error("Erreur récupération statut 2FA:", err)
+    logger.error('Erreur récupération statut 2FA', err)
     twoFactorError.value = "Impossible de récupérer le statut 2FA."
   } finally {
     twoFactorLoading.value = false
@@ -260,7 +261,7 @@ async function disableTwoFactor() {
     alert("L'authentification à deux facteurs a été désactivée.")
     await fetchTwoFactorStatus()
   } catch (err) {
-    console.error("Erreur désactivation 2FA:", err)
+    logger.error('Erreur désactivation 2FA', err)
     alert(err.response?.data?.error || "Impossible de désactiver le 2FA. Le code est peut-être invalide.")
   }
 }
