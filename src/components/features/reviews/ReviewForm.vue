@@ -1,10 +1,10 @@
 <template>
-  <div class="mt-12 bg-[#16181E] p-6 md:p-8 rounded-xl border border-[#2A2D36]">
-    <h2 class="garamond text-2xl md:text-3xl font-bold text-white mb-6">Laisser un avis</h2>
+  <div class="mt-12 bg-[var(--color-paper-raised)] p-6 md:p-8 rounded-xl border border-[var(--color-rule)]">
+    <h2 class="text-2xl md:text-3xl font-bold text-[var(--color-ink)] mb-6">Laisser un avis</h2>
 
     <div v-if="!isLoggedIn" class="text-center py-8">
-      <p class="text-[#C1C1C7] mb-4">Vous devez être connecté pour laisser un avis.</p>
-      <router-link to="/connexion" class="inline-block px-6 py-3 bg-[#FFD700] text-black font-bold rounded-lg hover:bg-[#FFE55C] transition-colors text-sm tracking-wider uppercase">
+      <p class="text-[var(--color-ink-soft)] mb-4">Vous devez être connecté pour laisser un avis.</p>
+      <router-link to="/connexion" class="inline-block px-6 py-3 bg-[var(--color-ink)] text-black font-bold rounded-lg hover:bg-[var(--color-night)] transition-colors text-sm tracking-wider uppercase">
         Se connecter
       </router-link>
     </div>
@@ -12,7 +12,7 @@
     <form v-else @submit.prevent="submitReview" class="space-y-6">
       <!-- Rating -->
       <div>
-        <label class="block text-[#82828A] text-xs uppercase tracking-wider font-bold mb-3">Note</label>
+        <label class="block text-[var(--color-ink-faint)] text-xs uppercase tracking-wider font-bold mb-3">Note</label>
         <div class="flex gap-2">
           <button
             v-for="n in 5"
@@ -22,7 +22,7 @@
             @mouseenter="hoverRating = n"
             @mouseleave="hoverRating = 0"
             class="text-3xl focus:outline-none transition-transform hover:scale-110"
-            :class="(hoverRating || rating) >= n ? 'text-[#FFD700]' : 'text-[#2A2D36]'"
+            :class="(hoverRating || rating) >= n ? 'text-[var(--color-night)]' : 'text-[var(--color-rule)]'"
             :aria-label="n + ' étoiles'"
           >
             ★
@@ -33,11 +33,11 @@
 
       <!-- Comment -->
       <div>
-        <label for="comment" class="block text-[#82828A] text-xs uppercase tracking-wider font-bold mb-3">Commentaire</label>
+        <label for="comment" class="block text-[var(--color-ink-faint)] text-xs uppercase tracking-wider font-bold mb-3">Commentaire</label>
         <textarea
           id="comment"
           v-model="comment"
-          class="w-full p-4 rounded-lg bg-[#0d0d0f] border border-[#2A2D36] text-white focus:border-[#FFD700] focus:ring-1 focus:ring-[#FFD700] outline-none transition-all resize-none"
+          class="w-full p-4 rounded-lg bg-[var(--color-paper)] border border-[var(--color-rule)] text-[var(--color-ink)] focus:border-[var(--color-ink)] focus:ring-1 focus:ring-[var(--color-night)] outline-none transition-all resize-none"
           rows="4"
           placeholder="Partagez votre avis sur ce film..."
         ></textarea>
@@ -53,7 +53,7 @@
       <button
         type="submit"
         :disabled="isSubmitting"
-        class="px-8 py-3 bg-[#FFD700] text-black font-bold rounded-lg hover:bg-[#FFE55C] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm tracking-wider uppercase w-full md:w-auto"
+        class="px-8 py-3 bg-[var(--color-ink)] text-black font-bold rounded-lg hover:bg-[var(--color-night)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm tracking-wider uppercase w-full md:w-auto"
       >
         <span v-if="isSubmitting" class="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></span>
         {{ isSubmitting ? 'Envoi...' : 'Publier l\'avis' }}

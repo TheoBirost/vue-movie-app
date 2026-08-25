@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, nextTick, computed } from "vue"
-import { gsap } from 'gsap'
 import api from "/src/api/api.js"
 import UserRoleForm from "../forms/UserRoleForm.vue"
 import { logger } from '../../../utils/logger'
@@ -50,13 +49,6 @@ async function fetchUsers() {
     await nextTick()
 
     if (users.value.length > 0) {
-        gsap.from('.user-row', {
-          opacity: 0,
-          y: 20,
-          duration: 0.5,
-          stagger: 0.05,
-          ease: 'power3.out'
-        })
     }
 
   } catch (err) {
@@ -103,10 +95,10 @@ onMounted(() => {
 <template>
   <div class="universal-card p-6">
     <div class="flex justify-between items-center mb-6">
-      <h2 class="garamond text-3xl font-bold text-white">Gestion des Utilisateurs</h2>
+      <h2 class="text-3xl font-bold text-[var(--color-ink)]">Gestion des Utilisateurs</h2>
       <div class="flex items-center gap-4">
         <span class="text-sm text-text-gray">Total: <span class="text-gold font-bold">{{ totalItems }}</span></span>
-        <button @click="fetchUsers" class="text-sm text-gold hover:text-white transition-colors">
+        <button @click="fetchUsers" class="text-sm text-gold hover:text-[var(--color-ink)] transition-colors">
           Rafraîchir
         </button>
       </div>
@@ -126,7 +118,7 @@ onMounted(() => {
     <div v-else-if="errorMessage" class="text-center py-10 bg-red-900/20 rounded-lg border border-red-800/30">
       <p class="text-red-400 font-bold mb-2">Erreur</p>
       <p class="text-red-300 text-sm">{{ errorMessage }}</p>
-      <button @click="fetchUsers" class="mt-4 px-4 py-2 bg-red-800/50 hover:bg-red-800 text-white rounded text-xs uppercase tracking-wider transition-colors">Réessayer</button>
+      <button @click="fetchUsers" class="mt-4 px-4 py-2 bg-red-800/50 hover:bg-red-800 text-[var(--color-ink)] rounded text-xs uppercase tracking-wider transition-colors">Réessayer</button>
     </div>
 
     <!-- User Table -->
@@ -143,7 +135,7 @@ onMounted(() => {
         <tbody>
           <tr v-for="user in users" :key="user.id" class="user-row border-b border-border hover:bg-white/5 transition-colors">
             <td class="p-4">
-              <div class="font-bold text-white">{{ user.firstname }} {{ user.lastname }}</div>
+              <div class="font-bold text-[var(--color-ink)]">{{ user.firstname }} {{ user.lastname }}</div>
               <div class="text-xs text-text-gray mt-1">{{ user.email }}</div>
             </td>
             <td class="p-4">
@@ -155,7 +147,7 @@ onMounted(() => {
               {{ user.dob ? formatDate(user.dob) : "—" }}
             </td>
             <td class="p-4 text-right">
-              <button @click="openRoleForm(user)" class="text-gold hover:text-white text-xs font-bold uppercase tracking-wider transition-colors border border-gold/30 hover:bg-gold/10 px-3 py-1.5 rounded">
+              <button @click="openRoleForm(user)" class="text-gold hover:text-[var(--color-ink)] text-xs font-bold uppercase tracking-wider transition-colors border border-gold/30 hover:bg-gold/10 px-3 py-1.5 rounded">
                 Modifier Rôle
               </button>
             </td>
@@ -168,7 +160,7 @@ onMounted(() => {
         <button
           @click="changePage(page - 1)"
           :disabled="page === 1"
-          class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded text-white hover:border-gold disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+          class="px-4 py-2 bg-[var(--color-paper-raised)] border border-[var(--color-rule)] rounded text-[var(--color-ink)] hover:border-gold disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
         >
           Précédent
         </button>
@@ -176,7 +168,7 @@ onMounted(() => {
         <button
           @click="changePage(page + 1)"
           :disabled="page === totalPages"
-          class="px-4 py-2 bg-[#16181E] border border-[#2A2D36] rounded text-white hover:border-gold disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+          class="px-4 py-2 bg-[var(--color-paper-raised)] border border-[var(--color-rule)] rounded text-[var(--color-ink)] hover:border-gold disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
         >
           Suivant
         </button>

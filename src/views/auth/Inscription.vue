@@ -2,8 +2,6 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { gsap } from 'gsap'
-import ParticleField from '../../components/common/ParticleField.vue'
 
 const router = useRouter()
 
@@ -129,7 +127,6 @@ const register = async (e) => {
             : error.message) ||
         "Une erreur est survenue lors de l'inscription."
     nextTick(() => {
-      gsap.fromTo('.error-message', { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' })
     })
   } finally {
     isLoading.value = false
@@ -137,41 +134,33 @@ const register = async (e) => {
 }
 
 onMounted(() => {
-  gsap.from('.auth-card', {
-    opacity: 0,
-    scale: 0.9,
-    duration: 0.8,
-    ease: 'power3.out'
-  })
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#0d0d0f] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 relative overflow-hidden">
-    <ParticleField position="fixed" :count="260" :size="1.5" :speed="0.22" />
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.05),transparent_60%)]" aria-hidden="true"></div>
+  <div class="min-h-screen bg-[var(--color-paper)] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 relative overflow-hidden">
 
     <div class="auth-card w-full max-w-lg space-y-8 z-10">
       <div class="text-center">
-        <h1 class="garamond text-6xl font-bold text-[#FFD700]">Cinéaste</h1>
-        <h2 class="mt-2 text-2xl font-bold text-white">
+        <h1 class="text-6xl font-bold text-[var(--color-night)]">Cinéaste</h1>
+        <h2 class="mt-2 text-2xl font-bold text-[var(--color-ink)]">
           Créez votre compte
         </h2>
-        <p class="mt-2 text-sm text-[#C1C1C7]">
+        <p class="mt-2 text-sm text-[var(--color-ink-soft)]">
           Vous avez déjà un compte ?
-          <router-link to="/connexion" class="font-medium text-[#FFD700] hover:text-[#FFE55C]">
+          <router-link to="/connexion" class="font-medium text-[var(--color-night)] hover:text-[var(--color-night-soft)]">
             Connectez-vous
           </router-link>
         </p>
       </div>
 
-      <form class="mt-8 space-y-6 bg-[#16181E] p-8 rounded-lg shadow-2xl border border-[#2A2D36]" @submit="register">
+      <form class="mt-8 space-y-6 bg-[var(--color-paper-raised)] p-8 rounded-lg shadow-2xl border border-[var(--color-rule)]" @submit="register">
         <div class="flex flex-col items-center space-y-4">
           <div class="relative">
-            <img :src="photoPreview || '/placeholder-avatar.svg'" alt="Aperçu de l'avatar" class="w-24 h-24 rounded-full object-cover border-4 border-[#2A2D36]">
-            <button v-if="photoPreview" @click="removePhoto" type="button" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-all" aria-label="Supprimer la photo">&times;</button>
+            <img :src="photoPreview || '/placeholder-avatar.svg'" alt="Aperçu de l'avatar" class="w-24 h-24 rounded-full object-cover border-4 border-[var(--color-rule)]">
+            <button v-if="photoPreview" @click="removePhoto" type="button" class="absolute -top-1 -right-1 bg-red-500 text-[var(--color-ink)] rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-all" aria-label="Supprimer la photo">&times;</button>
           </div>
-          <label for="photo-upload" class="cursor-pointer px-4 py-2 border border-[#FFD700] text-[#FFD700] rounded-lg text-sm hover:bg-[#FFD700] hover:text-black transition-colors">
+          <label for="photo-upload" class="cursor-pointer px-4 py-2 border border-[var(--color-ink)] text-[var(--color-night)] rounded-lg text-sm hover:bg-[var(--color-ink)] hover:text-black transition-colors">
             Choisir une photo
           </label>
           <input id="photo-upload" name="photo" type="file" class="sr-only" @change="handleFileChange" accept="image/*">
@@ -179,35 +168,35 @@ onMounted(() => {
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label for="firstname" class="text-[#C1C1C7] text-sm tracking-wider uppercase">Prénom</label>
-            <input v-model="firstname" id="firstname" name="firstname" type="text" required class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[#2A2D36] bg-[#0d0d0f] placeholder-gray-500 text-white focus:outline-none focus:ring-[#FFD700] focus:border-[#FFD700] sm:text-sm transition-all" placeholder="Jean">
+            <label for="firstname" class="text-[var(--color-ink-soft)] text-sm tracking-wider uppercase">Prénom</label>
+            <input v-model="firstname" id="firstname" name="firstname" type="text" required class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[var(--color-rule)] bg-[var(--color-paper)] placeholder-gray-500 text-[var(--color-ink)] focus:outline-none focus:ring-[var(--color-night)] focus:border-[var(--color-ink)] sm:text-sm transition-all" placeholder="Jean">
           </div>
           <div>
-            <label for="lastname" class="text-[#C1C1C7] text-sm tracking-wider uppercase">Nom</label>
-            <input v-model="lastname" id="lastname" name="lastname" type="text" required class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[#2A2D36] bg-[#0d0d0f] placeholder-gray-500 text-white focus:outline-none focus:ring-[#FFD700] focus:border-[#FFD700] sm:text-sm transition-all" placeholder="Dupont">
+            <label for="lastname" class="text-[var(--color-ink-soft)] text-sm tracking-wider uppercase">Nom</label>
+            <input v-model="lastname" id="lastname" name="lastname" type="text" required class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[var(--color-rule)] bg-[var(--color-paper)] placeholder-gray-500 text-[var(--color-ink)] focus:outline-none focus:ring-[var(--color-night)] focus:border-[var(--color-ink)] sm:text-sm transition-all" placeholder="Dupont">
           </div>
         </div>
 
         <div>
-          <label for="email-address" class="text-[#C1C1C7] text-sm tracking-wider uppercase">Email</label>
-          <input v-model="email" id="email-address" name="email" type="email" autocomplete="email" required class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[#2A2D36] bg-[#0d0d0f] placeholder-gray-500 text-white focus:outline-none focus:ring-[#FFD700] focus:border-[#FFD700] sm:text-sm transition-all" placeholder="votre@email.com">
+          <label for="email-address" class="text-[var(--color-ink-soft)] text-sm tracking-wider uppercase">Email</label>
+          <input v-model="email" id="email-address" name="email" type="email" autocomplete="email" required class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[var(--color-rule)] bg-[var(--color-paper)] placeholder-gray-500 text-[var(--color-ink)] focus:outline-none focus:ring-[var(--color-night)] focus:border-[var(--color-ink)] sm:text-sm transition-all" placeholder="votre@email.com">
         </div>
 
         <div>
-          <label for="password" class="text-[#C1C1C7] text-sm tracking-wider uppercase">Mot de passe</label>
-          <input v-model="password" id="password" name="password" type="password" autocomplete="new-password" required class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[#2A2D36] bg-[#0d0d0f] placeholder-gray-500 text-white focus:outline-none focus:ring-[#FFD700] focus:border-[#FFD700] sm:text-sm transition-all" placeholder="********">
+          <label for="password" class="text-[var(--color-ink-soft)] text-sm tracking-wider uppercase">Mot de passe</label>
+          <input v-model="password" id="password" name="password" type="password" autocomplete="new-password" required class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[var(--color-rule)] bg-[var(--color-paper)] placeholder-gray-500 text-[var(--color-ink)] focus:outline-none focus:ring-[var(--color-night)] focus:border-[var(--color-ink)] sm:text-sm transition-all" placeholder="********">
         </div>
 
         <div>
-          <label for="dob" class="text-[#C1C1C7] text-sm tracking-wider uppercase">Date de naissance</label>
-          <input v-model="dob" id="dob" name="dob" type="date" required class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[#2A2D36] bg-[#0d0d0f] placeholder-gray-500 text-white focus:outline-none focus:ring-[#FFD700] focus:border-[#FFD700] sm:text-sm">
+          <label for="dob" class="text-[var(--color-ink-soft)] text-sm tracking-wider uppercase">Date de naissance</label>
+          <input v-model="dob" id="dob" name="dob" type="date" required class="mt-2 appearance-none rounded-md relative block w-full px-4 py-3 border border-[var(--color-rule)] bg-[var(--color-paper)] placeholder-gray-500 text-[var(--color-ink)] focus:outline-none focus:ring-[var(--color-night)] focus:border-[var(--color-ink)] sm:text-sm">
         </div>
 
         <div v-if="successMessage" class="text-green-400 text-sm text-center bg-green-900/20 p-3 rounded-md border border-green-800/30">{{ successMessage }}</div>
         <div v-if="errorMessage" class="error-message text-red-400 text-sm text-center bg-red-900/20 p-3 rounded-md border border-red-800/30">{{ errorMessage }}</div>
 
         <div>
-          <button :disabled="isLoading" type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-black bg-[#FFD700] hover:bg-[#FFE55C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFD700] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+          <button :disabled="isLoading" type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-black bg-[var(--color-ink)] hover:bg-[var(--color-night)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-night)] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
             <span v-if="isLoading" class="absolute left-0 inset-y-0 flex items-center pl-3">
               <svg class="h-5 w-5 text-black animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             </span>

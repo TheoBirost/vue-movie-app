@@ -21,6 +21,12 @@ export const useDataStore = defineStore('data', {
     directors: [],
     categories: [],
     user: null,
+    /**
+     * Totaux annoncés par l'API, distincts de la longueur des tableaux :
+     * les collections sont plafonnées à PAGE_SIZE_ALL, or le catalogue de
+     * films dépasse ce plafond. Afficher `movies.length` mentirait.
+     */
+    totals: { movies: 0, actors: 0, directors: 0, categories: 0 },
     isFetchingMovies: false,
     isFetchingActors: false,
     isFetchingDirectors: false,
@@ -39,6 +45,8 @@ export const useDataStore = defineStore('data', {
           }
         });
         this.movies = response.data['hydra:member'] || response.data.member || [];
+        this.totals.movies =
+          response.data['hydra:totalItems'] ?? response.data.totalItems ?? this.movies.length;
       } catch (error) {
         logger.error('store:movies', error);
         throw error;
@@ -57,6 +65,8 @@ export const useDataStore = defineStore('data', {
           }
         });
         this.actors = response.data['hydra:member'] || response.data.member || [];
+        this.totals.actors =
+          response.data['hydra:totalItems'] ?? response.data.totalItems ?? this.actors.length;
       } catch (error) {
         logger.error('store:actors', error);
         throw error;
@@ -72,6 +82,8 @@ export const useDataStore = defineStore('data', {
           params: { itemsPerPage: PAGE_SIZE_ALL }
         });
         this.directors = response.data['hydra:member'] || response.data.member || [];
+        this.totals.directors =
+          response.data['hydra:totalItems'] ?? response.data.totalItems ?? this.directors.length;
       } catch (error) {
         logger.error('store:directors', error);
         throw error;
@@ -87,6 +99,8 @@ export const useDataStore = defineStore('data', {
           params: { itemsPerPage: PAGE_SIZE_ALL }
         });
         this.categories = response.data['hydra:member'] || response.data.member || [];
+        this.totals.categories =
+          response.data['hydra:totalItems'] ?? response.data.totalItems ?? this.categories.length;
       } catch (error) {
         logger.error('store:categories', error);
         throw error;

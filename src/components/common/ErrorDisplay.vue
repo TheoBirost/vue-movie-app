@@ -86,13 +86,13 @@ onUnmounted(() => {
             class="fixed inset-0 z-[80] flex items-center justify-center px-4"
         >
             <div
-                class="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                class="absolute inset-0 bg-[var(--color-ink)]/70 backdrop-blur-sm"
                 @click="isCountdown ? null : close()"
             />
 
             <div
                 ref="dialog"
-                class="modal-card relative w-full max-w-md rounded-lg border border-[#FFD700]/30 bg-[#16181E] p-8 text-center shadow-2xl"
+                class="modal-card relative w-full max-w-md rounded-lg border border-[var(--color-ink)]/30 bg-[var(--color-paper-raised)] p-8 text-center shadow-2xl"
                 role="alertdialog"
                 aria-modal="true"
                 aria-labelledby="error-title"
@@ -114,11 +114,11 @@ onUnmounted(() => {
                     />
                 </svg>
 
-                <h2 id="error-title" class="garamond mb-2 text-2xl font-bold text-white">
+                <h2 id="error-title" class="mb-2 text-2xl font-bold text-[var(--color-ink)]">
                     Une erreur est survenue
                 </h2>
 
-                <p id="error-message" class="mb-6 text-[#C1C1C7]">{{ message }}</p>
+                <p id="error-message" class="mb-6 text-[var(--color-ink-soft)]">{{ message }}</p>
 
                 <button
                     v-if="!isCountdown"

@@ -4,7 +4,6 @@ import { useRoute } from 'vue-router'
 import Navbar from './components/common/Navbar.vue'
 import AppFooter from './components/common/AppFooter.vue'
 import ErrorDisplay from './components/common/ErrorDisplay.vue'
-import ScrollProgress from './components/common/ScrollProgress.vue'
 import CookieBanner from './components/common/CookieBanner.vue'
 import { readSession, clearSession } from './auth/session'
 import { useMotionPreference } from './composables/useMotion'
@@ -64,7 +63,6 @@ const handleLogout = () => {
 <template>
     <a class="skip-link" href="#contenu">Aller au contenu principal</a>
 
-    <ScrollProgress />
 
     <ErrorDisplay />
 

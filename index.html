@@ -12,8 +12,8 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
-    <meta name="theme-color" content="#0d0d0f">
-    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#F2EFE9">
+    <meta name="color-scheme" content="light">
 
     <!-- Partage social -->
     <meta property="og:type" content="website">
@@ -37,12 +37,15 @@
       sur le chemin critique. On précharge les deux fichiers réellement utilisés
       au premier rendu.
     -->
-    <link rel="preload" href="/fonts/cormorant-garamond-400-700-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/fonts/inter-400-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/big-shoulders-display-400-800-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/spectral-400-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
 
     <!-- Le fond est peint avant l'hydratation : pas de flash blanc au chargement -->
     <style>
-      html, body { background-color: #0d0d0f; margin: 0; }
+      /* Peint avant l'hydratation, pour éviter un flash au chargement.
+         Volontairement hors couche de cascade — donc prioritaire : cette
+         valeur doit rester en phase avec --color-paper dans tokens.css. */
+      html, body { background-color: #F2EFE9; margin: 0; }
     </style>
   </head>
   <body>

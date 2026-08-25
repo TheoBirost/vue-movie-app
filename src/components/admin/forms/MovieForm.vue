@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { gsap } from 'gsap'
 import api from '/src/api/api.js'
 import { logger } from '../../../utils/logger'
 
@@ -66,12 +65,6 @@ const toggleActor = (id) => {
 onMounted(async () => {
   await fetchActors()
   initFromMovie(props.movie)
-  gsap.from('.form-container', {
-    opacity: 0,
-    y: 50,
-    duration: 0.5,
-    ease: 'power3.out'
-  })
 })
 watch(() => props.movie, (m) => initFromMovie(m))
 
@@ -107,50 +100,50 @@ const saveMovie = async () => {
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="emit('close')">
-    <div class="form-container bg-[#16181E] border border-[#2A2D36] rounded-lg w-full max-w-2xl shadow-2xl max-h-[90vh] flex flex-col">
-      <header class="p-6 flex items-center justify-between border-b border-[#2A2D36]">
-        <h2 class="garamond text-2xl font-bold text-white">
+  <div class="fixed inset-0 bg-[var(--color-ink)]/70 backdrop-blur-sm flex justify-center items-center z-50 p-4" @click.self="emit('close')">
+    <div class="form-container bg-[var(--color-paper-raised)] border border-[var(--color-rule)] rounded-lg w-full max-w-2xl shadow-2xl max-h-[90vh] flex flex-col">
+      <header class="p-6 flex items-center justify-between border-b border-[var(--color-rule)]">
+        <h2 class="text-2xl font-bold text-[var(--color-ink)]">
           {{ props.movie ? 'Modifier le film' : 'Nouveau film' }}
         </h2>
-        <button @click="emit('close')" class="p-2 rounded-full text-[#82828A] hover:bg-white/10" aria-label="Fermer">
+        <button @click="emit('close')" class="p-2 rounded-full text-[var(--color-ink-faint)] hover:bg-white/10" aria-label="Fermer">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </header>
 
       <main class="p-6 space-y-6 overflow-y-auto">
         <div>
-          <label for="movie-title" class="block text-sm font-medium text-[#C1C1C7] mb-1">Titre</label>
-          <input id="movie-title" v-model="title" type="text" placeholder="ex: Inception" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
+          <label for="movie-title" class="block text-sm font-medium text-[var(--color-ink-soft)] mb-1">Titre</label>
+          <input id="movie-title" v-model="title" type="text" placeholder="ex: Inception" class="w-full px-4 py-2 bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-md text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-night)]" />
         </div>
 
         <div>
-          <label for="movie-description" class="block text-sm font-medium text-[#C1C1C7] mb-1">Description</label>
-          <textarea id="movie-description" v-model="description" placeholder="Décrivez l'intrigue du film..." rows="4" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md resize-y text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]"></textarea>
+          <label for="movie-description" class="block text-sm font-medium text-[var(--color-ink-soft)] mb-1">Description</label>
+          <textarea id="movie-description" v-model="description" placeholder="Décrivez l'intrigue du film..." rows="4" class="w-full px-4 py-2 bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-md resize-y text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-night)]"></textarea>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label for="movie-release-date" class="block text-sm font-medium text-[#C1C1C7] mb-1">Date de sortie</label>
-            <input id="movie-release-date" v-model="releaseDate" type="date" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
+            <label for="movie-release-date" class="block text-sm font-medium text-[var(--color-ink-soft)] mb-1">Date de sortie</label>
+            <input id="movie-release-date" v-model="releaseDate" type="date" class="w-full px-4 py-2 bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-md text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-night)]" />
           </div>
           <div>
-            <label for="movie-duration" class="block text-sm font-medium text-[#C1C1C7] mb-1">Durée (minutes)</label>
-            <input id="movie-duration" v-model="duration" type="number" placeholder="120" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
+            <label for="movie-duration" class="block text-sm font-medium text-[var(--color-ink-soft)] mb-1">Durée (minutes)</label>
+            <input id="movie-duration" v-model="duration" type="number" placeholder="120" class="w-full px-4 py-2 bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-md text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-night)]" />
           </div>
         </div>
 
         <div>
-          <label for="movie-budget" class="block text-sm font-medium text-[#C1C1C7] mb-1">Budget ($)</label>
-          <input id="movie-budget" v-model="budget" type="number" placeholder="10000000" class="w-full px-4 py-2 bg-[#0d0d0f] border border-[#2A2D36] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#FFD700]" />
+          <label for="movie-budget" class="block text-sm font-medium text-[var(--color-ink-soft)] mb-1">Budget ($)</label>
+          <input id="movie-budget" v-model="budget" type="number" placeholder="10000000" class="w-full px-4 py-2 bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-md text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-night)]" />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-[#C1C1C7] mb-1">Acteurs ({{ selectedActors.length }} sélectionné{{ selectedActors.length > 1 ? 's' : '' }})</label>
-          <div class="bg-[#0d0d0f] border border-[#2A2D36] rounded-md p-4 max-h-48 overflow-y-auto space-y-2">
-            <label v-for="actor in allActors" :key="actor.id" class="flex items-center gap-3 p-2 rounded-md hover:bg-[#1E2129] cursor-pointer">
-              <input type="checkbox" :value="actor.id" :checked="selectedActors.includes(actor.id)" @change="toggleActor(actor.id)" class="w-4 h-4 rounded border-[#2A2D36] bg-[#0d0d0f] text-[#FFD700] focus:ring-[#FFD700]" />
-              <span class="text-white">{{ actor.firstname }} {{ actor.lastname }}</span>
+          <label class="block text-sm font-medium text-[var(--color-ink-soft)] mb-1">Acteurs ({{ selectedActors.length }} sélectionné{{ selectedActors.length > 1 ? 's' : '' }})</label>
+          <div class="bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-md p-4 max-h-48 overflow-y-auto space-y-2">
+            <label v-for="actor in allActors" :key="actor.id" class="flex items-center gap-3 p-2 rounded-md hover:bg-[var(--color-paper-sunk)] cursor-pointer">
+              <input type="checkbox" :value="actor.id" :checked="selectedActors.includes(actor.id)" @change="toggleActor(actor.id)" class="w-4 h-4 rounded border-[var(--color-rule)] bg-[var(--color-paper)] text-[var(--color-night)] focus:ring-[var(--color-night)]" />
+              <span class="text-[var(--color-ink)]">{{ actor.firstname }} {{ actor.lastname }}</span>
             </label>
           </div>
         </div>
@@ -160,11 +153,11 @@ const saveMovie = async () => {
         </div>
       </main>
 
-      <footer class="p-6 flex justify-end gap-4 border-t border-[#2A2D36]">
-        <button @click="emit('close')" class="px-6 py-2.5 rounded-lg text-sm font-bold text-[#C1C1C7] border border-[#2A2D36] hover:bg-white/10 transition-colors">
+      <footer class="p-6 flex justify-end gap-4 border-t border-[var(--color-rule)]">
+        <button @click="emit('close')" class="px-6 py-2.5 rounded-lg text-sm font-bold text-[var(--color-ink-soft)] border border-[var(--color-rule)] hover:bg-white/10 transition-colors">
           Annuler
         </button>
-        <button @click="saveMovie" :disabled="loading" class="px-6 py-2.5 rounded-lg text-sm font-bold text-black bg-[#FFD700] hover:bg-[#FFE55C] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+        <button @click="saveMovie" :disabled="loading" class="px-6 py-2.5 rounded-lg text-sm font-bold text-black bg-[var(--color-ink)] hover:bg-[var(--color-night)] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
           {{ loading ? 'Sauvegarde...' : 'Sauvegarder' }}
         </button>
       </footer>

@@ -1,118 +1,137 @@
 /* ---------------------------------------------------------------------------
-   Base : reset applicatif, typographie, décor global.
+   Base : réglages typographiques et décor minimal.
    --------------------------------------------------------------------------- */
-
 @layer base {
     html {
         scroll-behavior: smooth;
-        /* Évite qu'une ancre passe sous la navbar fixe */
-        scroll-padding-top: var(--nav-height);
-        background-color: var(--color-ink);
+        scroll-padding-top: calc(var(--nav-height) + 1rem);
+        background-color: var(--color-paper);
+        -webkit-text-size-adjust: 100%;
     }
 
     body {
-        background-color: var(--color-ink);
-        color: var(--color-chalk);
-        font-family: var(--font-sans);
-        letter-spacing: 0.01em;
-        line-height: 1.6;
+        background-color: var(--color-paper);
+        color: var(--color-ink);
+        font-family: var(--font-body);
+        font-size: 1rem;
+        line-height: 1.65;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         overflow-x: hidden;
-        /* Le fond reste noir même en overscroll (iOS / trackpad) */
         overscroll-behavior-y: none;
     }
 
-    /* Titres : serif cinéma. `.garamond` reste l'alias utilisé dans les vues. */
-    h1, h2, h3, h4, h5, h6, .garamond {
+    /* --- Titres : grotesque condensé, très serré ------------------------- */
+    h1, h2, h3, h4, .display {
         font-family: var(--font-display);
         font-weight: 700;
+        line-height: 0.92;
         letter-spacing: -0.005em;
-        line-height: 1.08;
+        text-transform: uppercase;
         text-wrap: balance;
+        color: var(--color-ink);
     }
 
-    /* Variante bâton condensée, pour les sur-titres et labels */
-    .display-condensed {
-        font-family: "Bebas Neue", "Oswald", var(--font-sans);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
+    h1, .display-xl {
+        font-size: clamp(3.25rem, 11vw, 8.5rem);
+    }
+    h2, .display-l {
+        font-size: clamp(2rem, 5vw, 3.75rem);
+    }
+    h3, .display-m {
+        font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+        line-height: 1;
     }
 
-    /* Sur-titre doré récurrent ("SÉLECTION", "COLLECTION", "GENRES"…) */
-    .eyebrow {
-        color: var(--color-gold);
-        font-size: 0.625rem;
-        letter-spacing: 0.3em;
-        text-transform: uppercase;
-        font-weight: 600;
-    }
-
-    p, span, a, li, label, input, textarea, select, button {
-        font-family: var(--font-sans);
-    }
-
-    /* Un paragraphe long reste lisible */
+    /* --- Texte suivi ------------------------------------------------------ */
     p {
         text-wrap: pretty;
+        max-width: var(--measure);
     }
 
-    img, video, canvas {
+    /* --- Données : tout ce qui s'aligne en colonne ------------------------ */
+    .data {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-ink-faint);
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Sur-titre de section */
+    .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.6875rem;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--color-night);
+    }
+
+    /* --- Filets ----------------------------------------------------------- */
+    .rule {
+        height: 1px;
+        background-color: var(--color-rule);
+        border: 0;
+    }
+    .rule-strong {
+        height: 2px;
+        background-color: var(--color-rule-strong);
+        border: 0;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    img, video, canvas, svg {
         max-width: 100%;
     }
 
-    /* --- Accessibilité : focus toujours visible, jamais au clic souris --------- */
+    /* --- Accessibilité ----------------------------------------------------- */
     :focus-visible {
-        outline: 2px solid var(--color-gold);
+        outline: 2px solid var(--color-night);
         outline-offset: 3px;
-        border-radius: 4px;
     }
     :focus:not(:focus-visible) {
         outline: none;
     }
 
-    /* Lien d'évitement clavier */
     .skip-link {
         position: fixed;
         top: 0.75rem;
         left: 0.75rem;
         z-index: 100;
         padding: 0.75rem 1.25rem;
-        border-radius: 0.5rem;
-        background: var(--color-gold);
-        color: #000;
-        font-weight: 700;
-        font-size: 0.875rem;
+        background: var(--color-ink);
+        color: var(--color-paper);
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
         transform: translateY(-160%);
-        transition: transform var(--duration-base) var(--ease-cinema);
+        transition: transform var(--duration-base) var(--ease-page);
     }
     .skip-link:focus-visible {
         transform: translateY(0);
     }
 
-    /* --- Sélection de texte --------------------------------------------------- */
     ::selection {
-        background-color: var(--color-gold);
-        color: var(--color-ink);
+        background-color: var(--color-night);
+        color: var(--color-paper);
     }
 
-    /* --- Barre de défilement --------------------------------------------------- */
-    ::-webkit-scrollbar {
-        width: 10px;
-        height: 10px;
-    }
-    ::-webkit-scrollbar-track {
-        background: var(--color-ink);
-    }
+    /* --- Barre de défilement, discrète ------------------------------------ */
+    ::-webkit-scrollbar { width: 12px; height: 12px; }
+    ::-webkit-scrollbar-track { background: var(--color-paper); }
     ::-webkit-scrollbar-thumb {
-        background-color: var(--color-line);
+        background-color: var(--color-rule);
+        border: 4px solid var(--color-paper);
         border-radius: 20px;
-        border: 3px solid var(--color-ink);
     }
-    ::-webkit-scrollbar-thumb:hover {
-        background-color: var(--color-gold);
-    }
-    * {
-        scrollbar-color: var(--color-line) var(--color-ink);
-    }
+    ::-webkit-scrollbar-thumb:hover { background-color: var(--color-ink-faint); }
+    * { scrollbar-color: var(--color-rule) var(--color-paper); }
 }

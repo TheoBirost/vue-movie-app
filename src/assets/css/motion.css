@@ -1,43 +1,21 @@
 /* ---------------------------------------------------------------------------
-   Animations partagées + garde-fou "prefers-reduced-motion".
+   Animations partagées et garde-fou « prefers-reduced-motion ».
+
+   L'essentiel du mouvement vit désormais dans Motion (directive v-reveal) et
+   dans les transitions CSS des composants. Il ne reste ici que ce qui doit
+   être global.
    --------------------------------------------------------------------------- */
-
-
 
 @keyframes shimmer {
     100% { transform: translateX(100%); }
 }
 
-@keyframes pulse-gold {
-    0%, 100% { box-shadow: 0 0 0 0 rgb(255 215 0 / 0.35); }
-    70%      { box-shadow: 0 0 0 12px rgb(255 215 0 / 0); }
-}
-
-@keyframes fade-up {
-    from { opacity: 0; transform: translate3d(0, 24px, 0); }
-    to   { opacity: 1; transform: none; }
-}
-
-/* Révélation d'image : le flou se lève quand la source est décodée */
-.img-reveal {
-    opacity: 0;
-    filter: blur(12px);
-    transform: scale(1.04);
-    transition:
-        opacity var(--duration-slow) var(--ease-cinema),
-        filter var(--duration-slow) var(--ease-cinema),
-        transform var(--duration-slow) var(--ease-cinema);
-}
-.img-reveal.is-loaded {
-    opacity: 1;
-    filter: blur(0);
-    transform: none;
-}
-
 /* ---------------------------------------------------------------------------
-   Mouvement réduit : on neutralise tout ce qui bouge en continu ou sur de
-   longues distances, sans supprimer les retours d'état (couleurs, opacité).
-   GSAP et Three.js lisent la même préférence via useMotionPreference().
+   Mouvement réduit.
+
+   On neutralise ce qui bouge, sans supprimer les retours d'état (couleurs,
+   soulignements). La directive v-reveal lit la même préférence et n'anime ni
+   ne masque rien dans ce cas : voir src/motion/reveal.js.
    --------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
     :root {
@@ -46,9 +24,7 @@
         --duration-slow: 0.01ms;
     }
 
-    html {
-        scroll-behavior: auto;
-    }
+    html { scroll-behavior: auto; }
 
     *,
     *::before,
@@ -59,21 +35,10 @@
         scroll-behavior: auto !important;
     }
 
-    /* Les décors purement esthétiques disparaissent plutôt que de clignoter */
-    .universal-card::after,
-    .skeleton::after {
-        animation: none;
-        display: none;
-    }
+    /* Le scintillement des squelettes n'apporte rien et fatigue */
+    .skeleton::after { animation: none; display: none; }
 
-    .universal-card:hover,
-    .universal-card:focus-within {
-        transform: none;
-    }
-
-    .img-reveal {
-        opacity: 1;
-        filter: none;
-        transform: none;
-    }
+    /* Le décalage au survol d'une ligne d'index devient un simple aplat */
+    .index-row:hover,
+    .index-row:focus-visible { padding-left: 0.75rem; }
 }

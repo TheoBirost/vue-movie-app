@@ -58,7 +58,7 @@ const routes = [
         component: Movies,
         meta: {
             title: 'Films',
-            description: 'Parcourez le catalogue de films : recherche par titre, filtrage par genre et fiches détaillées.',
+            description: 'Index des films : recherche par titre, filtrage par genre, tri par année ou durée.',
         },
     },
     {
@@ -72,23 +72,23 @@ const routes = [
         name: 'actors',
         component: Actors,
         meta: {
-            title: 'Acteurs',
-            description: 'Découvrez les acteurs du catalogue et leur filmographie.',
+            title: 'Interprètes',
+            description: "Index alphabétique des interprètes du catalogue et de leur filmographie.",
         },
     },
     {
         path: '/actors/:id',
         name: 'actor-details',
         component: ActorDetails,
-        meta: { title: 'Acteur', description: "Biographie et filmographie de l'acteur." },
+        meta: { title: 'Interprète', description: "Repères et filmographie de l'interprète." },
     },
     {
         path: '/categories',
         name: 'categories',
         component: Categories,
         meta: {
-            title: 'Catégories',
-            description: 'Tous les genres du catalogue : drame, science-fiction, documentaire, biographie…',
+            title: 'Genres',
+            description: 'Tous les genres du catalogue, classés par nombre de films.',
         },
     },
     {

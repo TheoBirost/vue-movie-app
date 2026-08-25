@@ -19,11 +19,10 @@ const isScrolled = ref(false)
 const rateLimit = ref({ remaining: null, limit: null })
 
 const navigation = [
-    { name: 'Accueil', href: '/' },
     { name: 'Films', href: '/movies' },
-    { name: 'Acteurs', href: '/actors' },
+    { name: 'Interprètes', href: '/actors' },
     { name: 'Réalisateurs', href: '/directors' },
-    { name: 'Catégories', href: '/categories' },
+    { name: 'Genres', href: '/categories' },
 ]
 
 // L'entrée Admin suit le rôle porté par le jeton, pas un drapeau localStorage
@@ -36,14 +35,13 @@ const logout = () => {
 }
 
 const handleScroll = () => {
-    isScrolled.value = window.scrollY > 10
+    isScrolled.value = window.scrollY > 4
 }
 
 const updateRateLimit = (data) => {
     rateLimit.value = data
 }
 
-// Ferme le menu mobile à la navigation et à l'échappement
 watch(() => route.fullPath, () => (isOpen.value = false))
 
 const onKeydown = (event) => {
@@ -66,213 +64,96 @@ onUnmounted(() => {
 
 <template>
     <nav
-        class="fixed inset-x-0 top-0 z-50 transition-colors duration-300"
-        :class="
-            isScrolled || isOpen
-                ? 'border-b border-[#2A2D36] bg-[#0d0d0f]/85 backdrop-blur-lg'
-                : 'border-b border-transparent bg-transparent'
-        "
+        class="masthead"
+        :class="{ 'masthead--pinned': isScrolled || isOpen }"
         aria-label="Navigation principale"
     >
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="flex h-24 items-center justify-between">
+        <div class="mx-auto flex h-[var(--nav-height)] max-w-[82rem] items-center gap-8 px-5 md:px-10">
+            <router-link
+                to="/"
+                class="wordmark"
+                aria-label="Cinéaste, retour à l'accueil"
+            >
+                Cinéaste
+            </router-link>
+
+            <!-- Navigation bureau -->
+            <div class="ml-auto hidden items-center gap-7 md:flex">
                 <router-link
-                    to="/"
-                    class="garamond flex-shrink-0 text-3xl font-bold text-[#FFD700]"
-                    aria-label="Cinéaste, retour à l'accueil"
+                    v-for="item in navigation"
+                    :key="item.href"
+                    :to="item.href"
+                    class="nav-link"
+                    active-class="is-active"
+                    :aria-current="route.path === item.href ? 'page' : undefined"
                 >
-                    Cinéaste
+                    {{ item.name }}
                 </router-link>
 
-                <!-- Navigation bureau -->
-                <div class="hidden items-center gap-1 md:flex">
-                    <router-link
-                        v-for="item in navigation"
-                        :key="item.href"
-                        :to="item.href"
-                        class="nav-link"
-                        active-class="is-active"
-                        :aria-current="route.path === item.href ? 'page' : undefined"
-                    >
-                        {{ item.name }}
-                    </router-link>
-                    <router-link
-                        v-if="isAdmin"
-                        to="/admin"
-                        class="nav-link"
-                        active-class="is-active"
-                    >
-                        Admin
-                    </router-link>
-                </div>
-
-                <div class="hidden items-center gap-4 md:flex">
-                    <template v-if="props.loggedIn">
-                        <p
-                            v-if="rateLimit.remaining !== null"
-                            class="flex items-center gap-1 text-xs text-[#82828A]"
-                            :title="`Requêtes API restantes sur la minute en cours`"
-                        >
-                            <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                aria-hidden="true"
-                            >
-                                <circle cx="12" cy="12" r="10" />
-                                <path d="M12 6v6l4 2" />
-                            </svg>
-                            <span>{{ rateLimit.remaining }} / {{ rateLimit.limit }}</span>
-                        </p>
-
-                        <button
-                            type="button"
-                            class="icon-btn inline-flex items-center justify-center"
-                            aria-label="Se déconnecter"
-                            @click="logout"
-                        >
-                            <svg
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                aria-hidden="true"
-                            >
-                                <path d="m16 17 5-5-5-5" />
-                                <path d="M21 12H9" />
-                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                            </svg>
-                        </button>
-
-                        <router-link to="/profile" aria-label="Mon profil">
-                            <img
-                                class="h-10 w-10 rounded-full border-2 border-[#2A2D36] object-cover transition-colors hover:border-[#FFD700]"
-                                :src="props.photo"
-                                alt=""
-                                width="40"
-                                height="40"
-                            />
-                        </router-link>
-                    </template>
-
-                    <router-link v-else to="/connexion" class="btn btn-secondary">
-                        Connexion
-                    </router-link>
-                </div>
-
-                <!-- Bouton menu mobile -->
-                <button
-                    type="button"
-                    class="icon-btn -mr-2 inline-flex items-center justify-center md:hidden"
-                    :aria-expanded="isOpen"
-                    aria-controls="menu-mobile"
-                    :aria-label="isOpen ? 'Fermer le menu' : 'Ouvrir le menu'"
-                    @click="isOpen = !isOpen"
-                >
-                    <svg
-                        class="h-6 w-6"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        aria-hidden="true"
-                    >
-                        <path
-                            v-if="!isOpen"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M4 6h16M4 12h16M4 18h16"
-                        />
-                        <path
-                            v-else
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M6 18L18 6M6 6l12 12"
-                        />
-                    </svg>
-                </button>
+                <router-link v-if="isAdmin" to="/admin" class="nav-link" active-class="is-active">
+                    Admin
+                </router-link>
             </div>
+
+            <div class="hidden items-center gap-5 md:flex">
+                <span
+                    v-if="props.loggedIn && rateLimit.remaining !== null"
+                    class="data"
+                    title="Requêtes API restantes sur la minute en cours"
+                >
+                    {{ rateLimit.remaining }}/{{ rateLimit.limit }}
+                </span>
+
+                <template v-if="props.loggedIn">
+                    <router-link to="/profile" class="nav-link" active-class="is-active">
+                        Profil
+                    </router-link>
+                    <button type="button" class="nav-link" @click="logout">Quitter</button>
+                </template>
+
+                <router-link v-else to="/connexion" class="btn btn-primary !px-5 !py-2.5">
+                    Connexion
+                </router-link>
+            </div>
+
+            <!-- Bascule mobile -->
+            <button
+                type="button"
+                class="nav-link ml-auto md:hidden"
+                :aria-expanded="isOpen"
+                aria-controls="menu-mobile"
+                @click="isOpen = !isOpen"
+            >
+                {{ isOpen ? 'Fermer' : 'Menu' }}
+            </button>
         </div>
 
-        <Transition
-            enter-active-class="transition duration-200 ease-out"
-            enter-from-class="-translate-y-2 opacity-0"
-            enter-to-class="translate-y-0 opacity-100"
-            leave-active-class="transition duration-150 ease-in"
-            leave-from-class="translate-y-0 opacity-100"
-            leave-to-class="-translate-y-2 opacity-0"
-        >
-            <div v-if="isOpen" id="menu-mobile" class="border-t border-[#2A2D36] md:hidden">
-                <div class="space-y-1 px-4 py-3">
+        <Transition name="drawer">
+            <div v-if="isOpen" id="menu-mobile" class="border-t border-[var(--color-rule)] md:hidden">
+                <div class="mx-auto max-w-[82rem] px-5 py-4">
                     <router-link
                         v-for="item in navigation"
                         :key="item.href"
                         :to="item.href"
-                        class="block rounded-md px-3 py-2.5 text-base font-medium text-[#C1C1C7] hover:bg-white/5 hover:text-white"
-                        active-class="bg-white/10 text-white"
+                        class="block border-b border-[var(--color-rule)] py-3 font-[family-name:var(--font-display)] text-2xl uppercase"
                     >
                         {{ item.name }}
                     </router-link>
                     <router-link
                         v-if="isAdmin"
                         to="/admin"
-                        class="block rounded-md px-3 py-2.5 text-base font-medium text-[#C1C1C7] hover:bg-white/5 hover:text-white"
-                        active-class="bg-white/10 text-white"
+                        class="block border-b border-[var(--color-rule)] py-3 font-[family-name:var(--font-display)] text-2xl uppercase"
                     >
                         Admin
                     </router-link>
-                </div>
 
-                <div class="border-t border-[#2A2D36] px-4 py-4">
-                    <div v-if="props.loggedIn" class="flex items-center justify-between">
-                        <router-link
-                            to="/profile"
-                            class="flex items-center gap-3 text-[#C1C1C7]"
-                        >
-                            <img
-                                class="h-10 w-10 rounded-full object-cover"
-                                :src="props.photo"
-                                alt=""
-                                width="40"
-                                height="40"
-                            />
-                            <span class="text-sm font-medium">Mon profil</span>
-                        </router-link>
-                        <button
-                            type="button"
-                            class="icon-btn inline-flex items-center justify-center"
-                            aria-label="Se déconnecter"
-                            @click="logout"
-                        >
-                            <svg
-                                width="22"
-                                height="22"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                aria-hidden="true"
-                            >
-                                <path d="m16 17 5-5-5-5" />
-                                <path d="M21 12H9" />
-                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                            </svg>
-                        </button>
+                    <div class="flex items-center gap-6 pt-5">
+                        <template v-if="props.loggedIn">
+                            <router-link to="/profile" class="nav-link">Profil</router-link>
+                            <button type="button" class="nav-link" @click="logout">Quitter</button>
+                        </template>
+                        <router-link v-else to="/connexion" class="btn btn-primary">Connexion</router-link>
                     </div>
-
-                    <router-link v-else to="/connexion" class="btn btn-secondary w-full">
-                        Connexion
-                    </router-link>
                 </div>
             </div>
         </Transition>
@@ -280,59 +161,74 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.masthead {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: var(--color-paper);
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--duration-fast) linear;
+}
+
+/* Le filet n'apparaît qu'une fois la page défilée : au repos, le bandeau se
+   fond dans le papier et laisse le titre respirer. */
+.masthead--pinned {
+    border-bottom-color: var(--color-rule);
+}
+
+.wordmark {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    line-height: 1;
+    color: var(--color-ink);
+}
+
 .nav-link {
     position: relative;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
     font-weight: 500;
-    color: var(--color-ash);
-    transition: color var(--duration-base) var(--ease-cinema);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+    background: none;
+    border: 0;
+    padding: 0.25rem 0;
+    cursor: pointer;
+    transition: color var(--duration-fast) linear;
 }
 
-.nav-link:hover {
-    color: var(--color-chalk);
-}
+.nav-link:hover { color: var(--color-ink); }
 
-/* Soulignement doré qui se déploie depuis le centre */
+/* Soulignement qui se déploie depuis la gauche */
 .nav-link::after {
     content: '';
     position: absolute;
-    left: 1rem;
-    right: 1rem;
-    bottom: 0.15rem;
+    left: 0;
+    right: 0;
+    bottom: -2px;
     height: 1px;
-    background-color: var(--color-gold);
+    background-color: var(--color-night);
     transform: scaleX(0);
-    transition: transform var(--duration-base) var(--ease-cinema);
+    transform-origin: left;
+    transition: transform var(--duration-base) var(--ease-page);
 }
 
 .nav-link:hover::after,
-.nav-link.is-active::after {
-    transform: scaleX(1);
-}
+.nav-link.is-active::after { transform: scaleX(1); }
+.nav-link.is-active { color: var(--color-ink); }
 
-.nav-link.is-active {
-    color: var(--color-chalk);
+.drawer-enter-active,
+.drawer-leave-active {
+    transition: opacity var(--duration-fast) linear;
 }
+.drawer-enter-from,
+.drawer-leave-to { opacity: 0; }
 
-/*
- * Pas de `display` ici : une règle de <style scoped> est injectée après la
- * feuille Tailwind et l'emporterait sur `md:hidden`, laissant le bouton
- * hamburger visible en bureau. La mise en flex passe donc par les classes
- * utilitaires sur l'élément.
- */
-.icon-btn {
-    padding: 0.5rem;
-    border-radius: 9999px;
-    color: var(--color-ash);
-    transition:
-        color var(--duration-base) var(--ease-cinema),
-        background-color var(--duration-base) var(--ease-cinema);
-}
-
-.icon-btn:hover {
-    color: var(--color-chalk);
-    background-color: rgb(255 255 255 / 0.08);
+@media (prefers-reduced-motion: reduce) {
+    .nav-link::after { transition: none; }
 }
 </style>
