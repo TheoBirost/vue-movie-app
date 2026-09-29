@@ -1,4 +1,4 @@
-# Générique — https://cineaste.theo-birost.fr
+# Générique — https://generique.theo-birost.fr
 User-agent: *
 Allow: /
 
@@ -9,4 +9,4 @@ Disallow: /connexion
 Disallow: /inscription
 Disallow: /500
 
-Sitemap: https://cineaste.theo-birost.fr/sitemap.xml
+Sitemap: https://generique.theo-birost.fr/sitemap.xml

@@ -7,7 +7,7 @@ import LegalPage from './LegalPage.vue'
         <section>
             <h2>Éditeur du site</h2>
             <p>
-                Le site <strong>Générique</strong> (cineaste.theo-birost.fr) est édité
+                Le site <strong>Générique</strong> (generique.theo-birost.fr) est édité
                 par <span class="todo">NOM ET PRÉNOM / RAISON SOCIALE</span>,
                 <span class="todo">STATUT JURIDIQUE</span>.
             </p>

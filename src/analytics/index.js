@@ -7,7 +7,7 @@
  *
  * Variables attendues (onglet Environment de Dokploy) :
  *   VITE_ANALYTICS_SRC     ex. https://plausible.example.com/js/script.js
- *   VITE_ANALYTICS_DOMAIN  ex. cineaste.theo-birost.fr
+ *   VITE_ANALYTICS_DOMAIN  ex. generique.theo-birost.fr
  */
 let loaded = false
 
