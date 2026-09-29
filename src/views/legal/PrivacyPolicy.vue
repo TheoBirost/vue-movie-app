@@ -21,7 +21,7 @@ const label = {
             <h2>Responsable du traitement</h2>
             <p>
                 Le responsable du traitement des données collectées sur
-                cineaste.theo-birost.fr est
+                generique.theo-birost.fr est
                 <span class="todo">NOM ET PRÉNOM / RAISON SOCIALE</span>.
                 Pour toute question relative à vos données :
                 <span class="todo">ADRESSE E-MAIL DE CONTACT</span>.

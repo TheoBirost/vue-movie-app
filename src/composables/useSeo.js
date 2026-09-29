@@ -1,5 +1,5 @@
 const SITE_NAME = 'Générique'
-const SITE_URL = 'https://cineaste.theo-birost.fr'
+const SITE_URL = 'https://generique.theo-birost.fr'
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.jpg`
 const DEFAULT_DESCRIPTION =
     "Un index de films, d'interprètes et de réalisateurs : titres, années, durées et distributions."
